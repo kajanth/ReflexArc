@@ -1,0 +1,130 @@
+{
+    "brain": {
+        "name": "DevOps Brain",
+        "description": "Infrastructure monitoring and autonomous incident response",
+        "heartbeat_interval": 30,
+        "prediction_interval": 120,
+        "goal_eval_interval": 300
+    },
+    "sensors": [
+        {
+            "name": "vision",
+            "module": "sensors.vision.OpenCVReflex",
+            "args": {
+                "sensitivity": 20000
+            },
+            "emoji": "👀",
+            "label": "Vision",
+            "type": "peripheral"
+        },
+        {
+            "name": "auditory",
+            "module": "sensors.auditory.AudioSensor",
+            "args": {
+                "rms_threshold": 500
+            },
+            "emoji": "👂",
+            "label": "Auditory",
+            "type": "peripheral"
+        },
+        {
+            "name": "system_vitals",
+            "module": "sensors.system_vitals.SystemVitalsSensor",
+            "emoji": "📡",
+            "label": "System Vitals",
+            "type": "peripheral"
+        },
+        {
+            "name": "filesystem",
+            "module": "sensors.filesystem.FileSystemSensor",
+            "args": {
+                "watch_paths": [
+                    "skills/",
+                    "memory/"
+                ]
+            },
+            "emoji": "📂",
+            "label": "Filesystem",
+            "type": "peripheral"
+        },
+        {
+            "name": "network_probe",
+            "module": "sensors.network_probe.NetworkProbeSensor",
+            "emoji": "🌐",
+            "label": "Network Probe",
+            "type": "peripheral"
+        },
+        {
+            "name": "threat_detection",
+            "module": "sensors.threat_detection.ThreatDetectionSensor",
+            "emoji": "🛡️",
+            "label": "Threat Detection",
+            "type": "security"
+        },
+        {
+            "name": "circadian",
+            "source": "brain.circadian",
+            "emoji": "⏰",
+            "label": "Circadian Rhythm",
+            "type": "internal"
+        },
+        {
+            "name": "cognitive_load",
+            "source": "brain.cognitive_load",
+            "emoji": "📊",
+            "label": "Cognitive Load",
+            "type": "internal"
+        }
+    ],
+    "predictions": [
+        {
+            "name": "cpu_percent",
+            "measurer": "psutil.cpu_percent",
+            "args": {
+                "interval": 0.3
+            },
+            "threshold": 90,
+            "direction": "above",
+            "unit": "%",
+            "description": "CPU Usage"
+        },
+        {
+            "name": "memory_percent",
+            "measurer": "psutil.virtual_memory",
+            "attribute": "percent",
+            "threshold": 85,
+            "direction": "above",
+            "unit": "%",
+            "description": "Memory Usage"
+        },
+        {
+            "name": "disk_percent",
+            "measurer": "psutil.disk_usage",
+            "args": {
+                "path": "/"
+            },
+            "attribute": "percent",
+            "threshold": 90,
+            "direction": "above",
+            "unit": "%",
+            "description": "Disk Usage"
+        },
+        {
+            "name": "avg_latency",
+            "measurer": "builtin.stats_latency",
+            "threshold": 5.0,
+            "direction": "above",
+            "unit": "s",
+            "description": "Avg Response Latency"
+        },
+        {
+            "name": "cost_velocity",
+            "measurer": "builtin.cost_velocity",
+            "threshold": 0.05,
+            "direction": "above",
+            "unit": "$/min",
+            "description": "Cost Velocity"
+        }
+    ],
+    "custom_measurers": []
+}

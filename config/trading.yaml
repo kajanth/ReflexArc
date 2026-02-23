@@ -1,0 +1,107 @@
+# ═══════════════════════════════════════════════
+# ReflexArc Brain Configuration — Trading Profile
+# ═══════════════════════════════════════════════
+# Example: Algorithmic trading brain that monitors
+# market data, executes strategies, and manages risk.
+#
+# To use: NSA_BRAIN_CONFIG=config/trading.yaml python3 main.py
+
+brain:
+  name: "Trading Brain"
+  description: "Algorithmic trading with autonomous risk management"
+  heartbeat_interval: 10
+  prediction_interval: 60
+  goal_eval_interval: 120
+
+sensors:
+  - name: price_feed
+    module: plugins.sensors.price_feed.PriceFeedSensor
+    args:
+      symbols: ["AAPL", "GOOGL", "MSFT", "BTC-USD"]
+      poll_interval: 5
+    emoji: "📈"
+    label: "Price Feed"
+    type: peripheral
+
+  - name: order_book
+    module: plugins.sensors.order_book.OrderBookSensor
+    args:
+      exchange: "binance"
+      depth: 20
+    emoji: "📊"
+    label: "Order Book"
+    type: peripheral
+
+  - name: news_sentiment
+    module: plugins.sensors.news.NewsSentimentSensor
+    args:
+      sources: ["reuters", "bloomberg"]
+      keywords: ["earnings", "fed", "inflation"]
+    emoji: "📰"
+    label: "News Sentiment"
+    type: peripheral
+
+  - name: risk_monitor
+    module: plugins.sensors.risk.RiskMonitorSensor
+    args:
+      max_drawdown_pct: 5.0
+      var_confidence: 0.95
+    emoji: "🛡️"
+    label: "Risk Monitor"
+    type: security
+
+  - name: circadian
+    source: brain.circadian
+    emoji: "⏰"
+    label: "Market Hours"
+    type: internal
+
+  - name: cognitive_load
+    source: brain.cognitive_load
+    emoji: "📊"
+    label: "Cognitive Load"
+    type: internal
+
+predictions:
+  - name: portfolio_value
+    measurer: plugins.measurers.portfolio.get_value
+    threshold: 10000
+    direction: below
+    unit: "$"
+    description: "Portfolio Value"
+
+  - name: volatility_index
+    measurer: plugins.measurers.market.get_vix
+    threshold: 30
+    direction: above
+    unit: ""
+    description: "VIX (Volatility)"
+
+  - name: sharpe_ratio
+    measurer: plugins.measurers.portfolio.get_sharpe
+    threshold: 0.5
+    direction: below
+    unit: ""
+    description: "Sharpe Ratio"
+
+  - name: max_drawdown
+    measurer: plugins.measurers.portfolio.get_drawdown
+    threshold: 5.0
+    direction: above
+    unit: "%"
+    description: "Max Drawdown"
+
+  - name: position_exposure
+    measurer: plugins.measurers.portfolio.get_exposure
+    threshold: 0.8
+    direction: above
+    unit: ""
+    description: "Position Exposure"
+
+custom_measurers:
+  - name: portfolio_value
+    module: plugins.measurers.portfolio.get_value
+  - name: sharpe_ratio
+    module: plugins.measurers.portfolio.get_sharpe
+  - name: max_drawdown
+    module: plugins.measurers.portfolio.get_drawdown

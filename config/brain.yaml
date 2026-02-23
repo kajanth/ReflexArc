@@ -1,0 +1,133 @@
+# ═══════════════════════════════════════════════
+# ReflexArc Brain Configuration — DevOps Profile
+# ═══════════════════════════════════════════════
+# Swap this file for a different domain config to
+# repurpose the brain (trading, IoT, support, etc.)
+#
+# Format: YAML (requires PyYAML) or JSON (config/brain.json)
+
+brain:
+  name: "DevOps Brain"
+  description: "Infrastructure monitoring and autonomous incident response"
+  heartbeat_interval: 30     # seconds between heartbeat pulses
+  prediction_interval: 120   # seconds between prediction cycles
+  goal_eval_interval: 300    # seconds between goal evaluations
+
+# ─── Sensors ───────────────────────────────────
+# Each sensor needs:
+#   module: dotted.path.ClassName (relative to project root)
+#   args: dict of constructor kwargs (optional)
+#   emoji/label/type: display metadata
+
+sensors:
+  - name: vision
+    module: sensors.vision.OpenCVReflex
+    args:
+      sensitivity: 20000
+    emoji: "👀"
+    label: "Vision"
+    type: peripheral
+
+  - name: auditory
+    module: sensors.auditory.AudioSensor
+    args:
+      rms_threshold: 500
+    emoji: "👂"
+    label: "Auditory"
+    type: peripheral
+
+  - name: system_vitals
+    module: sensors.system_vitals.SystemVitalsSensor
+    emoji: "📡"
+    label: "System Vitals"
+    type: peripheral
+
+  - name: filesystem
+    module: sensors.filesystem.FileSystemSensor
+    args:
+      watch_paths:
+        - "skills/"
+        - "memory/"
+    emoji: "📂"
+    label: "Filesystem"
+    type: peripheral
+
+  - name: network_probe
+    module: sensors.network_probe.NetworkProbeSensor
+    emoji: "🌐"
+    label: "Network Probe"
+    type: peripheral
+
+  - name: threat_detection
+    module: sensors.threat_detection.ThreatDetectionSensor
+    emoji: "🛡️"
+    label: "Threat Detection"
+    type: security
+
+  # Internal sensors (initialized from brain, not imported)
+  - name: circadian
+    source: brain.circadian
+    emoji: "⏰"
+    label: "Circadian Rhythm"
+    type: internal
+
+  - name: cognitive_load
+    source: brain.cognitive_load
+    emoji: "📊"
+    label: "Cognitive Load"
+    type: internal
+
+# ─── Prediction Channels ──────────────────────
+# Each channel monitors a metric and fires phantom spikes
+# when a breach is predicted.
+
+predictions:
+  - name: cpu_percent
+    measurer: psutil.cpu_percent
+    args:
+      interval: 0.3
+    threshold: 90
+    direction: above
+    unit: "%"
+    description: "CPU Usage"
+
+  - name: memory_percent
+    measurer: psutil.virtual_memory
+    attribute: percent     # call .percent on the result
+    threshold: 85
+    direction: above
+    unit: "%"
+    description: "Memory Usage"
+
+  - name: disk_percent
+    measurer: psutil.disk_usage
+    args:
+      path: "/"
+    attribute: percent
+    threshold: 90
+    direction: above
+    unit: "%"
+    description: "Disk Usage"
+
+  - name: avg_latency
+    measurer: builtin.stats_latency
+    threshold: 5.0
+    direction: above
+    unit: "s"
+    description: "Avg Response Latency"
+
+  - name: cost_velocity
+    measurer: builtin.cost_velocity
+    threshold: 0.05
+    direction: above
+    unit: "$/min"
+    description: "Cost Velocity"
+
+# ─── Custom Measurers for Goals ────────────────
+# These extend the MEASURERS dict in prefrontal_cortex.py
+# so goals can reference custom metrics.
+
+custom_measurers: []
+  # Example:
+  # - name: portfolio_value
+  #   module: plugins.measurers.portfolio.get_value
