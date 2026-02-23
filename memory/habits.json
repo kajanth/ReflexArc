@@ -1,0 +1,7 @@
+{
+  "TEMPLATE:compose_alert": {
+    "count": 2,
+    "latency_multiplier": 0.95,
+    "cost_multiplier": 0.9
+  }
+}

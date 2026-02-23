@@ -95,6 +95,14 @@ async def main():
     heart = brain.heart
     heart_task = asyncio.create_task(heart.pulse(brain))
 
+    # 5. Start Prefrontal Cortex (Goal Evaluation Loop)
+    pfc = brain.prefrontal_cortex
+    pfc_task = asyncio.create_task(pfc.evaluate_loop())
+
+    # 6. Start Predictive Cortex (Anticipatory Sensing Loop)
+    pred = brain.predictive_cortex
+    pred_task = asyncio.create_task(pred.prediction_loop())
+
     # Handle graceful shutdowns (Ctrl+C)
     loop = asyncio.get_running_loop()
     for sig_type in (signal.SIGINT, signal.SIGTERM):
@@ -104,6 +112,8 @@ async def main():
 
     print("\n🚀 NSA SYSTEM ONLINE: Monitoring environment...")
     print(f"❤️  Heartbeat: {heart.interval}s interval")
+    print(f"🎯 Prefrontal Cortex: evaluating every {pfc.eval_interval}s")
+    print(f"👁️  Predictive Cortex: sampling every {pred.prediction_interval}s")
     print("Status: Zero-Token Idle active.\n")
 
     try:
@@ -135,6 +145,8 @@ async def main():
     finally:
         heart.stop()
         heart_task.cancel()
+        pfc_task.cancel()
+        pred_task.cancel()
         sensor_mgr.release_all()
 
 if __name__ == "__main__":

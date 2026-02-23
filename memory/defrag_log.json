@@ -1,0 +1,160 @@
+[
+  {
+    "timestamp": "2026-02-23T13:45:49.702066",
+    "memories_before": 2075,
+    "memories_after": 29,
+    "duplicates_removed": 2046,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2,
+        "removed": 1,
+        "similarity": 0.9314953684806824,
+        "kept_desc": "Significant motion detected (Intensity: 1348310)",
+        "removed_desc": "Significant motion detected (Intensity: 2073600)"
+      },
+      {
+        "kept": 7,
+        "removed": 2,
+        "similarity": 0.9374944567680359,
+        "kept_desc": "Significant motion detected (Intensity: 141475)",
+        "removed_desc": "Significant motion detected (Intensity: 1348310)"
+      },
+      {
+        "kept": 4,
+        "removed": 3,
+        "similarity": 1.0000001192092896,
+        "kept_desc": "Circadian transition: ACTIVE -> SLEEP. Triggering ",
+        "removed_desc": "Circadian transition: ACTIVE -> SLEEP. Triggering "
+      },
+      {
+        "kept": 5,
+        "removed": 4,
+        "similarity": 1.0000001192092896,
+        "kept_desc": "Circadian transition: ACTIVE -> SLEEP. Triggering ",
+        "removed_desc": "Circadian transition: ACTIVE -> SLEEP. Triggering "
+      },
+      {
+        "kept": 6,
+        "removed": 5,
+        "similarity": 1.0000001192092896,
+        "kept_desc": "Circadian transition: ACTIVE -> SLEEP. Triggering ",
+        "removed_desc": "Circadian transition: ACTIVE -> SLEEP. Triggering "
+      },
+      {
+        "kept": 10,
+        "removed": 6,
+        "similarity": 1.0000001192092896,
+        "kept_desc": "Circadian transition: ACTIVE -> SLEEP. Triggering ",
+        "removed_desc": "Circadian transition: ACTIVE -> SLEEP. Triggering "
+      },
+      {
+        "kept": 11,
+        "removed": 7,
+        "similarity": 0.9271736145019531,
+        "kept_desc": "Significant motion detected (Intensity: 54030)",
+        "removed_desc": "Significant motion detected (Intensity: 141475)"
+      },
+      {
+        "kept": 12,
+        "removed": 8,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 59,
+        "removed": 9,
+        "similarity": 0.9275323152542114,
+        "kept_desc": "Significant motion detected (Intensity: 147226)",
+        "removed_desc": "Significant motion detected (Intensity: 149283)"
+      },
+      {
+        "kept": 44,
+        "removed": 10,
+        "similarity": 1.0000001192092896,
+        "kept_desc": "Circadian transition: ACTIVE -> SLEEP. Triggering ",
+        "removed_desc": "Circadian transition: ACTIVE -> SLEEP. Triggering "
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-23T13:54:06.902739",
+    "memories_before": 33,
+    "memories_after": 31,
+    "duplicates_removed": 2,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2077,
+        "removed": 2075,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db"
+      },
+      {
+        "kept": 2079,
+        "removed": 2077,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-23T14:20:40.835324",
+    "memories_before": 33,
+    "memories_after": 33,
+    "duplicates_removed": 0,
+    "threshold": 0.92,
+    "merges": []
+  },
+  {
+    "timestamp": "2026-02-23T14:24:53.088118",
+    "memories_before": 36,
+    "memories_after": 35,
+    "duplicates_removed": 1,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2083,
+        "removed": 2081,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon",
+        "removed_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-23T14:33:17.928360",
+    "memories_before": 37,
+    "memories_after": 36,
+    "duplicates_removed": 1,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2086,
+        "removed": 2083,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon",
+        "removed_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-23T14:33:43.424431",
+    "memories_before": 38,
+    "memories_after": 37,
+    "duplicates_removed": 1,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2088,
+        "removed": 2079,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db"
+      }
+    ]
+  }
+]
