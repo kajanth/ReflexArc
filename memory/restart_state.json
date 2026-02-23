@@ -1,8 +1,8 @@
 {
-  "restart_time": "2026-02-23 10:52:17",
-  "reason": "Significant motion detected (Intensity: 140847)",
-  "pid": 65324,
-  "python": "/Users/kajanthmayooranathan/.virtualenvs/ai/bin/python",
+  "restart_time": "2026-02-23 16:48:51",
+  "reason": "Proprioception: MODIFIED: providers.json",
+  "pid": 13767,
+  "python": "/Users/kajanthmayooranathan/.venv/bin/python3",
   "argv": [
     "main.py"
   ]

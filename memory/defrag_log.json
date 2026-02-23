@@ -156,5 +156,231 @@
         "removed_desc": "Proprioception: MODIFIED: long_term_memory.db"
       }
     ]
+  },
+  {
+    "timestamp": "2026-02-23T15:59:29.325645",
+    "memories_before": 43,
+    "memories_after": 38,
+    "duplicates_removed": 5,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2093,
+        "removed": 2055,
+        "similarity": 0.9592032432556152,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 89.5%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 99.1%"
+      },
+      {
+        "kept": 2094,
+        "removed": 2070,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2091,
+        "removed": 2078,
+        "similarity": 0.9627276659011841,
+        "kept_desc": "Proprioception: MODIFIED: .DS_Store",
+        "removed_desc": "Proprioception: MODIFIED: .DS_Store; CREATED: .DS_"
+      },
+      {
+        "kept": 2090,
+        "removed": 2088,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db"
+      },
+      {
+        "kept": 2092,
+        "removed": 2090,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-23T16:43:58.032708",
+    "memories_before": 63,
+    "memories_after": 39,
+    "duplicates_removed": 24,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2102,
+        "removed": 1804,
+        "similarity": 0.9345390796661377,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; CRE"
+      },
+      {
+        "kept": 2096,
+        "removed": 2086,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon",
+        "removed_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon"
+      },
+      {
+        "kept": 2095,
+        "removed": 2089,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2103,
+        "removed": 2092,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db"
+      },
+      {
+        "kept": 2097,
+        "removed": 2093,
+        "similarity": 0.9414680004119873,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 89.5%"
+      },
+      {
+        "kept": 2098,
+        "removed": 2094,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2099,
+        "removed": 2097,
+        "similarity": 1.0,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%"
+      },
+      {
+        "kept": 2100,
+        "removed": 2098,
+        "similarity": 0.940857470035553,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2101,
+        "removed": 2099,
+        "similarity": 1.0,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%"
+      },
+      {
+        "kept": 2105,
+        "removed": 2100,
+        "similarity": 0.940857470035553,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-23T16:45:46.423938",
+    "memories_before": 40,
+    "memories_after": 39,
+    "duplicates_removed": 1,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2120,
+        "removed": 2095,
+        "similarity": 0.9644516706466675,
+        "kept_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-23T16:49:13.627359",
+    "memories_before": 51,
+    "memories_after": 40,
+    "duplicates_removed": 11,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2123,
+        "removed": 2091,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: .DS_Store",
+        "removed_desc": "Proprioception: MODIFIED: .DS_Store"
+      },
+      {
+        "kept": 2129,
+        "removed": 2096,
+        "similarity": 0.9349330067634583,
+        "kept_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon",
+        "removed_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon"
+      },
+      {
+        "kept": 2126,
+        "removed": 2102,
+        "similarity": 1.0000001192092896,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2122,
+        "removed": 2107,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db"
+      },
+      {
+        "kept": 2125,
+        "removed": 2118,
+        "similarity": 0.942986011505127,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 85.1%"
+      },
+      {
+        "kept": 2129,
+        "removed": 2119,
+        "similarity": 0.9303394556045532,
+        "kept_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2124,
+        "removed": 2122,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db"
+      },
+      {
+        "kept": 2127,
+        "removed": 2124,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db"
+      },
+      {
+        "kept": 2128,
+        "removed": 2125,
+        "similarity": 0.9786840677261353,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 99.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%"
+      },
+      {
+        "kept": 2130,
+        "removed": 2128,
+        "similarity": 0.9786840677261353,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 99.0%"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-23T16:51:36.001758",
+    "memories_before": 42,
+    "memories_after": 42,
+    "duplicates_removed": 0,
+    "threshold": 0.92,
+    "merges": []
   }
 ]

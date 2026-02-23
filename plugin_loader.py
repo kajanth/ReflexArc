@@ -367,6 +367,33 @@ class BrainConfig:
 
         return measurers
 
+    # ──────────────────────────────────────────
+    # MCP Server Builder
+    # ──────────────────────────────────────────
+
+    def build_mcp_servers(self, loop=None):
+        """
+        Initializes an MCPServerManager and connects to all configured MCP servers.
+        This spawns subprocesses, so it must be run within the event loop.
+
+        Returns:
+            MCPServerManager instance (started)
+        """
+        from mcp_client import MCPServerManager
+        
+        mcp_configs = self.config.get("mcp_servers", [])
+        manager = MCPServerManager()
+        
+        if not mcp_configs:
+            return manager
+            
+        # We need to run the async start_all.
+        # It's usually called from async main() so we can either wait or just return
+        # the coroutine for the caller to await.
+        # Let's return a tuple of (manager, coroutine_to_await)
+        start_coro = manager.start_all(mcp_configs)
+        return manager, start_coro
+
     def get_raw_config(self):
         """Return the raw config dict."""
         return self.config

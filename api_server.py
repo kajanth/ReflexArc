@@ -93,6 +93,10 @@ class NSAApiServer:
         self.app.router.add_get("/predictions", self._handle_predictions)
         self.app.router.add_get("/predictions/history", self._handle_prediction_history)
 
+        # MCP (Model Context Protocol)
+        self.app.router.add_get("/mcp/servers", self._handle_mcp_servers)
+        self.app.router.add_get("/mcp/tools", self._handle_mcp_tools)
+
     # ──────────────────────────────────────────────
     # Dashboard Endpoints
     # ──────────────────────────────────────────────
@@ -612,6 +616,42 @@ class NSAApiServer:
         return web.json_response({
             "phantoms": pred.get_phantom_history(limit),
             "count": len(pred.phantom_history),
+        })
+
+    # ──────────────────────────────────────────────
+    # MCP Endpoints (Model Context Protocol)
+    # ──────────────────────────────────────────────
+    
+    async def _handle_mcp_servers(self, request):
+        """GET /mcp/servers — List active MCP servers."""
+        mcp_manager = getattr(self.brain, "mcp_manager", None)
+        if not mcp_manager:
+            return web.json_response({"servers": {}})
+            
+        servers_status = {}
+        for name, client in mcp_manager.servers.items():
+            status = "connected" if client.is_initialized else "disconnected"
+            error = None
+            if not client.is_initialized and client.process and client.process.returncode is not None:
+                error = f"Process exited with code {client.process.returncode}"
+                
+            servers_status[name] = {
+                "status": status,
+                "error": error
+            }
+            
+        return web.json_response({
+            "servers": servers_status
+        })
+        
+    async def _handle_mcp_tools(self, request):
+        """GET /mcp/tools — List all available tools across connected MCP servers."""
+        mcp_manager = getattr(self.brain, "mcp_manager", None)
+        if not mcp_manager:
+            return web.json_response({"tools": []})
+            
+        return web.json_response({
+            "tools": mcp_manager.get_all_tools()
         })
 
 

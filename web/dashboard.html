@@ -817,6 +817,17 @@
             </div>
         </div>
 
+        <!-- MCP Connections -->
+        <div class="card mcp-panel">
+            <div class="card-header">
+                🔌 MCP Connections
+                <span class="badge badge-ok" id="mcp-server-count">0</span>
+            </div>
+            <div class="card-body" id="mcp-body" style="max-height: 200px;">
+                <div style="color:var(--text-muted); font-size:12px">Waiting for MCP...</div>
+            </div>
+        </div>
+
         <!-- Skills -->
         <div class="card skills-panel">
             <div class="card-header">
@@ -1200,7 +1211,68 @@
         setInterval(fetchGoals, 10000);
 
         // ──────────────────────────────────────────────
-        // Predictions
+        // MCP (Model Context Protocol) 
+        // ──────────────────────────────────────────────
+        async function fetchMCP() {
+            try {
+                // Fetch servers and tools in parallel
+                const [serversRes, toolsRes] = await Promise.all([
+                    fetch('/mcp/servers'),
+                    fetch('/mcp/tools')
+                ]);
+
+                const serversData = await serversRes.json();
+                const toolsData = await toolsRes.json();
+
+                const servers = serversData.servers || {};
+                const tools = toolsData.tools || [];
+
+                const serverEntries = Object.entries(servers);
+                const badge = document.getElementById('mcp-server-count');
+                badge.textContent = serverEntries.length || '0';
+
+                const body = document.getElementById('mcp-body');
+                if (serverEntries.length === 0) {
+                    body.innerHTML = '<div style="color:var(--text-muted);font-size:12px">No MCP servers configured or active.</div>';
+                    return;
+                }
+
+                let html = '';
+                for (const [name, srv] of serverEntries) {
+                    const isConnected = srv.status === 'connected';
+                    const statusColor = isConnected ? 'var(--accent-green)' : 'var(--accent-red)';
+
+                    // Count tools for this specific server
+                    const serverTools = tools.filter(t => t._mcp_server === name);
+
+                    html += `<div class="memory-item">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:600; font-size:12px; color:var(--accent-blue)">⚡ ${name}</span>
+                            <span class="goal-status" style="background:${statusColor}; color:${isConnected ? '#000' : '#fff'}">${srv.status}</span>
+                        </div>
+                        <div style="font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--text-muted); margin-top:4px;">
+                            ${isConnected ? `${serverTools.length} tools available` : (srv.error || 'Initializing...')}
+                        </div>
+                    </div>`;
+
+                    // List tools if connected
+                    if (isConnected && serverTools.length > 0) {
+                        html += `<div style="padding-left:12px; margin-top:4px; margin-bottom:8px;">`;
+                        for (const tool of serverTools) {
+                            const tName = tool.function && tool.function.name ? tool.function.name.replace(`mcp_${name}__`, '') : 'unknown';
+                            const tDesc = tool.function && tool.function.description ? tool.function.description : '';
+                            html += `<span class="skill-tag" title="${tDesc}">🔧 ${tName}</span>`;
+                        }
+                        html += `</div>`;
+                    }
+                }
+
+                body.innerHTML = html;
+            } catch (e) { /* ignore */ }
+        }
+
+        // ──────────────────────────────────────────────
+        // Input Controls
         // ──────────────────────────────────────────────
         async function fetchPredictions() {
             try {
@@ -1252,6 +1324,10 @@
 
         fetchPredictions();
         setInterval(fetchPredictions, 10000);
+
+        // Final Init
+        fetchMCP();
+        setInterval(fetchMCP, 10000);
     </script>
 </body>
 

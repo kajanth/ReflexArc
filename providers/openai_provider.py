@@ -5,7 +5,7 @@ Authenticates via models.list() and discovers available models dynamically.
 """
 
 import time
-from typing import List, Dict
+from typing import List, Dict, Optional
 from providers.base import BaseProvider, StandardResponse, ModelInfo
 from providers.pricing import OPENAI_PRICING, classify_tier
 
@@ -91,11 +91,21 @@ class OpenAIProvider(BaseProvider):
     REASONING_PREFIXES = ("o1", "o3", "o4")
 
     def chat(self, messages: List[Dict], model: str,
-             max_tokens: int = 200) -> StandardResponse:
+             max_tokens: int = 200, tools: Optional[List[Dict]] = None) -> StandardResponse:
         client = self._get_client()
         start = time.time()
 
         is_reasoning = any(model.startswith(p) for p in self.REASONING_PREFIXES)
+        
+        kwargs = {
+            "model": model,
+            "messages": messages,
+        }
+        
+        if tools and not is_reasoning:
+            # Note: o1/o3 currently don't support tools in the same way,
+            # but standard GPT-4/o4-mini do. The manager already passes OpenAI format.
+            kwargs["tools"] = tools
 
         if is_reasoning:
             # o-series: merge system into user, use max_completion_tokens
@@ -114,27 +124,37 @@ class OpenAIProvider(BaseProvider):
                     "content": f"{system_content}\n\n{merged_messages[0]['content']}"
                 }
 
-            response = client.chat.completions.create(
-                model=model,
-                messages=merged_messages,
-                max_completion_tokens=max_tokens,
-            )
+            kwargs["messages"] = merged_messages
+            kwargs["max_completion_tokens"] = max_tokens
         else:
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                max_tokens=max_tokens,
-            )
+            kwargs["max_tokens"] = max_tokens
+
+        response = client.chat.completions.create(**kwargs)
 
         latency = time.time() - start
         choice = response.choices[0]
         usage = response.usage
+        
+        content = choice.message.content or ""
+        
+        tool_calls = []
+        if choice.message.tool_calls:
+            for tc in choice.message.tool_calls:
+                tool_calls.append({
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {
+                        "name": tc.function.name,
+                        "arguments": tc.function.arguments
+                    }
+                })
 
         return StandardResponse(
-            content=choice.message.content.strip(),
+            content=content.strip(),
             prompt_tokens=usage.prompt_tokens,
             completion_tokens=usage.completion_tokens,
             model=model,
             provider=self.provider_name,
             latency=latency,
+            tool_calls=tool_calls
         )

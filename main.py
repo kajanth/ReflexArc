@@ -11,11 +11,13 @@ from plugin_loader import BrainConfig
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 
-async def shutdown(sig, loop, sensor_mgr, heart=None):
-    """Cleanup all sensory hardware on exit."""
+async def shutdown(sig, loop, sensor_mgr, heart=None, mcp_manager=None):
+    """Cleanup all sensory hardware and sub-processes on exit."""
     print(f"\n[!] Received exit signal {sig.name}...")
     if heart:
         heart.stop()
+    if mcp_manager:
+        await mcp_manager.stop_all()
     sensor_mgr.release_all()
     print("  [✓] All sensors released.")
     tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
@@ -117,17 +119,25 @@ async def main():
     pred = brain.predictive_cortex
     pred_task = asyncio.create_task(pred.prediction_loop())
 
+    # 7. Start MCP Servers (if configured)
+    mcp_manager, mcp_start_coro = config.build_mcp_servers()
+    if mcp_start_coro:
+        await mcp_start_coro
+    brain.mcp_manager = mcp_manager  # Attach to brain so Cortex can access it
+
     # Handle graceful shutdowns (Ctrl+C)
     loop = asyncio.get_running_loop()
     for sig_type in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(
-            sig_type, lambda s=sig_type: asyncio.create_task(shutdown(s, loop, sensor_mgr, heart))
+            sig_type, lambda s=sig_type: asyncio.create_task(shutdown(s, loop, sensor_mgr, heart, mcp_manager))
         )
 
     print("\n🚀 NSA SYSTEM ONLINE: Monitoring environment...")
     print(f"❤️  Heartbeat: {heart.interval}s interval")
     print(f"🎯 Prefrontal Cortex: evaluating every {pfc.eval_interval}s")
     print(f"👁️  Predictive Cortex: sampling every {pred.prediction_interval}s")
+    if mcp_manager.servers:
+        print(f"🔌 MCP Servers: {len(mcp_manager.servers)} active")
     print("Status: Zero-Token Idle active.\n")
 
     try:
@@ -162,6 +172,7 @@ async def main():
         pfc_task.cancel()
         pred_task.cancel()
         sensor_mgr.release_all()
+        await mcp_manager.stop_all()
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -1,0 +1,106 @@
+# ═══════════════════════════════════════════════
+# ReflexArc Brain Configuration — IoT / Smart Home
+# ═══════════════════════════════════════════════
+# Autonomous home automation brain that monitors
+# sensors, manages energy, and learns occupant patterns.
+#
+# Usage: NSA_BRAIN_CONFIG=config/iot.yaml python3 main.py
+
+brain:
+  name: "IoT Smart Home Brain"
+  description: "Environmental monitoring, energy optimization, and occupant comfort"
+  heartbeat_interval: 15
+  prediction_interval: 60
+  goal_eval_interval: 180
+
+sensors:
+  - name: temperature
+    module: plugins.sensors.iot.TemperatureSensor
+    args:
+      device_ids: ["living_room", "bedroom", "kitchen"]
+      poll_interval: 10
+    emoji: "🌡️"
+    label: "Temperature"
+    type: peripheral
+
+  - name: motion
+    module: plugins.sensors.iot.MotionSensor
+    args:
+      zones: ["entrance", "hallway", "garage"]
+    emoji: "🚶"
+    label: "Motion Detection"
+    type: peripheral
+
+  - name: energy_meter
+    module: plugins.sensors.iot.EnergyMeterSensor
+    args:
+      meter_endpoint: "http://smart-meter.local/api"
+    emoji: "⚡"
+    label: "Energy Meter"
+    type: peripheral
+
+  - name: door_sensor
+    module: plugins.sensors.iot.DoorSensor
+    args:
+      doors: ["front", "back", "garage"]
+    emoji: "🚪"
+    label: "Door/Window Sensors"
+    type: security
+
+  - name: air_quality
+    module: plugins.sensors.iot.AirQualitySensor
+    args:
+      co2_threshold: 1000
+      pm25_threshold: 35
+    emoji: "🌬️"
+    label: "Air Quality"
+    type: peripheral
+
+  - name: circadian
+    source: brain.circadian
+    emoji: "⏰"
+    label: "Day/Night Cycle"
+    type: internal
+
+  - name: cognitive_load
+    source: brain.cognitive_load
+    emoji: "📊"
+    label: "Cognitive Load"
+    type: internal
+
+predictions:
+  - name: indoor_temp
+    measurer: plugins.measurers.iot.get_avg_temperature
+    threshold: 28
+    direction: above
+    unit: "°C"
+    description: "Indoor Temperature"
+
+  - name: energy_usage
+    measurer: plugins.measurers.iot.get_hourly_kwh
+    threshold: 5.0
+    direction: above
+    unit: "kWh"
+    description: "Hourly Energy Usage"
+
+  - name: co2_level
+    measurer: plugins.measurers.iot.get_co2
+    threshold: 1000
+    direction: above
+    unit: "ppm"
+    description: "CO2 Level"
+
+  - name: humidity
+    measurer: plugins.measurers.iot.get_humidity
+    threshold: 70
+    direction: above
+    unit: "%"
+    description: "Humidity"
+
+custom_measurers:
+  - name: indoor_temp
+    module: plugins.measurers.iot.get_avg_temperature
+  - name: energy_usage
+    module: plugins.measurers.iot.get_hourly_kwh
+  - name: co2_level
+    module: plugins.measurers.iot.get_co2

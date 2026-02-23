@@ -224,6 +224,15 @@ class NSAOrchestrator:
                     self._report_goal_action(description, f"REFLEX:{skill_name}")
                 self._log_stats(triage_res, start_time)
                 return result
+            except ModuleNotFoundError:
+                # Check if this is actually a template before escalating to Cortex
+                template_path = os.path.join("skills", "templates", f"{skill_name}.md")
+                if os.path.exists(template_path):
+                    print(f"[Cerebellum]: No Python skill '{skill_name}', but template exists. Rerouting to Template Engine.")
+                    decision = f"TEMPLATE:{skill_name}"
+                else:
+                    print(f"[!] Reflex Failed: No skill '{skill_name}'. Escalating to Cortex.")
+                    decision = "COMPLEX"
             except Exception as e:
                 print(f"[!] Reflex Failed: {e}. Escalating to Template/Cortex.")
                 decision = "COMPLEX"
@@ -269,25 +278,84 @@ class NSAOrchestrator:
         # ──────────────────────────────────────────────
         if "COMPLEX" in decision:
             print("[Cortex]: Critical Event. Reasoning...")
+            
+            # 1. Fetch available MCP tools
+            mcp_tools = []
+            if hasattr(self, "mcp_manager") and self.mcp_manager:
+                mcp_tools = self.mcp_manager.get_all_tools()
+                
+            messages = [
+                {"role": "system", "content": open("agent.md").read()},
+                {"role": "user", "content": f"Context: {context}\nEvent: {description}\nTask: Solve this and suggest if a new 'skill' script should be written."}
+            ]
+            
+            # 2. First Cortex pass (decide whether to use tools)
             cortex_res = self.router.route(
                 tier="cortex",
-                messages=[
-                    {"role": "system", "content": open("agent.md").read()},
-                    {"role": "user", "content": f"Context: {context}\nEvent: {description}\nTask: Solve this and suggest if a new 'skill' script should be written."}
-                ],
+                messages=messages,
+                tools=mcp_tools if mcp_tools else None
             )
             
+            total_cost = cortex_res.cost
+            total_tokens = cortex_res.total_tokens
+            
+            # 3. Handle tool calls (if any)
+            if mcp_tools and cortex_res.tool_calls:
+                # Append assistant's tool call request to the message history
+                assistant_msg = {"role": "assistant", "content": cortex_res.content or "", "tool_calls": cortex_res.tool_calls}
+                messages.append(assistant_msg)
+                
+                # Execute each tool
+                # (MCP tools are executed sequentially here for safety, though they could be async gathered)
+                for tc in cortex_res.tool_calls:
+                    tool_name = tc["function"]["name"]
+                    import json
+                    try:
+                        args = json.loads(tc["function"]["arguments"])
+                    except Exception:
+                        args = {}
+                        
+                    print(f"  [Cortex 🔨] Executing MCP Tool: {tool_name}")
+                    result_text = await self.mcp_manager.execute_tool(tool_name, args)
+                    
+                    # Append the tool result
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": tc["id"],
+                        "name": tool_name,
+                        "content": result_text
+                    })
+                
+                # 4. Second Cortex pass (with tool results)
+                print("[Cortex]: Processing tool results...")
+                final_res = self.router.route(
+                    tier="cortex",
+                    messages=messages,
+                    # We usually drop tools on the final synthesis pass to force a conclusion
+                )
+                
+                total_cost += final_res.cost
+                total_tokens += final_res.total_tokens
+                # Use the final content, but attribute the total cost to this spike
+                cortex_res.content = final_res.content
+            
+            # 5. Publish and log
             event_bus.publish("cortex_exec", {
                 "provider": cortex_res.provider,
                 "model": cortex_res.model,
-                "cost": cortex_res.cost,
-                "tokens": cortex_res.total_tokens,
+                "cost": total_cost,
+                "tokens": total_tokens,
                 "result": cortex_res.content[:200],
             })
+            
+            cortex_res.cost = total_cost
+            cortex_res.total_tokens = total_tokens
             self._log_stats(cortex_res, start_time)
+            
             # Causal feedback to prefrontal cortex
             if "GOAL_INVESTIGATION" in description:
                 self._report_goal_action(description, f"CORTEX:{cortex_res.model}")
+                
             return cortex_res.content
 
         return "Log recorded."

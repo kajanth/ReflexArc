@@ -136,36 +136,36 @@
   },
   "new_process_pid": {
     "description": "AMYGDALA [ALERT]: 1 threat(s) detected \u2014 New process: parsec-fbf (PID: 65601, Us",
-    "occurrences": 57,
+    "occurrences": 152,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-02-23T14:33:43.404774",
+    "last_seen": "2026-02-23T16:51:35.979357",
     "resolved": true,
     "associated_skill": "auto_new_process_pid",
     "cluster_size": 2
   },
   "modified_proprioception": {
     "description": "Proprioception: MODIFIED: budget_enforcement.log; MODIFIED: long_term_memory.db;",
-    "occurrences": 15,
+    "occurrences": 56,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-02-23T14:33:43.404774",
+    "last_seen": "2026-02-23T16:51:35.979357",
     "resolved": true,
     "associated_skill": "auto_modified_proprioception",
-    "cluster_size": 3
+    "cluster_size": 2
   },
   "modified_proprioception_created": {
     "description": "Proprioception: MODIFIED: long_term_memory.db; CREATED: local_alerts.log; CREATE",
-    "occurrences": 6,
+    "occurrences": 34,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-02-23T14:33:43.404774",
+    "last_seen": "2026-02-23T16:51:35.979357",
     "resolved": true,
     "associated_skill": "auto_modified_proprioception_created",
-    "cluster_size": 2
+    "cluster_size": 4
   },
   "created_proprioception_modified": {
     "description": "Proprioception: CREATED: auto_cluster_4.py; MODIFIED: .DS_Store; CREATED: auto_c",
-    "occurrences": 9,
+    "occurrences": 24,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-02-23T14:33:43.404774",
+    "last_seen": "2026-02-23T16:51:35.979357",
     "resolved": true,
     "associated_skill": "auto_created_proprioception_modified",
     "cluster_size": 3
@@ -178,5 +178,32 @@
     "resolved": false,
     "associated_skill": null,
     "cluster_size": 2
+  },
+  "pain_signal_warning": {
+    "description": "PAIN SIGNAL [WARNING]: CPU at 99.1%",
+    "occurrences": 17,
+    "first_seen": "2026-02-23T15:59:29.285070",
+    "last_seen": "2026-02-23T16:49:10.977036",
+    "resolved": true,
+    "associated_skill": "auto_pain_signal_warning",
+    "cluster_size": 4
+  },
+  "proprioception_modified_created": {
+    "description": "Proprioception: MODIFIED: .DS_Store; CREATED: .DS_Store",
+    "occurrences": 2,
+    "first_seen": "2026-02-23T15:59:29.285070",
+    "last_seen": "2026-02-23T15:59:29.285070",
+    "resolved": false,
+    "associated_skill": null,
+    "cluster_size": 2
+  },
+  "proprioception_modified": {
+    "description": "Proprioception: MODIFIED: long_term_memory.db",
+    "occurrences": 4,
+    "first_seen": "2026-02-23T16:49:10.977036",
+    "last_seen": "2026-02-23T16:49:10.977036",
+    "resolved": true,
+    "associated_skill": "auto_proprioception_modified",
+    "cluster_size": 4
   }
 }

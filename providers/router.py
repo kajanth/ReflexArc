@@ -215,7 +215,7 @@ class ModelRouter:
         return self._config.get("tiers", {}).get(tier, [])
 
     def route(self, tier: str, messages: List[Dict],
-              max_tokens: int = 200) -> StandardResponse:
+              max_tokens: int = 200, tools: Optional[List[Dict]] = None) -> StandardResponse:
         """
         Route a request to the best available provider for the given tier.
 
@@ -223,6 +223,7 @@ class ModelRouter:
             tier: Model tier ("nano", "mini", "cortex").
             messages: OpenAI-style message list.
             max_tokens: Max response tokens.
+            tools: Optional array of JSON schema tool definitions.
 
         Returns:
             StandardResponse from whichever provider handled it.
@@ -275,7 +276,16 @@ class ModelRouter:
             )
 
             try:
-                response = prov.chat(messages, model, max_tokens)
+                # Pass tools if the provider supports them
+                import inspect
+                sig = inspect.signature(prov.chat)
+                if "tools" in sig.parameters:
+                    response = prov.chat(messages, model, max_tokens, tools=tools)
+                else:
+                    # Some existing providers (Bedrock/Gemini) might not support tools yet
+                    # We'll just gracefully ignore tools for them for now rather than crashing
+                    response = prov.chat(messages, model, max_tokens)
+                    
                 response.cost = config.estimate_cost(
                     response.prompt_tokens, response.completion_tokens
                 )
@@ -285,6 +295,9 @@ class ModelRouter:
                     f"| {response.prompt_tokens}+{response.completion_tokens} tokens "
                     f"| ${response.cost:.6f} | {response.latency:.2f}s"
                 )
+                if response.tool_calls:
+                    print(f"[Router] 🔨 Model requested {len(response.tool_calls)} tool call(s)")
+                
                 return response
 
             except Exception as e:

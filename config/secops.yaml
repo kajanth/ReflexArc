@@ -1,0 +1,122 @@
+# ═══════════════════════════════════════════════
+# ReflexArc Brain Configuration — Security Operations
+# ═══════════════════════════════════════════════
+# SOC automation brain that monitors SIEM alerts,
+# performs threat hunting, and orchestrates incident response.
+#
+# Usage: NSA_BRAIN_CONFIG=config/secops.yaml python3 main.py
+
+brain:
+  name: "SecOps Brain"
+  description: "SIEM monitoring, threat hunting, incident response automation"
+  heartbeat_interval: 10
+  prediction_interval: 60
+  goal_eval_interval: 120
+
+sensors:
+  - name: siem_feed
+    module: plugins.sensors.secops.SIEMFeedSensor
+    args:
+      siem_url: "https://siem.example.com/api/alerts"
+      severity_filter: ["high", "critical"]
+      poll_interval: 10
+    emoji: "🔍"
+    label: "SIEM Feed"
+    type: peripheral
+
+  - name: ids_ips
+    module: plugins.sensors.secops.IDSIPSSensor
+    args:
+      snort_log: "/var/log/snort/alert"
+    emoji: "🛡️"
+    label: "IDS/IPS Alerts"
+    type: security
+
+  - name: auth_logs
+    module: plugins.sensors.secops.AuthLogSensor
+    args:
+      log_paths:
+        - "/var/log/auth.log"
+        - "/var/log/secure"
+      failed_threshold: 5
+      window_seconds: 300
+    emoji: "🔐"
+    label: "Auth Logs"
+    type: security
+
+  - name: vulnerability_scanner
+    module: plugins.sensors.secops.VulnScanSensor
+    args:
+      scanner_api: "https://vuln-scanner.example.com/api"
+      critical_cvss_threshold: 7.0
+    emoji: "🐛"
+    label: "Vulnerability Scanner"
+    type: peripheral
+
+  - name: network_traffic
+    module: plugins.sensors.secops.NetFlowSensor
+    args:
+      interface: "eth0"
+      anomaly_threshold: 3.0
+    emoji: "📡"
+    label: "Network Traffic"
+    type: peripheral
+
+  - name: endpoint_edr
+    module: plugins.sensors.secops.EDRSensor
+    args:
+      edr_api: "https://edr.example.com/api/alerts"
+    emoji: "💻"
+    label: "Endpoint Detection"
+    type: security
+
+  - name: circadian
+    source: brain.circadian
+    emoji: "⏰"
+    label: "Shift Schedule"
+    type: internal
+
+  - name: cognitive_load
+    source: brain.cognitive_load
+    emoji: "📊"
+    label: "Cognitive Load"
+    type: internal
+
+predictions:
+  - name: alert_volume
+    measurer: plugins.measurers.secops.get_alert_volume
+    threshold: 100
+    direction: above
+    unit: "/hr"
+    description: "Alert Volume"
+
+  - name: mean_time_to_detect
+    measurer: plugins.measurers.secops.get_mttd
+    threshold: 30
+    direction: above
+    unit: "min"
+    description: "Mean Time to Detect"
+
+  - name: false_positive_rate
+    measurer: plugins.measurers.secops.get_fp_rate
+    threshold: 20
+    direction: above
+    unit: "%"
+    description: "False Positive Rate"
+
+  - name: open_incidents
+    measurer: plugins.measurers.secops.get_open_incidents
+    threshold: 10
+    direction: above
+    unit: ""
+    description: "Open Incidents"
+
+custom_measurers:
+  - name: alert_volume
+    module: plugins.measurers.secops.get_alert_volume
+  - name: mean_time_to_detect
+    module: plugins.measurers.secops.get_mttd
+  - name: false_positive_rate
+    module: plugins.measurers.secops.get_fp_rate
+  - name: open_incidents
+    module: plugins.measurers.secops.get_open_incidents

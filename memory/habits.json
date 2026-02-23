@@ -1,7 +1,22 @@
 {
   "TEMPLATE:compose_alert": {
+    "count": 4,
+    "latency_multiplier": 0.8573749999999999,
+    "cost_multiplier": 0.7290000000000001
+  },
+  "REFLEX:alert_notify": {
     "count": 2,
     "latency_multiplier": 0.95,
     "cost_multiplier": 0.9
+  },
+  "TEMPLATE:explain_anomaly": {
+    "count": 1,
+    "latency_multiplier": 1.0,
+    "cost_multiplier": 1.0
+  },
+  "REFLEX:system_check": {
+    "count": 4,
+    "latency_multiplier": 0.8573749999999999,
+    "cost_multiplier": 0.7290000000000001
   }
 }

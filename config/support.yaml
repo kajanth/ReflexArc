@@ -1,0 +1,110 @@
+# ═══════════════════════════════════════════════
+# ReflexArc Brain Configuration — Customer Support
+# ═══════════════════════════════════════════════
+# Autonomous support brain that triages tickets,
+# monitors sentiment, and routes issues to agents.
+#
+# Usage: NSA_BRAIN_CONFIG=config/support.yaml python3 main.py
+
+brain:
+  name: "Customer Support Brain"
+  description: "Ticket triage, sentiment analysis, SLA monitoring, and auto-response"
+  heartbeat_interval: 20
+  prediction_interval: 60
+  goal_eval_interval: 120
+
+sensors:
+  - name: ticket_queue
+    module: plugins.sensors.support.TicketQueueSensor
+    args:
+      api_url: "https://helpdesk.example.com/api/tickets"
+      poll_interval: 15
+      priority_threshold: "high"
+    emoji: "🎫"
+    label: "Ticket Queue"
+    type: peripheral
+
+  - name: sentiment
+    module: plugins.sensors.support.SentimentSensor
+    args:
+      negative_threshold: -0.5
+      channels: ["chat", "email", "social"]
+    emoji: "😤"
+    label: "Customer Sentiment"
+    type: peripheral
+
+  - name: sla_monitor
+    module: plugins.sensors.support.SLAMonitorSensor
+    args:
+      first_response_sla_minutes: 15
+      resolution_sla_hours: 24
+    emoji: "⏱️"
+    label: "SLA Monitor"
+    type: peripheral
+
+  - name: escalation_detector
+    module: plugins.sensors.support.EscalationSensor
+    args:
+      keywords: ["manager", "cancel", "lawsuit", "urgent"]
+    emoji: "🚨"
+    label: "Escalation Detector"
+    type: security
+
+  - name: agent_availability
+    module: plugins.sensors.support.AgentAvailabilitySensor
+    args:
+      team_api: "https://helpdesk.example.com/api/agents"
+    emoji: "👥"
+    label: "Agent Availability"
+    type: peripheral
+
+  - name: circadian
+    source: brain.circadian
+    emoji: "⏰"
+    label: "Business Hours"
+    type: internal
+
+  - name: cognitive_load
+    source: brain.cognitive_load
+    emoji: "📊"
+    label: "Cognitive Load"
+    type: internal
+
+predictions:
+  - name: queue_depth
+    measurer: plugins.measurers.support.get_queue_depth
+    threshold: 50
+    direction: above
+    unit: ""
+    description: "Ticket Queue Depth"
+
+  - name: avg_response_time
+    measurer: plugins.measurers.support.get_avg_response_time
+    threshold: 15
+    direction: above
+    unit: "min"
+    description: "Avg First Response Time"
+
+  - name: csat_score
+    measurer: plugins.measurers.support.get_csat
+    threshold: 3.5
+    direction: below
+    unit: "/5"
+    description: "CSAT Score"
+
+  - name: escalation_rate
+    measurer: plugins.measurers.support.get_escalation_rate
+    threshold: 10
+    direction: above
+    unit: "%"
+    description: "Escalation Rate"
+
+custom_measurers:
+  - name: queue_depth
+    module: plugins.measurers.support.get_queue_depth
+  - name: avg_response_time
+    module: plugins.measurers.support.get_avg_response_time
+  - name: csat_score
+    module: plugins.measurers.support.get_csat
+  - name: escalation_rate
+    module: plugins.measurers.support.get_escalation_rate
