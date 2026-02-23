@@ -500,6 +500,79 @@
             border-bottom: none;
         }
 
+        /* Goal System */
+        .goal-row {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .goal-row:last-child {
+            border-bottom: none;
+        }
+
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .goal-objective {
+            font-size: 11px;
+            font-weight: 500;
+            max-width: 70%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .goal-status {
+            font-size: 9px;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 1px 6px;
+            border-radius: 8px;
+        }
+
+        .goal-status.on_track {
+            background: var(--accent-green);
+            color: #000;
+        }
+
+        .goal-status.at_risk {
+            background: var(--accent-amber);
+            color: #000;
+        }
+
+        .goal-status.off_track {
+            background: var(--accent-red);
+            color: #fff;
+        }
+
+        .goal-status.pending {
+            background: var(--bg-secondary);
+            color: var(--text-muted);
+        }
+
+        .goal-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: var(--bg-secondary);
+            overflow: hidden;
+        }
+
+        .goal-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.5s ease, background 0.3s ease;
+        }
+
+        .goal-meta {
+            font-size: 9px;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            margin-top: 2px;
+        }
+
         .memory-time {
             font-family: 'JetBrains Mono', monospace;
             color: var(--text-muted);
@@ -558,6 +631,8 @@
                 <span id="ws-status">Connecting...</span>
             </div>
             <span id="uptime">—</span>
+            <span id="dream-state" style="cursor:pointer;font-size:13px" onclick="triggerDream()"
+                title="Click to trigger dream cycle">☀️ AWAKE</span>
             <span id="clock"></span>
         </div>
     </div>
@@ -709,6 +784,28 @@
             </div>
         </div>
 
+        <!-- Goals (Prefrontal Cortex) -->
+        <div class="card" style="grid-column: span 1;">
+            <div class="card-header">
+                🎯 Goals
+                <span class="badge badge-ok" id="goals-badge">—</span>
+            </div>
+            <div class="card-body" id="goals-body" style="max-height: 220px;">
+                <div style="color:var(--text-muted); font-size:12px">No goals set</div>
+            </div>
+        </div>
+
+        <!-- Predictions (Predictive Cortex) -->
+        <div class="card" style="grid-column: span 1;">
+            <div class="card-header">
+                👁️ Predictions
+                <span class="badge badge-ok" id="pred-badge">nominal</span>
+            </div>
+            <div class="card-body" id="pred-body" style="max-height: 220px;">
+                <div style="color:var(--text-muted); font-size:12px">Sampling...</div>
+            </div>
+        </div>
+
         <!-- Memory Timeline -->
         <div class="card memory-panel">
             <div class="card-header">
@@ -810,6 +907,33 @@
                 document.getElementById('layer-cortex').textContent = `${d.provider || ''}:${d.model || ''}`;
                 resetCascade();
             }
+            // Dream cycle events
+            if (t === 'dream_cycle') {
+                const ds = document.getElementById('dream-state');
+                if (d.phase === 'START') {
+                    ds.textContent = '🌙 DREAMING';
+                    ds.style.color = 'var(--accent-purple)';
+                } else if (d.phase === 'COMPLETE' || d.phase === 'ERROR') {
+                    ds.textContent = '☀️ AWAKE';
+                    ds.style.color = '';
+                } else {
+                    ds.textContent = `🌙 ${d.phase}`;
+                }
+            }
+            if (t === 'skill_genesis') {
+                fetchSkills();
+            }
+            // Goal events
+            if (t === 'goal_evaluation') {
+                if (d.phase === 'COMPLETE') fetchGoals();
+            }
+            if (t === 'goal_status' || t === 'goal_created' || t === 'goal_removed') {
+                fetchGoals();
+            }
+            // Prediction events
+            if (t === 'prediction_update' || t === 'phantom_spike') {
+                fetchPredictions();
+            }
         }
 
         function resetCascade() {
@@ -849,6 +973,16 @@
             // Trim old items
             while (feed.children.length > MAX_SPIKES) {
                 feed.removeChild(feed.lastChild);
+            }
+        }
+
+        async function triggerDream() {
+            if (confirm('Trigger a dream cycle? This will consolidate memories and may generate new skills.')) {
+                try {
+                    const res = await fetch('/dream/trigger', { method: 'POST' });
+                    const data = await res.json();
+                    if (data.error) alert(data.error);
+                } catch (e) { /* ignore */ }
             }
         }
 
@@ -987,6 +1121,67 @@
         }
 
         // ──────────────────────────────────────────────
+        // Goal System
+        // ──────────────────────────────────────────────
+        async function fetchGoals() {
+            try {
+                const res = await fetch('/goals');
+                const data = await res.json();
+                const goals = data.goals || {};
+                const summary = data.summary || {};
+
+                const badge = document.getElementById('goals-badge');
+                if (summary.off_track > 0) {
+                    badge.textContent = `${summary.off_track} OFF`;
+                    badge.className = 'badge';
+                    badge.style.background = 'var(--accent-red)';
+                    badge.style.color = '#fff';
+                } else {
+                    badge.textContent = summary.total || '0';
+                    badge.className = 'badge badge-ok';
+                    badge.style.background = '';
+                    badge.style.color = '';
+                }
+
+                const body = document.getElementById('goals-body');
+                const entries = Object.entries(goals);
+                if (entries.length === 0) {
+                    body.innerHTML = '<div style="color:var(--text-muted);font-size:12px">No goals set. Use POST /goal to create one.</div>';
+                    return;
+                }
+
+                let html = '';
+                for (const [id, g] of entries) {
+                    const status = g.status || 'pending';
+                    const target = g.target || {};
+                    const cv = g.current_value;
+                    const tv = target.value;
+                    // Calculate progress bar width (0-100%)
+                    let pct = 0;
+                    if (cv !== null && cv !== undefined && tv) {
+                        if (target.operator === '<' || target.operator === '<=') {
+                            pct = Math.max(0, Math.min(100, (1 - cv / (tv * 2)) * 100));
+                        } else {
+                            pct = Math.max(0, Math.min(100, (cv / tv) * 100));
+                        }
+                    }
+                    const barColor = status === 'on_track' ? 'var(--accent-green)' :
+                        status === 'at_risk' ? 'var(--accent-amber)' : 'var(--accent-red)';
+
+                    html += `<div class="goal-row">
+                        <div class="goal-header">
+                            <span class="goal-objective" title="${g.objective}">${g.objective}</span>
+                            <span class="goal-status ${status}">${status.replace('_', ' ')}</span>
+                        </div>
+                        <div class="goal-bar"><div class="goal-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+                        <div class="goal-meta">${g.metric}: ${cv !== null ? cv : '?'} ${target.operator || ''} ${tv || '?'} | ${g.priority || ''}</div>
+                    </div>`;
+                }
+                body.innerHTML = html;
+            } catch (e) { /* ignore */ }
+        }
+
+        // ──────────────────────────────────────────────
         // Init
         // ──────────────────────────────────────────────
         connectWS();
@@ -995,12 +1190,68 @@
         fetchSkills();
         fetchMemories();
         fetchSensors();
+        fetchGoals();
 
         setInterval(fetchStatus, 3000);
         setInterval(fetchStats, 2000);
         setInterval(fetchSkills, 15000);
         setInterval(fetchMemories, 5000);
         setInterval(fetchSensors, 5000);
+        setInterval(fetchGoals, 10000);
+
+        // ──────────────────────────────────────────────
+        // Predictions
+        // ──────────────────────────────────────────────
+        async function fetchPredictions() {
+            try {
+                const res = await fetch('/predictions');
+                const data = await res.json();
+                const channels = data.channels || {};
+
+                const badge = document.getElementById('pred-badge');
+                const summary = data.summary || 'nominal';
+                if (summary.startsWith('⚠')) {
+                    badge.textContent = '⚠ WARNING';
+                    badge.className = 'badge';
+                    badge.style.background = 'var(--accent-amber)';
+                    badge.style.color = '#000';
+                } else {
+                    badge.textContent = 'nominal';
+                    badge.className = 'badge badge-ok';
+                    badge.style.background = '';
+                    badge.style.color = '';
+                }
+
+                const body = document.getElementById('pred-body');
+                const entries = Object.entries(channels);
+                if (entries.length === 0) {
+                    body.innerHTML = '<div style="color:var(--text-muted);font-size:12px">No channels</div>';
+                    return;
+                }
+
+                let html = '';
+                for (const [name, ch] of entries) {
+                    const statusColor = ch.status === 'nominal' ? 'var(--accent-green)' :
+                        ch.status === 'breach_predicted' ? 'var(--accent-red)' :
+                            ch.status === 'breaching' ? 'var(--accent-red)' :
+                                'var(--accent-amber)';
+                    const breach = ch.breach_in_minutes != null ? `~${ch.breach_in_minutes}m` : '';
+                    const cur = ch.current != null ? ch.current : '?';
+
+                    html += `<div class="goal-row">
+                        <div class="goal-header">
+                            <span class="goal-objective">${ch.trend_arrow} ${ch.description}</span>
+                            <span class="goal-status" style="background:${statusColor};color:${ch.status === 'nominal' ? '#000' : '#fff'}">${ch.status.replace('_', ' ')}</span>
+                        </div>
+                        <div class="goal-meta">${cur}${ch.unit} ${breach ? '→ breach in ' + breach : ''} | threshold: ${ch.threshold}${ch.unit}</div>
+                    </div>`;
+                }
+                body.innerHTML = html;
+            } catch (e) { /* ignore */ }
+        }
+
+        fetchPredictions();
+        setInterval(fetchPredictions, 10000);
     </script>
 </body>
 

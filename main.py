@@ -3,17 +3,10 @@ import signal
 import sys
 import os
 
-from sensors.vision import OpenCVReflex
-from sensors.auditory import AudioSensor
-from sensors.system_vitals import SystemVitalsSensor
-from sensors.circadian import CircadianSensor
-from sensors.filesystem import FileSystemSensor
-from sensors.network_probe import NetworkProbeSensor
-from sensors.threat_detection import ThreatDetectionSensor
-from sensors.cognitive_load import CognitiveLoadSensor
 from brain_core import NSAOrchestrator
 from api_server import NSAApiServer
 from sensor_manager import SensorManager
+from plugin_loader import BrainConfig
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
@@ -30,11 +23,46 @@ async def shutdown(sig, loop, sensor_mgr, heart=None):
     print("[!] All senses deactivated. System offline.")
     loop.stop()
 
+async def _legacy_register_sensors(sensor_mgr, brain):
+    """Fallback: hardcoded sensor registration (backward compatible)."""
+    from sensors.vision import OpenCVReflex
+    from sensors.auditory import AudioSensor
+    from sensors.system_vitals import SystemVitalsSensor
+    from sensors.filesystem import FileSystemSensor
+    from sensors.network_probe import NetworkProbeSensor
+    from sensors.threat_detection import ThreatDetectionSensor
+
+    sensor_mgr.register("vision", OpenCVReflex(sensitivity=20000),
+                         emoji="👀", label="Vision", sensor_type="peripheral")
+    sensor_mgr.register("auditory", AudioSensor(rms_threshold=500),
+                         emoji="👂", label="Auditory", sensor_type="peripheral")
+    sensor_mgr.register("system_vitals", SystemVitalsSensor(),
+                         emoji="📡", label="System Vitals", sensor_type="peripheral")
+    sensor_mgr.register("filesystem", FileSystemSensor(watch_paths=["skills/", "memory/"]),
+                         emoji="📂", label="Filesystem", sensor_type="peripheral")
+    sensor_mgr.register("network_probe", NetworkProbeSensor(),
+                         emoji="🌐", label="Network Probe", sensor_type="peripheral")
+    sensor_mgr.register("threat_detection", ThreatDetectionSensor(),
+                         emoji="🛡️", label="Threat Detection", sensor_type="security")
+    sensor_mgr.register("circadian", brain.circadian,
+                         emoji="⏰", label="Circadian Rhythm", sensor_type="internal")
+    sensor_mgr.register("cognitive_load", brain.cognitive_load,
+                         emoji="📊", label="Cognitive Load", sensor_type="internal")
+
 async def main():
+    # 0. Load Brain Config
+    config = BrainConfig()
+    print(f"🧠 Brain Profile: {config.name}")
+
     # 1. Initialize the Nervous System
-    print("🧠 Initializing NSA Orchestrator...")
+    print("   Initializing NSA Orchestrator...")
     brain = NSAOrchestrator()
-    
+
+    # Apply config intervals
+    brain.heart.interval = config.heartbeat_interval
+    brain.prefrontal_cortex.eval_interval = config.goal_eval_interval
+    brain.predictive_cortex.prediction_interval = config.prediction_interval
+
     # Show available providers
     available = brain.router.get_available_providers()
     if not available:
@@ -44,42 +72,28 @@ async def main():
     print(f"   Providers online: {', '.join(available)}")
     print(f"   Strategy: {brain.router._config.get('strategy', 'cheapest')}")
     
-    # 2. Initialize Sensor Manager (Layer 0: Peripheral + Internal)
+    # 2. Initialize Sensor Manager (config-driven or legacy)
     print("\n--- Initializing Sensory Array ---")
-    
     sensor_mgr = SensorManager()
-    
-    # Peripheral Senses (External World)
-    print("👀 Vision (OpenCV)...")
-    sensor_mgr.register("vision", OpenCVReflex(sensitivity=20000),
-                         emoji="👀", label="Vision", sensor_type="peripheral")
-    
-    print("👂 Auditory (PyAudio)...")
-    sensor_mgr.register("auditory", AudioSensor(rms_threshold=500),
-                         emoji="👂", label="Auditory", sensor_type="peripheral")
-    
-    print("📡 System Vitals (Nociceptors)...")
-    sensor_mgr.register("system_vitals", SystemVitalsSensor(),
-                         emoji="📡", label="System Vitals", sensor_type="peripheral")
-    
-    print("📂 Filesystem (Proprioception)...")
-    sensor_mgr.register("filesystem", FileSystemSensor(watch_paths=["skills/", "memory/"]),
-                         emoji="📂", label="Filesystem", sensor_type="peripheral")
-    
-    print("🌐 Network Probe (Chemoreceptors)...")
-    sensor_mgr.register("network_probe", NetworkProbeSensor(),
-                         emoji="🌐", label="Network Probe", sensor_type="peripheral")
-    
-    # Security Senses
-    print("🛡️  Threat Detection (Amygdala)...")
-    sensor_mgr.register("threat_detection", ThreatDetectionSensor(),
-                         emoji="🛡️", label="Threat Detection", sensor_type="security")
-    
-    # Internal Senses
-    sensor_mgr.register("circadian", brain.circadian,
-                         emoji="⏰", label="Circadian Rhythm", sensor_type="internal")
-    sensor_mgr.register("cognitive_load", brain.cognitive_load,
-                         emoji="📊", label="Cognitive Load", sensor_type="internal")
+
+    if config.config.get("sensors"):
+        config.build_sensors(brain, sensor_mgr)
+    else:
+        print("[PluginLoader] No sensor config — using legacy hardcoded registration")
+        await _legacy_register_sensors(sensor_mgr, brain)
+
+    # 2.5 Apply custom prediction channels (if configured)
+    custom_channels = config.build_prediction_channels()
+    if custom_channels:
+        brain.predictive_cortex.channels = custom_channels
+        print(f"   {len(custom_channels)} prediction channels loaded from config")
+
+    # 2.6 Apply custom measurers for goals (if configured)
+    custom_measurers = config.build_custom_measurers()
+    if custom_measurers:
+        from prefrontal_cortex import MEASURERS
+        MEASURERS.update(custom_measurers)
+        print(f"   {len(custom_measurers)} custom measurers loaded for goals")
 
     status = sensor_mgr.get_status_summary()
     print(f"\n--- {status['total']} Sensors Registered ({status['active']} active, {status['disabled']} disabled) ---")
@@ -95,6 +109,14 @@ async def main():
     heart = brain.heart
     heart_task = asyncio.create_task(heart.pulse(brain))
 
+    # 5. Start Prefrontal Cortex (Goal Evaluation Loop)
+    pfc = brain.prefrontal_cortex
+    pfc_task = asyncio.create_task(pfc.evaluate_loop())
+
+    # 6. Start Predictive Cortex (Anticipatory Sensing Loop)
+    pred = brain.predictive_cortex
+    pred_task = asyncio.create_task(pred.prediction_loop())
+
     # Handle graceful shutdowns (Ctrl+C)
     loop = asyncio.get_running_loop()
     for sig_type in (signal.SIGINT, signal.SIGTERM):
@@ -104,6 +126,8 @@ async def main():
 
     print("\n🚀 NSA SYSTEM ONLINE: Monitoring environment...")
     print(f"❤️  Heartbeat: {heart.interval}s interval")
+    print(f"🎯 Prefrontal Cortex: evaluating every {pfc.eval_interval}s")
+    print(f"👁️  Predictive Cortex: sampling every {pred.prediction_interval}s")
     print("Status: Zero-Token Idle active.\n")
 
     try:
@@ -135,6 +159,8 @@ async def main():
     finally:
         heart.stop()
         heart_task.cancel()
+        pfc_task.cancel()
+        pred_task.cancel()
         sensor_mgr.release_all()
 
 if __name__ == "__main__":

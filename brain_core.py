@@ -14,6 +14,9 @@ from skill_template_engine import SkillTemplateEngine
 from event_bus import event_bus
 from basal_ganglia import BasalGanglia
 from heartbeat import DigitalHeart
+from dream_engine import DreamEngine
+from prefrontal_cortex import PrefrontalCortex
+from predictive_cortex import PredictiveCortex
 
 
 class NSAOrchestrator:
@@ -39,9 +42,46 @@ class NSAOrchestrator:
         # 5. Digital Heart
         self.heart = DigitalHeart(bpm=2)
 
+        # 6. Dream Engine (REM Sleep / Memory Consolidation)
+        self.dream_engine = DreamEngine(router=self.router)
+
+        # 7. Prefrontal Cortex (Long-Term Planning & Goals)
+        self.prefrontal_cortex = PrefrontalCortex(router=self.router)
+        self.prefrontal_cortex.set_orchestrator(self)
+
+        # 8. Predictive Cortex (Anticipatory Sensing)
+        self.predictive_cortex = PredictiveCortex()
+        self.predictive_cortex.set_orchestrator(self)
+
     async def process_spike(self, sense_type, description):
         """The Neural Cascade: From Stimulus to Action."""
         start_time = time.time()
+
+        # ──────────────────────────────────────────────
+        # SLEEP FAST-PATH (triggers dream cycle)
+        # ──────────────────────────────────────────────
+        if "Protocol Gamma" in description or ("SLEEP" in description and "HEARTBEAT" not in description):
+            return await self.dream()
+
+        # ──────────────────────────────────────────────
+        # GOAL INVESTIGATION FAST-PATH (proactive spikes from prefrontal cortex)
+        # ──────────────────────────────────────────────
+        if "GOAL_INVESTIGATION" in description:
+            # These bypass RAS — they're deliberate, not environmental
+            event_bus.publish("goal_spike", {
+                "description": description[:120],
+            })
+            # Fall through to normal Thalamus routing (don't return early)
+            # The spike will be triaged and handled by the appropriate layer
+
+        # ──────────────────────────────────────────────
+        # PHANTOM SPIKE FAST-PATH (predictive spikes bypass RAS)
+        # ──────────────────────────────────────────────
+        if "PHANTOM_SPIKE" in description:
+            event_bus.publish("phantom_spike_exec", {
+                "description": description[:120],
+            })
+            # Fall through to Thalamus — let the system triage predicted threats
 
         # ──────────────────────────────────────────────
         # HEARTBEAT FAST-PATH (bypasses RAS — never redundant)
@@ -179,6 +219,9 @@ class NSAOrchestrator:
                 # Layer 5.5: Basal Ganglia — reinforce successful reflex
                 pattern_id = f"REFLEX:{skill_name}"
                 self.basal_ganglia.reinforce_habit(pattern_id)
+                # Causal feedback to prefrontal cortex
+                if "GOAL_INVESTIGATION" in description:
+                    self._report_goal_action(description, f"REFLEX:{skill_name}")
                 self._log_stats(triage_res, start_time)
                 return result
             except Exception as e:
@@ -209,6 +252,9 @@ class NSAOrchestrator:
                 # Layer 5.5: Basal Ganglia — reinforce successful template
                 pattern_id = f"TEMPLATE:{template_name}"
                 self.basal_ganglia.reinforce_habit(pattern_id)
+                # Causal feedback to prefrontal cortex
+                if "GOAL_INVESTIGATION" in description:
+                    self._report_goal_action(description, f"TEMPLATE:{template_name}")
                 if response:
                     self._log_stats(response, start_time)
                 else:
@@ -239,6 +285,9 @@ class NSAOrchestrator:
                 "result": cortex_res.content[:200],
             })
             self._log_stats(cortex_res, start_time)
+            # Causal feedback to prefrontal cortex
+            if "GOAL_INVESTIGATION" in description:
+                self._report_goal_action(description, f"CORTEX:{cortex_res.model}")
             return cortex_res.content
 
         return "Log recorded."
@@ -250,14 +299,28 @@ class NSAOrchestrator:
         circadian_phase = self.circadian.get_phase()
         
         available_providers = self.router.get_available_providers()
+        dream_status = "DREAMING" if self.dream_engine.is_dreaming else "AWAKE"
+        goals = self.prefrontal_cortex.get_goals()
+        off_track = sum(1 for g in goals.values() if g.get("status") == "off_track")
+        goal_status = f"{len(goals)} goals ({off_track} off-track)" if goals else "No goals"
         
         return (
             f"Curiosity: {curiosity_state} | "
             f"CognitiveLoad: {cognitive_metrics['cortex_ratio']:.0%} cortex ratio, "
             f"efficiency {cognitive_metrics['efficiency_score']:.0%} | "
             f"Circadian: {circadian_phase} | "
+            f"Dream: {dream_status} | "
+            f"Goals: {goal_status} | "
+            f"Predictions: {self.predictive_cortex.get_summary()} | "
             f"Providers: {', '.join(available_providers)}"
         )
+
+    async def dream(self):
+        """Trigger the dream cycle (REM sleep / memory consolidation)."""
+        print("\n🌙 [Brain]: Entering dream state...")
+        result = await self.dream_engine.dream()
+        print("☀️  [Brain]: Dream cycle complete. Waking up.")
+        return result
 
     def _log_stats(self, response, start_time):
         """Interoception: Log cost and latency for the 6th sense."""
@@ -268,3 +331,12 @@ class NSAOrchestrator:
             completion_tokens = getattr(response, 'completion_tokens', 0)
             cost = (prompt_tokens * 0.000005) + (completion_tokens * 0.000015)
         self.curiosity.log_event(cost, latency)
+
+    def _report_goal_action(self, description, action):
+        """Report a completed action to the prefrontal cortex for causal tracking."""
+        # Extract goal ID from the GOAL_INVESTIGATION description
+        # Format: "GOAL_INVESTIGATION: [objective] strategy"
+        for goal_id, goal in self.prefrontal_cortex.goals.items():
+            if goal["objective"] in description:
+                self.prefrontal_cortex.record_action(goal_id, action)
+                break

@@ -78,6 +78,21 @@ class NSAApiServer:
         self.app.router.add_get("/sensors", self._handle_sensors)
         self.app.router.add_post("/sensor/toggle", self._handle_sensor_toggle)
 
+        # Dream Cycle
+        self.app.router.add_get("/dreams/recent", self._handle_dreams)
+        self.app.router.add_get("/patterns", self._handle_patterns)
+        self.app.router.add_post("/dream/trigger", self._handle_dream_trigger)
+
+        # Goal System (Prefrontal Cortex)
+        self.app.router.add_get("/goals", self._handle_goals)
+        self.app.router.add_post("/goal", self._handle_create_goal)
+        self.app.router.add_delete("/goal", self._handle_delete_goal)
+        self.app.router.add_post("/goal/evaluate", self._handle_goal_evaluate)
+
+        # Predictions (Predictive Cortex)
+        self.app.router.add_get("/predictions", self._handle_predictions)
+        self.app.router.add_get("/predictions/history", self._handle_prediction_history)
+
     # ──────────────────────────────────────────────
     # Dashboard Endpoints
     # ──────────────────────────────────────────────
@@ -458,6 +473,145 @@ class NSAApiServer:
             "sensor": sensor_name,
             "enabled": self.sensor_mgr.is_enabled(sensor_name),
             "sensors": self.sensor_mgr.all_sensors(),
+        })
+
+    # ──────────────────────────────────────────────
+    # Dream Cycle Endpoints
+    # ──────────────────────────────────────────────
+
+    async def _handle_dreams(self, request):
+        """GET /dreams/recent — Return recent dream journal entries."""
+        limit = int(request.query.get("limit", "7"))
+        journals = self.brain.dream_engine.get_recent_journals(limit)
+        return web.json_response({
+            "journals": journals,
+            "count": len(journals),
+            "is_dreaming": self.brain.dream_engine.is_dreaming,
+        })
+
+    async def _handle_patterns(self, request):
+        """GET /patterns — Return all discovered memory patterns."""
+        patterns = self.brain.dream_engine.get_patterns()
+        return web.json_response({
+            "patterns": patterns,
+            "count": len(patterns),
+        })
+
+    async def _handle_dream_trigger(self, request):
+        """POST /dream/trigger — Manually start a dream cycle."""
+        if self.brain.dream_engine.is_dreaming:
+            return web.json_response({"error": "Already dreaming"}, status=409)
+
+        # Run dream cycle in background so we can respond immediately
+        async def _run_dream():
+            await self.brain.dream()
+
+        asyncio.ensure_future(_run_dream())
+
+        return web.json_response({
+            "status": "dream_started",
+            "message": "Dream cycle initiated. Watch /ws/live for progress.",
+        })
+
+    # ──────────────────────────────────────────────
+    # Goal System Endpoints (Prefrontal Cortex)
+    # ──────────────────────────────────────────────
+
+    async def _handle_goals(self, request):
+        """GET /goals — List all goals with current status."""
+        pfc = self.brain.prefrontal_cortex
+        goals = pfc.get_goals()
+        summary = {
+            "total": len(goals),
+            "on_track": sum(1 for g in goals.values() if g.get("status") == "on_track"),
+            "at_risk": sum(1 for g in goals.values() if g.get("status") == "at_risk"),
+            "off_track": sum(1 for g in goals.values() if g.get("status") == "off_track"),
+            "is_evaluating": pfc.is_evaluating,
+        }
+        return web.json_response({"goals": goals, "summary": summary})
+
+    async def _handle_create_goal(self, request):
+        """POST /goal — Create a new goal."""
+        try:
+            body = await request.json()
+        except Exception:
+            return web.json_response({"error": "Invalid JSON"}, status=400)
+
+        objective = body.get("objective")
+        metric = body.get("metric")
+        operator = body.get("operator", "<")
+        value = body.get("value")
+        priority = body.get("priority", "medium")
+
+        if not objective or not metric or value is None:
+            return web.json_response(
+                {"error": "Required fields: objective, metric, value"}, status=400
+            )
+
+        try:
+            value = float(value)
+        except (TypeError, ValueError):
+            return web.json_response({"error": "value must be numeric"}, status=400)
+
+        goal = self.brain.prefrontal_cortex.add_goal(
+            objective=objective,
+            metric=metric,
+            operator=operator,
+            value=value,
+            priority=priority,
+        )
+        return web.json_response({"status": "created", "goal": goal})
+
+    async def _handle_delete_goal(self, request):
+        """DELETE /goal — Remove a goal by ID."""
+        try:
+            body = await request.json()
+        except Exception:
+            return web.json_response({"error": "Invalid JSON"}, status=400)
+
+        goal_id = body.get("id")
+        if not goal_id:
+            return web.json_response({"error": "Required field: id"}, status=400)
+
+        if self.brain.prefrontal_cortex.remove_goal(goal_id):
+            return web.json_response({"status": "deleted", "id": goal_id})
+        return web.json_response({"error": f"Goal '{goal_id}' not found"}, status=404)
+
+    async def _handle_goal_evaluate(self, request):
+        """POST /goal/evaluate — Force a goal evaluation cycle."""
+        pfc = self.brain.prefrontal_cortex
+        if pfc.is_evaluating:
+            return web.json_response({"error": "Already evaluating"}, status=409)
+
+        async def _run_eval():
+            await pfc.evaluate_all()
+
+        asyncio.ensure_future(_run_eval())
+        return web.json_response({
+            "status": "evaluation_started",
+            "message": "Goal evaluation initiated. Watch /ws/live for progress.",
+        })
+
+    # ──────────────────────────────────────────────
+    # Prediction Endpoints (Predictive Cortex)
+    # ──────────────────────────────────────────────
+
+    async def _handle_predictions(self, request):
+        """GET /predictions — Current forecasts for all metric channels."""
+        pred = self.brain.predictive_cortex
+        return web.json_response({
+            "channels": pred.get_predictions(),
+            "summary": pred.get_summary(),
+            "is_predicting": pred.is_predicting,
+        })
+
+    async def _handle_prediction_history(self, request):
+        """GET /predictions/history — Recent phantom spike history."""
+        limit = int(request.query.get("limit", "20"))
+        pred = self.brain.predictive_cortex
+        return web.json_response({
+            "phantoms": pred.get_phantom_history(limit),
+            "count": len(pred.phantom_history),
         })
 
 
