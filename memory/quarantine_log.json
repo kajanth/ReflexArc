@@ -1,0 +1,44 @@
+[
+  {
+    "timestamp": "2026-02-23 10:07:31",
+    "pid": 61280,
+    "process": "Google Chrome Helper (Renderer)",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-02-23 10:57:59",
+    "pid": 66001,
+    "process": "Google Chrome Helper (Renderer)",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-02-23 10:58:14",
+    "pid": 66026,
+    "process": "Google Chrome Helper (Renderer)",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-02-23 11:08:23",
+    "pid": 67581,
+    "process": "Google Chrome Helper (Renderer)",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-02-23 12:02:19",
+    "pid": 73958,
+    "process": "Google Chrome Helper (Renderer)",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-02-23 12:06:30",
+    "pid": 74387,
+    "process": "Google Chrome Helper (Renderer)",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  }
+]

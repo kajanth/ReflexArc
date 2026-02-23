@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 NSA ReflexArc — Live Dashboard</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #111827;
+            --bg-card: #1a1f2e;
+            --bg-card-hover: #1f2937;
+            --border: #2d3748;
+            --border-glow: #3b82f620;
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --accent-pink: #ec4899;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+
+            50% {
+                opacity: 0.8;
+                box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+            }
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: auto auto auto;
+            gap: 12px;
+            padding: 12px;
+            max-height: calc(100vh - 56px);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-header {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+        }
+
+        .card-header .badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 500;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .badge-live {
+            background: var(--accent-red);
+            color: #fff;
+            animation: pulse 2s infinite;
+        }
+
+        .badge-ok {
+            background: var(--accent-green);
+            color: #fff;
+        }
+
+        .badge-warn {
+            background: var(--accent-yellow);
+            color: #000;
+        }
+
+        .card-body {
+            padding: 10px 14px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* Video Panel */
+        .video-panel {
+            grid-column: 1 / 3;
+            grid-row: 1 / 3;
+        }
+
+        .video-panel .card-body {
+            padding: 0;
+            position: relative;
+            background: #000;
+        }
+
+        .video-panel img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .video-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+            padding: 12px 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--accent-green);
+        }
+
+        .no-video {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 300px;
+            color: var(--text-muted);
+            font-size: 14px;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .no-video span {
+            font-size: 48px;
+        }
+
+        /* Spike Feed */
+        .spike-feed {
+            grid-column: 3;
+            grid-row: 1;
+        }
+
+        .spike-item {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .spike-item:last-child {
+            border-bottom: none;
+        }
+
+        .spike-time {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            font-size: 10px;
+        }
+
+        .spike-type {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin: 0 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .type-spike {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        .type-decision {
+            background: var(--accent-purple);
+            color: #fff;
+        }
+
+        .type-reflex {
+            background: var(--accent-green);
+            color: #fff;
+        }
+
+        .type-template {
+            background: var(--accent-cyan);
+            color: #fff;
+        }
+
+        .type-cortex {
+            background: var(--accent-red);
+            color: #fff;
+        }
+
+        .type-log {
+            background: var(--bg-card-hover);
+            color: var(--text-secondary);
+        }
+
+        .spike-desc {
+            color: var(--text-primary);
+            margin-top: 2px;
+            word-break: break-word;
+        }
+
+        /* Neural Cascade */
+        .cascade-panel {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        .layer-row {
+            display: flex;
+            align-items: center;
+            padding: 6px 0;
+            gap: 8px;
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .layer-indicator {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .layer-info {
+            flex: 1;
+        }
+
+        .layer-name {
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .layer-detail {
+            color: var(--text-muted);
+            font-size: 10px;
+        }
+
+        .layer-cost {
+            font-size: 10px;
+            color: var(--accent-green);
+            text-align: right;
+        }
+
+        /* Metrics Row */
+        .metrics-panel {
+            grid-column: 1 / 4;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+        }
+
+        .metric-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 22px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.2;
+        }
+
+        .metric-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        /* Provider + Memory Row */
+        .providers-panel {
+            grid-column: 1 / 2;
+        }
+
+        .memory-panel {
+            grid-column: 2 / 3;
+        }
+
+        .skills-panel {
+            grid-column: 3;
+        }
+
+        .provider-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+        }
+
+        .provider-row:last-child {
+            border-bottom: none;
+        }
+
+        .provider-name {
+            font-weight: 500;
+        }
+
+        .provider-status {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+        }
+
+        /* Sensor Toggles */
+        .sensor-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+        }
+
+        .sensor-row:last-child {
+            border-bottom: none;
+        }
+
+        .sensor-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sensor-emoji {
+            font-size: 16px;
+        }
+
+        .sensor-name {
+            font-weight: 500;
+            font-size: 12px;
+        }
+
+        .sensor-type {
+            font-size: 9px;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch input:checked+.toggle-slider {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+
+        .toggle-switch input:checked+.toggle-slider::before {
+            transform: translateX(16px);
+            background: #fff;
+        }
+
+        .memory-item {
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 11px;
+        }
+
+        .memory-item:last-child {
+            border-bottom: none;
+        }
+
+        .memory-time {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            font-size: 10px;
+        }
+
+        .memory-desc {
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .skill-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            margin: 2px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .skill-tag.active {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <span style="font-size:24px">🧠</span>
+            <h1>NSA ReflexArc</h1>
+        </div>
+        <div class="header-status">
+            <div style="display:flex;align-items:center;gap:6px">
+                <div class="status-dot" id="ws-dot"></div>
+                <span id="ws-status">Connecting...</span>
+            </div>
+            <span id="uptime">—</span>
+            <span id="clock"></span>
+        </div>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="grid">
+        <!-- Video Panel -->
+        <div class="card video-panel">
+            <div class="card-header">
+                🎥 Vision Sensor
+                <span class="badge badge-live" id="video-badge">LIVE</span>
+            </div>
+            <div class="card-body" id="video-container">
+                <img id="video-feed" src="/stream/video" alt="Video Feed"
+                    onerror="this.style.display='none'; document.getElementById('no-video').style.display='flex';">
+                <div class="no-video" id="no-video" style="display:none">
+                    <span>📷</span>
+                    No camera feed available
+                </div>
+                <div class="video-overlay" id="video-overlay">
+                    <span id="vision-stats">Waiting for frames...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spike Feed -->
+        <div class="card spike-feed">
+            <div class="card-header">
+                ⚡ Live Spike Feed
+                <span class="badge badge-live" id="spike-count">0</span>
+            </div>
+            <div class="card-body" id="spike-feed-body" style="max-height: 250px;">
+                <div style="color: var(--text-muted); font-size: 12px; text-align: center; padding: 20px;">
+                    Waiting for spikes...
+                </div>
+            </div>
+        </div>
+
+        <!-- Neural Cascade -->
+        <div class="card cascade-panel">
+            <div class="card-header">
+                🧠 Neural Cascade
+                <span class="badge badge-ok" id="cascade-status">IDLE</span>
+            </div>
+            <div class="card-body" id="cascade-body">
+                <div class="layer-row">
+                    <div class="layer-indicator" style="background: #1e3a5f">👁️</div>
+                    <div class="layer-info">
+                        <div class="layer-name">L0: SENSES</div>
+                        <div class="layer-detail" id="layer-senses">Idle</div>
+                    </div>
+                    <div class="layer-cost">$0</div>
+                </div>
+                <div class="layer-row">
+                    <div class="layer-indicator" style="background: #1e3a3f">🔍</div>
+                    <div class="layer-info">
+                        <div class="layer-name">L1: RAS</div>
+                        <div class="layer-detail" id="layer-ras">—</div>
+                    </div>
+                    <div class="layer-cost">$0</div>
+                </div>
+                <div class="layer-row">
+                    <div class="layer-indicator" style="background: #2d1e5f">🔀</div>
+                    <div class="layer-info">
+                        <div class="layer-name">L2: THALAMUS</div>
+                        <div class="layer-detail" id="layer-thalamus">—</div>
+                    </div>
+                    <div class="layer-cost" id="thalamus-cost">~$0.001</div>
+                </div>
+                <div class="layer-row">
+                    <div class="layer-indicator" style="background: #1e5f2d">🦾</div>
+                    <div class="layer-info">
+                        <div class="layer-name">L5: CEREBELLUM</div>
+                        <div class="layer-detail" id="layer-cerebellum">—</div>
+                    </div>
+                    <div class="layer-cost">$0</div>
+                </div>
+                <div class="layer-row">
+                    <div class="layer-indicator" style="background: #065f5f">📄</div>
+                    <div class="layer-info">
+                        <div class="layer-name">L4.5: TEMPLATE</div>
+                        <div class="layer-detail" id="layer-template">—</div>
+                    </div>
+                    <div class="layer-cost" id="template-cost">~$0.001</div>
+                </div>
+                <div class="layer-row">
+                    <div class="layer-indicator" style="background: #5f1e1e">🧠</div>
+                    <div class="layer-info">
+                        <div class="layer-name">L4: CORTEX</div>
+                        <div class="layer-detail" id="layer-cortex">—</div>
+                    </div>
+                    <div class="layer-cost" id="cortex-cost">~$0.01+</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Row -->
+        <div class="card metrics-panel">
+            <div class="card-header">
+                📊 System Metrics
+                <span class="badge badge-ok" id="metrics-badge">OK</span>
+            </div>
+            <div class="card-body">
+                <div class="metrics-grid">
+                    <div class="metric-box">
+                        <div class="metric-value" id="m-spend" style="color:var(--accent-green)">$0.000</div>
+                        <div class="metric-label">Token Spend</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value" id="m-spikes" style="color:var(--accent-blue)">0</div>
+                        <div class="metric-label">Spikes</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value" id="m-cortex" style="color:var(--accent-purple)">0%</div>
+                        <div class="metric-label">Cortex Ratio</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value" id="m-efficiency" style="color:var(--accent-cyan)">0%</div>
+                        <div class="metric-label">Efficiency</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value" id="m-latency" style="color:var(--accent-yellow)">0ms</div>
+                        <div class="metric-label">Avg Latency</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value" id="m-phase" style="color:var(--accent-pink)">—</div>
+                        <div class="metric-label">Circadian</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value" id="m-providers" style="color:var(--accent-green)">0</div>
+                        <div class="metric-label">Providers</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value" id="m-models" style="color:var(--accent-blue)">0</div>
+                        <div class="metric-label">Models</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sensors (with toggle switches) -->
+        <div class="card providers-panel">
+            <div class="card-header">
+                📡 Sensors
+                <span class="badge badge-ok" id="sensors-badge">—</span>
+            </div>
+            <div class="card-body" id="sensors-body" style="max-height: 200px;">
+                <div style="color:var(--text-muted); font-size:12px">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Memory Timeline -->
+        <div class="card memory-panel">
+            <div class="card-header">
+                🧬 Recent Memories
+                <span class="badge" style="background:var(--accent-purple);color:#fff" id="memory-count">0</span>
+            </div>
+            <div class="card-body" id="memory-body" style="max-height: 200px;">
+                <div style="color:var(--text-muted); font-size:12px">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Skills -->
+        <div class="card skills-panel">
+            <div class="card-header">
+                🦾 Skills
+                <span class="badge badge-ok" id="skills-count">0</span>
+            </div>
+            <div class="card-body" id="skills-body" style="max-height: 200px;">
+                <div style="color:var(--text-muted); font-size:12px">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ──────────────────────────────────────────────
+        // State
+        // ──────────────────────────────────────────────
+        let spikeCount = 0;
+        let ws = null;
+        const MAX_SPIKES = 50;
+
+        // ──────────────────────────────────────────────
+        // Clock
+        // ──────────────────────────────────────────────
+        function updateClock() {
+            document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // ──────────────────────────────────────────────
+        // WebSocket — Real-time Events
+        // ──────────────────────────────────────────────
+        function connectWS() {
+            const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${proto}//${location.host}/ws/live`);
+
+            ws.onopen = () => {
+                document.getElementById('ws-dot').style.background = 'var(--accent-green)';
+                document.getElementById('ws-status').textContent = 'Connected';
+            };
+
+            ws.onclose = () => {
+                document.getElementById('ws-dot').style.background = 'var(--accent-red)';
+                document.getElementById('ws-status').textContent = 'Disconnected';
+                setTimeout(connectWS, 3000);
+            };
+
+            ws.onerror = () => {
+                document.getElementById('ws-dot').style.background = 'var(--accent-yellow)';
+                document.getElementById('ws-status').textContent = 'Error';
+            };
+
+            ws.onmessage = (evt) => {
+                const event = JSON.parse(evt.data);
+                handleEvent(event);
+            };
+        }
+
+        function handleEvent(event) {
+            const t = event.type;
+            const d = event.data || {};
+
+            // Add to spike feed
+            addSpikeItem(event);
+
+            // Update cascade visualization
+            if (t === 'spike') {
+                document.getElementById('layer-senses').textContent = d.sense_type || 'spike';
+                document.getElementById('cascade-status').textContent = 'ACTIVE';
+                document.getElementById('cascade-status').className = 'badge badge-live';
+            }
+            if (t === 'ras_filter') {
+                document.getElementById('layer-ras').textContent = d.result || 'filtered';
+            }
+            if (t === 'decision') {
+                document.getElementById('layer-thalamus').textContent = d.decision || '—';
+            }
+            if (t === 'reflex_exec') {
+                document.getElementById('layer-cerebellum').textContent = d.skill || '—';
+                flashSkill(d.skill);
+                resetCascade();
+            }
+            if (t === 'template_exec') {
+                document.getElementById('layer-template').textContent = d.template || '—';
+                resetCascade();
+            }
+            if (t === 'cortex_exec') {
+                document.getElementById('layer-cortex').textContent = `${d.provider || ''}:${d.model || ''}`;
+                resetCascade();
+            }
+        }
+
+        function resetCascade() {
+            setTimeout(() => {
+                document.getElementById('cascade-status').textContent = 'IDLE';
+                document.getElementById('cascade-status').className = 'badge badge-ok';
+            }, 2000);
+        }
+
+        function addSpikeItem(event) {
+            const feed = document.getElementById('spike-feed-body');
+            if (spikeCount === 0) feed.innerHTML = '';
+
+            spikeCount++;
+            document.getElementById('spike-count').textContent = spikeCount;
+
+            const typeClass = {
+                'spike': 'type-spike', 'decision': 'type-decision',
+                'reflex_exec': 'type-reflex', 'template_exec': 'type-template',
+                'cortex_exec': 'type-cortex', 'ras_filter': 'type-log',
+                'log': 'type-log',
+            }[event.type] || 'type-log';
+
+            const desc = event.data.description || event.data.decision ||
+                event.data.skill || event.data.template ||
+                event.data.result || JSON.stringify(event.data).slice(0, 80);
+
+            const div = document.createElement('div');
+            div.className = 'spike-item';
+            div.innerHTML = `
+                <span class="spike-time">${event.time_str || '—'}</span>
+                <span class="spike-type ${typeClass}">${event.type}</span>
+                <div class="spike-desc">${escapeHtml(desc)}</div>
+            `;
+            feed.insertBefore(div, feed.firstChild);
+
+            // Trim old items
+            while (feed.children.length > MAX_SPIKES) {
+                feed.removeChild(feed.lastChild);
+            }
+        }
+
+        function flashSkill(name) {
+            const el = document.querySelector(`.skill-tag[data-skill="${name}"]`);
+            if (el) {
+                el.classList.add('active');
+                setTimeout(() => el.classList.remove('active'), 3000);
+            }
+        }
+
+        function escapeHtml(text) {
+            const d = document.createElement('div');
+            d.textContent = String(text);
+            return d.innerHTML;
+        }
+
+        // ──────────────────────────────────────────────
+        // REST Polling — Status, Skills, Memories
+        // ──────────────────────────────────────────────
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/status');
+                const data = await res.json();
+
+                // Uptime
+                document.getElementById('uptime').textContent = data.uptime_human || '—';
+
+                // Metrics
+                const cog = data.cognitive_load || {};
+                document.getElementById('m-cortex').textContent = `${Math.round((cog.cortex_ratio || 0) * 100)}%`;
+                document.getElementById('m-efficiency').textContent = `${Math.round((cog.efficiency_score || 0) * 100)}%`;
+                document.getElementById('m-phase').textContent = data.circadian_phase || '—';
+                document.getElementById('m-spikes').textContent = data.spikes_received || 0;
+
+                // Providers
+                const prov = data.providers || {};
+                document.getElementById('m-providers').textContent = (prov.providers_authenticated || []).length;
+                document.getElementById('m-models').textContent = prov.total_models_discovered || 0;
+
+            } catch (e) { /* ignore */ }
+        }
+
+        async function fetchStats() {
+            try {
+                const res = await fetch('/stats');
+                const data = await res.json();
+                document.getElementById('m-spend').textContent = `$${(data.total_spent || 0).toFixed(4)}`;
+                document.getElementById('m-latency').textContent = `${((data.avg_latency || 0) * 1000).toFixed(0)}ms`;
+            } catch (e) { /* ignore */ }
+        }
+
+        async function fetchSkills() {
+            try {
+                const res = await fetch('/skills');
+                const data = await res.json();
+                const skills = data.python_skills || [];
+                const templates = data.ai_templates || {};
+
+                document.getElementById('skills-count').textContent = data.total || 0;
+
+                let html = '';
+                for (const s of skills) {
+                    html += `<span class="skill-tag" data-skill="${s}">${s}</span>`;
+                }
+                for (const t of Object.keys(templates)) {
+                    html += `<span class="skill-tag" data-skill="${t}" style="border-color:var(--accent-cyan);color:var(--accent-cyan)">📄 ${t}</span>`;
+                }
+                document.getElementById('skills-body').innerHTML = html;
+            } catch (e) { /* ignore */ }
+        }
+
+        async function fetchMemories() {
+            try {
+                const res = await fetch('/memories/recent?limit=8');
+                const data = await res.json();
+                const memories = data.memories || [];
+
+                document.getElementById('memory-count').textContent = data.count || 0;
+
+                let html = '';
+                for (const m of memories) {
+                    html += `<div class="memory-item">
+                        <span class="memory-time">${m.timestamp || '—'}</span>
+                        <div class="memory-desc">${escapeHtml((m.description || '').slice(0, 70))}</div>
+                    </div>`;
+                }
+                document.getElementById('memory-body').innerHTML = html || '<div style="color:var(--text-muted);font-size:12px">No memories yet</div>';
+            } catch (e) { /* ignore */ }
+        }
+
+        // ──────────────────────────────────────────────
+        // Sensor Controls
+        // ──────────────────────────────────────────────
+        async function fetchSensors() {
+            try {
+                const res = await fetch('/sensors');
+                const data = await res.json();
+                const sensors = data.sensors || {};
+                const summary = data.summary || {};
+
+                document.getElementById('sensors-badge').textContent = `${summary.active || 0}/${summary.total || 0}`;
+
+                const body = document.getElementById('sensors-body');
+                let html = '';
+                for (const [name, info] of Object.entries(sensors)) {
+                    html += `<div class="sensor-row">
+                        <div class="sensor-left">
+                            <span class="sensor-emoji">${info.emoji || '📡'}</span>
+                            <div>
+                                <div class="sensor-name">${info.label || name}</div>
+                                <div class="sensor-type">${info.type || 'peripheral'}</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" ${info.enabled ? 'checked' : ''}
+                                   onchange="toggleSensor('${name}', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>`;
+                }
+                body.innerHTML = html;
+            } catch (e) { /* ignore */ }
+        }
+
+        async function toggleSensor(name, enabled) {
+            try {
+                await fetch('/sensor/toggle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sensor: name, action: enabled ? 'enable' : 'disable' }),
+                });
+                // Refresh sensor list to get updated state
+                fetchSensors();
+            } catch (e) { /* ignore */ }
+        }
+
+        // ──────────────────────────────────────────────
+        // Init
+        // ──────────────────────────────────────────────
+        connectWS();
+        fetchStatus();
+        fetchStats();
+        fetchSkills();
+        fetchMemories();
+        fetchSensors();
+
+        setInterval(fetchStatus, 3000);
+        setInterval(fetchStats, 2000);
+        setInterval(fetchSkills, 15000);
+        setInterval(fetchMemories, 5000);
+        setInterval(fetchSensors, 5000);
+    </script>
+</body>
+
+</html>

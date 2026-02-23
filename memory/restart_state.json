@@ -1,0 +1,9 @@
+{
+  "restart_time": "2026-02-23 10:52:17",
+  "reason": "Significant motion detected (Intensity: 140847)",
+  "pid": 65324,
+  "python": "/Users/kajanthmayooranathan/.virtualenvs/ai/bin/python",
+  "argv": [
+    "main.py"
+  ]
+}

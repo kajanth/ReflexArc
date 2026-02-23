@@ -1,0 +1,10 @@
+{
+  "vision": false,
+  "auditory": true,
+  "system_vitals": true,
+  "filesystem": true,
+  "network_probe": true,
+  "threat_detection": false,
+  "circadian": true,
+  "cognitive_load": true
+}
