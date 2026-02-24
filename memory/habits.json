@@ -18,5 +18,25 @@
     "count": 4,
     "latency_multiplier": 0.8573749999999999,
     "cost_multiplier": 0.7290000000000001
+  },
+  "REFLEX:quarantine_process": {
+    "count": 3,
+    "latency_multiplier": 0.9025,
+    "cost_multiplier": 0.81
+  },
+  "REFLEX:token_budget_enforcer": {
+    "count": 9,
+    "latency_multiplier": 0.6634204312890623,
+    "cost_multiplier": 0.43046721000000016
+  },
+  "TEMPLATE:summarize_event": {
+    "count": 2,
+    "latency_multiplier": 0.95,
+    "cost_multiplier": 0.9
+  },
+  "REFLEX:firewall_block": {
+    "count": 1,
+    "latency_multiplier": 1.0,
+    "cost_multiplier": 1.0
   }
 }

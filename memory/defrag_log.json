@@ -382,5 +382,642 @@
     "duplicates_removed": 0,
     "threshold": 0.92,
     "merges": []
+  },
+  {
+    "timestamp": "2026-02-23T22:21:42.348781",
+    "memories_before": 51,
+    "memories_after": 44,
+    "duplicates_removed": 7,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2135,
+        "removed": 2120,
+        "similarity": 0.9644516706466675,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon"
+      },
+      {
+        "kept": 2139,
+        "removed": 2130,
+        "similarity": 0.9331870079040527,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 91.7%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%"
+      },
+      {
+        "kept": 2136,
+        "removed": 2131,
+        "similarity": 0.940857470035553,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2138,
+        "removed": 2134,
+        "similarity": 0.9903504848480225,
+        "kept_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: .DS",
+        "removed_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon"
+      },
+      {
+        "kept": 2140,
+        "removed": 2136,
+        "similarity": 0.940857470035553,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2142,
+        "removed": 2141,
+        "similarity": 0.9970829486846924,
+        "kept_desc": "PHANTOM_SPIKE: CPU Usage predicted to breach 90% i",
+        "removed_desc": "PHANTOM_SPIKE: CPU Usage predicted to breach 90% i"
+      },
+      {
+        "kept": 2143,
+        "removed": 2142,
+        "similarity": 0.9961200952529907,
+        "kept_desc": "PHANTOM_SPIKE: CPU Usage predicted to breach 90% i",
+        "removed_desc": "PHANTOM_SPIKE: CPU Usage predicted to breach 90% i"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-23T23:44:34.200924",
+    "memories_before": 67,
+    "memories_after": 44,
+    "duplicates_removed": 23,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2166,
+        "removed": 2071,
+        "similarity": 0.9612299203872681,
+        "kept_desc": "Proprioception: MODIFIED: sensor_state.json; MODIF",
+        "removed_desc": "Proprioception: MODIFIED: sensor_state.json"
+      },
+      {
+        "kept": 2163,
+        "removed": 2127,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db"
+      },
+      {
+        "kept": 2162,
+        "removed": 2132,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: providers.json",
+        "removed_desc": "Proprioception: MODIFIED: providers.json"
+      },
+      {
+        "kept": 2145,
+        "removed": 2138,
+        "similarity": 0.9903504848480225,
+        "kept_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon",
+        "removed_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: .DS"
+      },
+      {
+        "kept": 2146,
+        "removed": 2139,
+        "similarity": 0.9582821130752563,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 95.2%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 91.7%"
+      },
+      {
+        "kept": 2147,
+        "removed": 2140,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2149,
+        "removed": 2145,
+        "similarity": 0.9349330067634583,
+        "kept_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon",
+        "removed_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon"
+      },
+      {
+        "kept": 2148,
+        "removed": 2146,
+        "similarity": 0.9399840235710144,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 88.6%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 95.2%"
+      },
+      {
+        "kept": 2149,
+        "removed": 2147,
+        "similarity": 0.9303394556045532,
+        "kept_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2150,
+        "removed": 2148,
+        "similarity": 0.9576166868209839,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 92.2%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 88.6%"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-23T23:52:14.470987",
+    "memories_before": 52,
+    "memories_after": 44,
+    "duplicates_removed": 8,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2169,
+        "removed": 2123,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: .DS_Store",
+        "removed_desc": "Proprioception: MODIFIED: .DS_Store"
+      },
+      {
+        "kept": 2167,
+        "removed": 2135,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2171,
+        "removed": 2160,
+        "similarity": 0.9593921899795532,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 99.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 95.1%"
+      },
+      {
+        "kept": 2172,
+        "removed": 2161,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2168,
+        "removed": 2165,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db"
+      },
+      {
+        "kept": 2170,
+        "removed": 2168,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db"
+      },
+      {
+        "kept": 2173,
+        "removed": 2171,
+        "similarity": 0.9516085386276245,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 97.9%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 99.0%"
+      },
+      {
+        "kept": 2174,
+        "removed": 2172,
+        "similarity": 0.9303394556045532,
+        "kept_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-23T23:55:16.927570",
+    "memories_before": 48,
+    "memories_after": 45,
+    "duplicates_removed": 3,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2175,
+        "removed": 2167,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2177,
+        "removed": 2173,
+        "similarity": 0.9276624321937561,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 97.9%"
+      },
+      {
+        "kept": 2176,
+        "removed": 2174,
+        "similarity": 0.9349330067634583,
+        "kept_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon",
+        "removed_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-23T23:56:52.868566",
+    "memories_before": 47,
+    "memories_after": 45,
+    "duplicates_removed": 2,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2180,
+        "removed": 2137,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: stats.json",
+        "removed_desc": "Proprioception: MODIFIED: stats.json"
+      },
+      {
+        "kept": 2179,
+        "removed": 2175,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-24T00:04:10.791835",
+    "memories_before": 61,
+    "memories_after": 46,
+    "duplicates_removed": 15,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2188,
+        "removed": 1413,
+        "similarity": 0.9641243815422058,
+        "kept_desc": "Proprioception: MODIFIED: budget_enforcement.log; ",
+        "removed_desc": "Proprioception: MODIFIED: budget_enforcement.log; "
+      },
+      {
+        "kept": 2181,
+        "removed": 2177,
+        "similarity": 0.9217715263366699,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 93.3%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%"
+      },
+      {
+        "kept": 2184,
+        "removed": 2178,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2183,
+        "removed": 2181,
+        "similarity": 0.9217715263366699,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 93.3%"
+      },
+      {
+        "kept": 2185,
+        "removed": 2183,
+        "similarity": 1.0,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%"
+      },
+      {
+        "kept": 2194,
+        "removed": 2184,
+        "similarity": 0.940857470035553,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2187,
+        "removed": 2185,
+        "similarity": 1.0,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%"
+      },
+      {
+        "kept": 2194,
+        "removed": 2186,
+        "similarity": 0.9602950215339661,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon"
+      },
+      {
+        "kept": 2189,
+        "removed": 2187,
+        "similarity": 0.9436765909194946,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 96.1%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%"
+      },
+      {
+        "kept": 2190,
+        "removed": 2188,
+        "similarity": 1.0000001192092896,
+        "kept_desc": "Proprioception: MODIFIED: budget_enforcement.log; ",
+        "removed_desc": "Proprioception: MODIFIED: budget_enforcement.log; "
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-24T00:05:51.277270",
+    "memories_before": 50,
+    "memories_after": 46,
+    "duplicates_removed": 4,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2197,
+        "removed": 2179,
+        "similarity": 0.9968975186347961,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2198,
+        "removed": 2194,
+        "similarity": 0.940857470035553,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2199,
+        "removed": 2195,
+        "similarity": 0.9545230865478516,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 97.1%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 99.0%"
+      },
+      {
+        "kept": 2200,
+        "removed": 2198,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-24T00:07:05.149965",
+    "memories_before": 50,
+    "memories_after": 46,
+    "duplicates_removed": 4,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2201,
+        "removed": 2197,
+        "similarity": 0.9970147013664246,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2203,
+        "removed": 2199,
+        "similarity": 1.0,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 97.1%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 97.1%"
+      },
+      {
+        "kept": 2202,
+        "removed": 2200,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2204,
+        "removed": 2202,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-24T00:08:41.717806",
+    "memories_before": 50,
+    "memories_after": 46,
+    "duplicates_removed": 4,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2205,
+        "removed": 2201,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2207,
+        "removed": 2203,
+        "similarity": 0.9545230865478516,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 99.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 97.1%"
+      },
+      {
+        "kept": 2206,
+        "removed": 2204,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2208,
+        "removed": 2206,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-24T00:21:47.207443",
+    "memories_before": 54,
+    "memories_after": 47,
+    "duplicates_removed": 7,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2213,
+        "removed": 2143,
+        "similarity": 0.9864910244941711,
+        "kept_desc": "PHANTOM_SPIKE: CPU Usage predicted to breach 90% i",
+        "removed_desc": "PHANTOM_SPIKE: CPU Usage predicted to breach 90% i"
+      },
+      {
+        "kept": 2214,
+        "removed": 2164,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: providers.json",
+        "removed_desc": "Proprioception: MODIFIED: providers.json"
+      },
+      {
+        "kept": 2216,
+        "removed": 2196,
+        "similarity": 1.0000001192092896,
+        "kept_desc": "Proprioception: MODIFIED: budget_enforcement.log; ",
+        "removed_desc": "Proprioception: MODIFIED: budget_enforcement.log; "
+      },
+      {
+        "kept": 2209,
+        "removed": 2205,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2215,
+        "removed": 2207,
+        "similarity": 0.9571601152420044,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 90.6%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 99.0%"
+      },
+      {
+        "kept": 2210,
+        "removed": 2208,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2212,
+        "removed": 2210,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-24T00:22:33.516060",
+    "memories_before": 49,
+    "memories_after": 47,
+    "duplicates_removed": 2,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2217,
+        "removed": 2209,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2218,
+        "removed": 2212,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-24T00:22:56.219299",
+    "memories_before": 48,
+    "memories_after": 47,
+    "duplicates_removed": 1,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2219,
+        "removed": 2217,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-24T00:28:17.311987",
+    "memories_before": 59,
+    "memories_after": 48,
+    "duplicates_removed": 11,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2222,
+        "removed": 2214,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: providers.json",
+        "removed_desc": "Proprioception: MODIFIED: providers.json"
+      },
+      {
+        "kept": 2224,
+        "removed": 2215,
+        "similarity": 0.9582007527351379,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 98.1%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 90.6%"
+      },
+      {
+        "kept": 2231,
+        "removed": 2216,
+        "similarity": 1.0000001192092896,
+        "kept_desc": "Proprioception: MODIFIED: budget_enforcement.log; ",
+        "removed_desc": "Proprioception: MODIFIED: budget_enforcement.log; "
+      },
+      {
+        "kept": 2221,
+        "removed": 2218,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2220,
+        "removed": 2219,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2223,
+        "removed": 2221,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2225,
+        "removed": 2223,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2230,
+        "removed": 2224,
+        "similarity": 0.9582270979881287,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 98.1%"
+      },
+      {
+        "kept": 2227,
+        "removed": 2225,
+        "similarity": 0.940857470035553,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2228,
+        "removed": 2226,
+        "similarity": 1.0,
+        "kept_desc": "Webhook Received: [GITHUB] push",
+        "removed_desc": "Webhook Received: [GITHUB] push"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-24T00:37:44.986204",
+    "memories_before": 52,
+    "memories_after": 51,
+    "duplicates_removed": 1,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2233,
+        "removed": 2229,
+        "similarity": 0.940857470035553,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      }
+    ]
   }
 ]

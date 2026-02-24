@@ -32,13 +32,13 @@ A bio-inspired, config-driven AI organism that processes the physical world thro
                         │  $0.00   │  Repeated patterns get faster routing
                         └──────────┘
                               │
-         ┌────────────────────┼────────────────────┐
-    ┌────▼─────┐        ┌────▼─────┐         ┌────▼─────┐
-    │  🌙 Dream │        │  🎯 Goals │         │  👁️ Predict│
-    │  Engine   │        │  Engine   │         │  Engine   │
-    │ Overnight │        │ Every 5m  │         │ Every 2m  │
-    │ $0.03/cyc │        │ $0/eval   │         │  $0.00    │
-    └──────────┘        └──────────┘         └──────────┘
+         ┌─────────────────────────┼─────────────────────────┐
+    ┌────▼─────┐        ┌────▼─────┐         ┌────▼─────┐         ┌────▼─────┐
+    │  🌙 Dream │        │  🎯 Goals │         │  👁️ Predict│         │  🗣️ Broca │
+    │  Engine   │        │  Engine   │         │  Engine   │         │  NL Chat  │
+    │ Overnight │        │ Every 5m  │         │ Every 2m  │         │ On-Demand │
+    │ $0.03/cyc │        │ $0/eval   │         │  $0.00    │         │ ~$0.001   │
+    └──────────┘        └──────────┘         └──────────┘         └──────────┘
 ```
 
 ---
@@ -105,6 +105,7 @@ ReflexArc/
 ├── dream_engine.py            # 🌙 Offline memory consolidation (REM sleep)
 ├── prefrontal_cortex.py       # 🎯 Goal-directed planning & evaluation
 ├── predictive_cortex.py       # 👁️ Anticipatory sensing & phantom spikes
+├── brocas_area.py             # 🗣️ Natural Language Interface (Interrogate/Modify/Goal Set)
 │
 ├── config/                    # Brain profiles (swap to change domain)
 │   ├── brain.yaml             # DevOps brain (default)
@@ -128,7 +129,8 @@ ReflexArc/
 │   ├── threat_detection.py    # 🛡️ Amygdala — process/port scanning
 │   ├── curiosity.py           # 💰 Cost & latency tracking
 │   ├── circadian.py           # ⏰ Sleep/Active/Drowsy cycle
-│   └── cognitive_load.py      # 📊 Cortex-vs-Reflex ratio
+│   ├── cognitive_load.py      # 📊 Cortex-vs-Reflex ratio
+│   └── webhook_receptor.py    # 🪝 External Webhooks (API-driven)
 │
 ├── skills/                    # Layer 5 — Cerebellum ($0 reflexes)
 │   ├── templates/             # Layer 4.5 — AI skill templates (.md)
@@ -250,10 +252,23 @@ Every sensory spike flows through this hierarchy:
 | 🌙 **Dream Engine** | Overnight | ~$0.03 | Clusters memories, names patterns, auto-generates skills, prunes stale data |
 | 🎯 **Prefrontal Cortex** | Every 5min | ~$0.001 | Evaluates persistent goals, generates proactive spikes when off-track |
 | 👁️ **Predictive Cortex** | Every 2min | $0 | Exponential smoothing forecasts → phantom spikes before breaches |
+| 🧠 **Synaptic Plasticity** | Real-time | $0 | Adaptive RAS thresholds based on environmental noise floor and reflex reward signals |
 
 ---
 
 ## 📡 API Reference
+
+### OpenAPI Documentation
+
+The system includes formally-defined interactive API documentation. You can explore and test the endpoints visually.
+
+```bash
+# Open your browser to the Swagger UI:
+http://localhost:8080/docs
+
+# Or fetch the raw OpenAPI specification:
+curl -X GET http://localhost:8080/openapi.yaml
+```
 
 ### Inject Spikes
 

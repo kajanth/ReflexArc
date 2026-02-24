@@ -27,7 +27,7 @@ import psutil
 from event_bus import event_bus
 
 PREDICTIONS_FILE = "memory/predictions.json"
-HISTORY_MAX = 360          # ~12h of samples at 2-min intervals
+HISTORY_MAX = 1440         # ~48h of samples at 2-min intervals
 FORECAST_HORIZON = 6       # Predict 6 samples ahead (12 min at 2-min interval)
 SMOOTHING_ALPHA = 0.3      # Exponential smoothing factor (higher = more reactive)
 CONFIDENCE_THRESHOLD = 0.6 # Minimum confidence to fire a phantom spike
@@ -62,6 +62,7 @@ class MetricChannel:
         # Forecast state
         self.smoothed = None         # Exponential smoothing level
         self.trend = 0.0             # Current rate of change per sample
+        self.seasonal = 0.0          # Seasonal delta component
         self.last_value = None
         self.predicted_value = None
         self.predicted_breach_in = None  # Samples until breach (None = no breach)
@@ -104,8 +105,20 @@ class MetricChannel:
             den = sum((i - x_mean) ** 2 for i in range(n))
             self.trend = num / den if den > 0 else 0.0
 
+        # ── Seasonal Variation (24h period) ──
+        # Check if we have samples from ~24h ago (720 samples at 2m intervals)
+        self.seasonal = 0.0
+        if len(self.history) >= 720:
+            past_window = list(self.history)[-725:-715] # 10 sample window around 24h ago
+            if past_window:
+                past_values = [v for _, v in past_window]
+                past_avg = sum(past_values) / len(past_values)
+                # Seasonal component is difference between past average and current smoothed
+                self.seasonal = past_avg - self.smoothed
+
         # ── Predict breach ──
-        self.predicted_value = self.smoothed + self.trend * FORECAST_HORIZON
+        # Incorporate 20% of the seasonal delta to prevent overreaction
+        self.predicted_value = self.smoothed + (self.trend * FORECAST_HORIZON) + (self.seasonal * 0.2)
         self._estimate_breach()
         self._update_status()
 
@@ -180,6 +193,7 @@ class MetricChannel:
             "current": round(self.last_value, 2) if self.last_value is not None else None,
             "smoothed": round(self.smoothed, 2) if self.smoothed is not None else None,
             "trend": round(self.trend, 3),
+            "seasonal": round(self.seasonal, 2),
             "trend_arrow": self.get_trend_arrow(),
             "predicted": round(self.predicted_value, 2) if self.predicted_value is not None else None,
             "threshold": self.threshold,
@@ -319,13 +333,23 @@ class PredictiveCortex:
             for channel in self.channels.values():
                 channel.sample()
 
-            # ── Step 2: ACT — Generate phantom spikes for predicted breaches ──
+            # ── Step 2: ACT — Generate phantom spikes and pre-allocations ──
             phantoms = []
+            pre_allocated = False
+            
             for ch in self.channels.values():
                 if ch.status == "breach_predicted" and ch.confidence >= CONFIDENCE_THRESHOLD:
                     phantoms.append(ch)
                 elif ch.status == "breaching":
                     phantoms.append(ch)
+                elif ch.status in ("rising", "falling") and not pre_allocated:
+                    # Provider capacity pre-allocation
+                    if self.orchestrator and hasattr(self.orchestrator, "router"):
+                        try:
+                            self.orchestrator.router.pre_allocate("cortex")
+                            pre_allocated = True
+                        except Exception as e:
+                            print(f"  👁️  Pre-allocation failed: {e}")
 
             for ch in phantoms:
                 await self._fire_phantom_spike(ch)

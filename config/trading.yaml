@@ -23,6 +23,27 @@ sensors:
     label: "Price Feed"
     type: peripheral
 
+  - name: filesystem
+    module: sensors.filesystem.FileSystemSensor
+    args:
+      watch_paths:
+        - "skills/"
+        - "memory/"
+      ignore_patterns:
+        - "__pycache__"
+        - ".pyc"
+        - ".db-journal"
+        - ".DS_Store"
+    emoji: "📁"
+    label: "Filesystem Monitor"
+    type: peripheral
+
+  - name: webhooks
+    module: sensors.webhook_receptor.WebhookReceptor
+    emoji: "🪝"
+    label: "External Webhooks"
+    type: peripheral
+
   - name: order_book
     module: plugins.sensors.order_book.OrderBookSensor
     args:

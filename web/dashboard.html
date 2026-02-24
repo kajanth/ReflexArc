@@ -248,13 +248,93 @@
 
         .spike-type {
             display: inline-block;
-            padding: 1px 6px;
+            padding: 2px 6px;
             border-radius: 4px;
+            background: #1e293b;
+            color: #94a3b8;
+            margin-right: 8px;
             font-size: 10px;
             font-weight: 600;
-            margin: 0 4px;
-            font-family: 'JetBrains Mono', monospace;
         }
+
+        /* Broca's Terminal */
+        .broca-panel {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            background: #0a0a0c;
+            border: 1px solid var(--accent-purple);
+        }
+
+        .broca-chat {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+
+        .broca-message {
+            padding: 8px 12px;
+            border-radius: 8px;
+            max-width: 80%;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .broca-user {
+            align-self: flex-end;
+            background: #1e293b;
+            color: #fff;
+            border-bottom-right-radius: 0;
+        }
+
+        .broca-brain {
+            align-self: flex-start;
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #d8b4fe;
+            border-bottom-left-radius: 0;
+        }
+
+        .broca-input-container {
+            display: flex;
+            border-top: 1px solid var(--border);
+            background: #000;
+        }
+
+        .broca-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 12px 16px;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+
+        .broca-input:focus {
+            outline: none;
+        }
+
+        .broca-btn {
+            background: var(--accent-purple);
+            color: #fff;
+            border: none;
+            padding: 0 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .broca-btn:hover {
+            opacity: 0.8;
+        }
+
+
 
         .type-spike {
             background: var(--accent-blue);
@@ -838,6 +918,25 @@
                 <div style="color:var(--text-muted); font-size:12px">Loading...</div>
             </div>
         </div>
+
+        <!-- Broca's Area Terminal -->
+        <div class="card broca-panel" style="height: 250px;">
+            <div class="card-header" style="border-bottom-color: var(--accent-purple)">
+                <span>🗣️ Broca's Terminal</span>
+                <span class="badge" style="background:var(--accent-purple);color:#fff">NL INTERFACE</span>
+            </div>
+            <div class="broca-chat" id="broca-chat">
+                <div class="broca-message broca-brain">
+                    System initialized. I am Broca's Area, the natural language interface.<br>
+                    Ask me to explain system behavior, modify active parameters, or set goals.
+                </div>
+            </div>
+            <div class="broca-input-container">
+                <input type="text" class="broca-input" id="broca-input"
+                    placeholder="Talk to the brain... (e.g. 'Why did you restart nginx?')">
+                <button class="broca-btn" onclick="sendBrocaMessage()">SEND</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1328,6 +1427,70 @@
         // Final Init
         fetchMCP();
         setInterval(fetchMCP, 10000);
+
+        // ──────────────────────────────────────────────
+        // Broca's Area
+        // ──────────────────────────────────────────────
+        function addBrocaMessage(text, isUser) {
+            const chatBox = document.getElementById('broca-chat');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `broca-message ${isUser ? 'broca-user' : 'broca-brain'}`;
+            msgDiv.innerHTML = text.replace(/\n/g, '<br>'); // Basic newline handling
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendBrocaMessage() {
+            const input = document.getElementById('broca-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+            input.disabled = true;
+            addBrocaMessage(text, true);
+
+            // Add typing indicator
+            const chatBox = document.getElementById('broca-chat');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'broca-message broca-brain';
+            typingDiv.id = 'broca-typing';
+            typingDiv.innerHTML = '<i>Processing...</i>';
+            chatBox.appendChild(typingDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const res = await fetch('/broca/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+                const data = await res.json();
+
+                // Remove typing indicator
+                const typingObj = document.getElementById('broca-typing');
+                if (typingObj) typingObj.remove();
+
+                if (data.error) {
+                    addBrocaMessage(`Error: ${data.error}`, false);
+                } else {
+                    addBrocaMessage(data.response, false);
+                }
+            } catch (err) {
+                const typingObj = document.getElementById('broca-typing');
+                if (typingObj) typingObj.remove();
+                addBrocaMessage(`Network Error: ${err.message}`, false);
+            } finally {
+                input.disabled = false;
+                input.focus();
+            }
+        }
+
+        // Allow enter key to send
+        document.getElementById('broca-input')?.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendBrocaMessage();
+            }
+        });
     </script>
 </body>
 

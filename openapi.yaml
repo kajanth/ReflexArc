@@ -1,0 +1,458 @@
+openapi: 3.0.3
+info:
+  title: ReflexArc API
+  description: The central nervous system API for the ReflexArc autonomous agent orchestrator.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local brain instance
+
+tags:
+  - name: Spikes
+    description: Ingest external stimuli
+  - name: Status & Control
+    description: General brain vitals and states
+  - name: Senses
+    description: Peripheral sensor management
+  - name: Memory & Dreaming
+    description: Hippocampus and pattern consolidation
+  - name: Goals
+    description: Prefrontal Cortex objectives
+  - name: Predictions
+    description: Predictive Cortex forecasting
+  - name: Tools (MCP)
+    description: Model Context Protocol external servers
+  - name: Chat
+    description: Natural language interface (Broca's Area)
+
+paths:
+  # ──────────────────────────────────────────
+  # SPIKES
+  # ──────────────────────────────────────────
+  /spike:
+    post:
+      tags: [Spikes]
+      summary: Inject a generic stimulus spike
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sense_type, description]
+              properties:
+                sense_type:
+                  type: string
+                  example: auditory
+                description:
+                  type: string
+                  example: "Loud noise detected in the hallway"
+      responses:
+        '200':
+          description: Spike injected successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+
+  /spike/threat:
+    post:
+      tags: [Spikes]
+      summary: Inject a critical threat spike
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [severity, description]
+              properties:
+                severity:
+                  type: string
+                  enum: [LOW, MEDIUM, HIGH, CRITICAL]
+                  example: HIGH
+                description:
+                  type: string
+                  example: "Unauthorized SSH attempt"
+      responses:
+        '200':
+          description: Threat injected successfully
+
+  /spike/metric:
+    post:
+      tags: [Spikes]
+      summary: Inject a metric update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [metric_name, value]
+              properties:
+                metric_name:
+                  type: string
+                  example: "cpu_temperature"
+                value:
+                  type: number
+                  example: 85.5
+                unit:
+                  type: string
+                  example: "C"
+      responses:
+        '200':
+          description: Metric spike injected successfully
+
+  /webhook/{source}:
+    post:
+      tags: [Spikes]
+      summary: Ingest arbitrary webhooks
+      description: Acts as a generic receptor for external webhook payloads (e.g., GitHub, Stripe).
+      parameters:
+        - in: path
+          name: source
+          required: true
+          schema:
+            type: string
+          example: github
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+          text/plain:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Webhook received successfully
+        '400':
+          description: Invalid payload
+        '501':
+          description: Webhook Receptor sensor not enabled
+
+  # ──────────────────────────────────────────
+  # STATUS & SKILLS
+  # ──────────────────────────────────────────
+  /status:
+    get:
+      tags: [Status & Control]
+      summary: Get comprehensive brain status
+      responses:
+        '200':
+          description: Current status payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uptime:
+                    type: string
+                  heartrate:
+                    type: number
+                  status:
+                    type: string
+                  active_skills:
+                    type: integer
+
+  /skills:
+    get:
+      tags: [Status & Control]
+      summary: List all active skills in the Cerebellum
+      responses:
+        '200':
+          description: Dictionary of skills
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+                  properties:
+                    description:
+                      type: string
+                    layer:
+                      type: string
+                    invocation_count:
+                      type: integer
+
+  /skill/run:
+    post:
+      tags: [Status & Control]
+      summary: Manually execute a specific skill
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [skill_name]
+              properties:
+                skill_name:
+                  type: string
+                  example: "alert_notify"
+                kwargs:
+                  type: object
+                  description: Arguments to pass to the skill
+      responses:
+        '200':
+          description: Skill executed successfully
+
+  /health:
+    get:
+      tags: [Status & Control]
+      summary: Lightweight health check endpoint
+      responses:
+        '200':
+          description: Brain is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  version:
+                    type: string
+
+  # ──────────────────────────────────────────
+  # SENSES
+  # ──────────────────────────────────────────
+  /sensors:
+    get:
+      tags: [Senses]
+      summary: Get status of all sensory inputs
+      responses:
+        '200':
+          description: Dictionary of sensors and their enabled status
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /sensor/toggle:
+    post:
+      tags: [Senses]
+      summary: Enable or disable a specific sensor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sensor, enabled]
+              properties:
+                sensor:
+                  type: string
+                  example: "vision"
+                enabled:
+                  type: boolean
+      responses:
+        '200':
+          description: Sensor toggled
+
+  # ──────────────────────────────────────────
+  # MEMORY & DREAMING
+  # ──────────────────────────────────────────
+  /memories/recent:
+    get:
+      tags: [Memory & Dreaming]
+      summary: Fetch recent episodic memories
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of memories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+
+  /dreams/recent:
+    get:
+      tags: [Memory & Dreaming]
+      summary: Fetch recent dream journals
+      responses:
+        '200':
+          description: List of dream journals in markdown format
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+
+  /patterns:
+    get:
+      tags: [Memory & Dreaming]
+      summary: Fetch consolidated memory clusters
+      responses:
+        '200':
+          description: Current semantic patterns
+
+  /dream/trigger:
+    post:
+      tags: [Memory & Dreaming]
+      summary: Manually trigger the dream cycle (consolidation)
+      responses:
+        '200':
+          description: Dream cycle initiated
+
+  # ──────────────────────────────────────────
+  # GOALS (Prefrontal Cortex)
+  # ──────────────────────────────────────────
+  /goals:
+    get:
+      tags: [Goals]
+      summary: Get all active goals and constraints
+      responses:
+        '200':
+          description: Goals structure
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /goal:
+    post:
+      tags: [Goals]
+      summary: Define a new active goal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [goal_id, metric, operator, value]
+              properties:
+                goal_id:
+                  type: string
+                metric:
+                  type: string
+                operator:
+                  type: string
+                  enum: ['<', '<=', '>', '>=', '==', '!=']
+                value:
+                  type: number
+                priority:
+                  type: integer
+                  default: 5
+      responses:
+        '200':
+          description: Goal added
+    delete:
+      tags: [Goals]
+      summary: Remove an active goal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [goal_id]
+              properties:
+                goal_id:
+                  type: string
+      responses:
+        '200':
+          description: Goal removed
+
+  /goal/evaluate:
+    post:
+      tags: [Goals]
+      summary: Manually trigger goal evaluation cycle
+      responses:
+        '200':
+          description: Evaluation complete
+
+  # ──────────────────────────────────────────
+  # PREDICTIONS (Predictive Cortex)
+  # ──────────────────────────────────────────
+  /predictions:
+    get:
+      tags: [Predictions]
+      summary: Get current predictions for monitored metrics
+      responses:
+        '200':
+          description: Prediction data map
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /predictions/history:
+    get:
+      tags: [Predictions]
+      summary: Get historical prediction accuracy data
+      responses:
+        '200':
+          description: Historical array of predictions vs actuals
+
+  # ──────────────────────────────────────────
+  # TOOLS (MCP)
+  # ──────────────────────────────────────────
+  /mcp/servers:
+    get:
+      tags: [Tools (MCP)]
+      summary: List all active Model Context Protocol servers
+      responses:
+        '200':
+          description: Array of online server details
+
+  /mcp/tools:
+    get:
+      tags: [Tools (MCP)]
+      summary: List all discrete tools exposed by MCP servers
+      responses:
+        '200':
+          description: Array of exposed JSON-RPC tools
+
+  # ──────────────────────────────────────────
+  # CHAT (Broca's Area)
+  # ──────────────────────────────────────────
+  /broca/chat:
+    post:
+      tags: [Chat]
+      summary: Send a natural language message to the brain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message:
+                  type: string
+                  example: "Why is the CPU running so hot?"
+      responses:
+        '200':
+          description: Neural response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                    example: "The CPU is hot because the predictive cortex is generating massive embedding workloads."
+
+components:
+  schemas:
+    StatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success

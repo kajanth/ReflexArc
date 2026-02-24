@@ -49,6 +49,11 @@ class NSAApiServer:
         self.port = port
         self.vision_sensor = vision_sensor
         self.sensor_mgr = sensor_mgr
+        
+        # Give Broca's Area access to sensors if it exists
+        if hasattr(self.brain, "brocas_area"):
+            self.brain.brocas_area.sensor_mgr = sensor_mgr
+            
         self.app = web.Application()
         self._setup_routes()
         self._spike_count = 0
@@ -97,6 +102,16 @@ class NSAApiServer:
         self.app.router.add_get("/mcp/servers", self._handle_mcp_servers)
         self.app.router.add_get("/mcp/tools", self._handle_mcp_tools)
 
+        # Broca's Area (Natural Language Interface)
+        self.app.router.add_post("/broca/chat", self._handle_broca_chat)
+
+        # External Webhooks
+        self.app.router.add_post("/webhook/{source}", self._handle_webhook)
+
+        # OpenAPI Documentation
+        self.app.router.add_get("/openapi.yaml", self._handle_openapi_yaml)
+        self.app.router.add_get("/docs", self._handle_swagger_docs)
+
     # ──────────────────────────────────────────────
     # Dashboard Endpoints
     # ──────────────────────────────────────────────
@@ -107,6 +122,20 @@ class NSAApiServer:
         if os.path.exists(html_path):
             return web.FileResponse(html_path)
         return web.Response(text="Dashboard HTML not found", status=404)
+
+    async def _handle_openapi_yaml(self, request):
+        """GET /openapi.yaml — Serve the OpenAPI specification."""
+        path = os.path.join(os.path.dirname(__file__), "openapi.yaml")
+        if os.path.exists(path):
+            return web.FileResponse(path)
+        return web.Response(text="openapi.yaml not found", status=404)
+
+    async def _handle_swagger_docs(self, request):
+        """GET /docs — Serve the Swagger UI."""
+        path = os.path.join(os.path.dirname(__file__), "web", "docs.html")
+        if os.path.exists(path):
+            return web.FileResponse(path)
+        return web.Response(text="Swagger UI template not found", status=404)
 
     async def _handle_video_stream(self, request):
         """GET /stream/video — MJPEG stream from vision sensor."""
@@ -653,6 +682,61 @@ class NSAApiServer:
         return web.json_response({
             "tools": mcp_manager.get_all_tools()
         })
+        
+    async def _handle_broca_chat(self, request):
+        """POST /broca/chat — Chat with the brain's natural language interface."""
+        try:
+            data = await request.json()
+            message = data.get("message", "")
+            if not message:
+                return web.json_response({"error": "No message provided"}, status=400)
+                
+            if not hasattr(self.brain, "brocas_area"):
+                return web.json_response({"error": "Broca's Area not initialized"}, status=501)
+                
+            response = await self.brain.brocas_area.chat(message)
+            return web.json_response(response)
+        except Exception as e:
+            print(f"[ApiServer] Error in Broca chat: {e}")
+            return web.json_response({"error": str(e)}, status=500)
+            
+    async def _handle_webhook(self, request):
+        """POST /webhook/{source} — Ingest arbitrary webhook payloads."""
+        source = request.match_info.get("source", "unknown").lower()
+        try:
+            # First try JSON
+            if request.content_type == "application/json":
+                payload = await request.json()
+            # Then try form data (e.g., Stripe, older webhooks)
+            elif request.content_type == "application/x-www-form-urlencoded":
+                form_data = await request.post()
+                payload = dict(form_data)
+            # Otherwise just grab plain text
+            else:
+                raw_text = await request.text()
+                payload = {"raw_text": raw_text}
+                
+            # Find the webhook receptor in the sensor manager
+            receptor = None
+            if hasattr(self, "sensor_mgr") and self.sensor_mgr:
+                receptor = self.sensor_mgr.get_sensor("webhooks")
+                
+                if not receptor:
+                    for sensor_id, sensor_obj in self.sensor_mgr.active_sensors():
+                        if hasattr(sensor_obj, "ingest_webhook"):
+                            receptor = sensor_obj
+                            break
+            
+            if not receptor:
+                return web.json_response({"error": "Webhook Receiver sensor not enabled in brain config"}, status=501)
+                
+            receptor.ingest_webhook(source, payload)
+            return web.json_response({"status": "received", "source": source})
+            
+        except Exception as e:
+            print(f"[ApiServer] Error processing webhook from '{source}': {e}")
+            return web.json_response({"error": f"Invalid payload: {e}"}, status=400)
+
 
 
 def _format_uptime(seconds):

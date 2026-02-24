@@ -39,6 +39,12 @@ sensors:
     label: "Energy Meter"
     type: peripheral
 
+  - name: webhooks
+    module: sensors.webhook_receptor.WebhookReceptor
+    emoji: "🪝"
+    label: "External Webhooks"
+    type: peripheral
+
   - name: door_sensor
     module: plugins.sensors.iot.DoorSensor
     args:
@@ -46,6 +52,18 @@ sensors:
     emoji: "🚪"
     label: "Door/Window Sensors"
     type: security
+
+  - name: filesystem
+    module: sensors.filesystem.FileSystemSensor
+    args:
+      watch_paths:
+        - "skills/"
+        - "memory/"
+      ignore_patterns:
+        - "__pycache__"
+        - ".pyc"
+        - ".db-journal"
+        - ".DS_Store"
 
   - name: air_quality
     module: plugins.sensors.iot.AirQualitySensor

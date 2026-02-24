@@ -48,6 +48,11 @@ sensors:
       watch_paths:
         - "skills/"
         - "memory/"
+      ignore_patterns:
+        - "__pycache__"
+        - ".pyc"
+        - ".db-journal"
+        - ".DS_Store"
     emoji: "📂"
     label: "Filesystem"
     type: peripheral
@@ -63,6 +68,12 @@ sensors:
     emoji: "🛡️"
     label: "Threat Detection"
     type: security
+
+  - name: webhooks
+    module: sensors.webhook_receptor.WebhookReceptor
+    emoji: "🪝"
+    label: "External Webhooks"
+    type: peripheral
 
   # Internal sensors (initialized from brain, not imported)
   - name: circadian
@@ -140,12 +151,12 @@ mcp_servers:
     command: uvx
     args: ["mcp-server-sqlite", "--db-path", "memory/long_term_memory.db"]
   # 2. Example: Adding Github via NPX
-  - name: github
-    command: npx
-    args: ["-y", "@modelcontextprotocol/server-github"]
-    env:
-      GITHUB_PERSONAL_ACCESS_TOKEN: "ghp_your_actual_token_here"
-  # 3. Example: Adding Google Drive 
-  - name: google_drive
-    command: npx
-    args: ["-y", "@modelcontextprotocol/server-google-drive"]
+  # - name: github
+  #   command: npx
+  #   args: ["-y", "@modelcontextprotocol/server-github"]
+  #   env:
+  #     GITHUB_PERSONAL_ACCESS_TOKEN: "ghp_your_actual_token_here"
+  # # 3. Example: Adding Google Drive 
+  # - name: google_drive
+  #   command: npx
+  #   args: ["-y", "@modelcontextprotocol/server-google-drive"]

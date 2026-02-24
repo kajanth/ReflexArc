@@ -1,6 +1,6 @@
 {
   "vision": false,
-  "auditory": true,
+  "auditory": false,
   "system_vitals": true,
   "filesystem": true,
   "network_probe": true,

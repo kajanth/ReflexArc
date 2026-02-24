@@ -1,0 +1,8 @@
+[
+  {
+    "timestamp": "2026-02-24 00:28:24",
+    "raw_data": "[THREAT/external] SSH Brute Force Attempt",
+    "extracted_ip": null,
+    "extracted_port": null
+  }
+]

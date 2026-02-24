@@ -312,6 +312,40 @@ class ModelRouter:
             f"All providers failed for tier '{tier}'. Last error: {last_error}"
         )
 
+    def pre_allocate(self, tier: str) -> bool:
+        """
+        Anticipatory sensing pre-allocation.
+        Sends a minimal 1-token prompt to the primary provider in the tier
+        to establish TLS handshakes and warm up the deployment endpoint.
+        """
+        tier_models = self.get_tier_config(tier)
+        if not tier_models:
+            return False
+
+        strategy = self._config.get("strategy", "cheapest")
+        available = []
+        for entry in tier_models:
+            provider_name = entry["provider"]
+            prov = self._providers.get(provider_name)
+            if prov and prov.is_available() and entry.get("enabled", True):
+                available.append((entry, prov))
+
+        if not available:
+            return False
+
+        ordered = self._select(available, strategy)
+        for entry, prov in ordered:
+            model = entry["model"]
+            print(f"[Router] ⚡ Pre-allocating capacity for {tier.upper()} ({entry['provider']}:{model})")
+            try:
+                # Send minimum payload to wake up the model
+                prov.chat([{"role": "user", "content": "Ack"}], model, max_tokens=1)
+                return True
+            except Exception as e:
+                print(f"[Router] Pre-allocation failed for {entry['provider']}:{model}: {e}")
+                pass
+        return False
+
     def _select(self, available, strategy):
         """Order providers by strategy."""
         if strategy == "cheapest":

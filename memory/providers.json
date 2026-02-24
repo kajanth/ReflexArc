@@ -1,9 +1,27 @@
 {
   "strategy": "cheapest",
   "auto_discovered": true,
-  "discovery_time": "2026-02-23T16:51:26Z",
+  "discovery_time": "2026-02-24T00:37:29Z",
   "tiers": {
     "nano": [
+      {
+        "provider": "gemini",
+        "model": "gemini-2.0-flash",
+        "cost_per_1k_input": 0.0,
+        "cost_per_1k_output": 0.0,
+        "weight": 1.0,
+        "context_window": 1048576,
+        "enabled": true
+      },
+      {
+        "provider": "gemini",
+        "model": "gemini-2.0-flash-lite",
+        "cost_per_1k_input": 0.0,
+        "cost_per_1k_output": 0.0,
+        "weight": 1.0,
+        "context_window": 1048576,
+        "enabled": true
+      },
       {
         "provider": "openai",
         "model": "gpt-4.1-nano",

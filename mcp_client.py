@@ -132,6 +132,9 @@ class MCPClient:
         if not self.process or not self.process.stdin:
             raise Exception("Process not running")
             
+        if self.process.returncode is not None:
+            raise Exception(f"Process exited prematurely with code {self.process.returncode}")
+            
         payload = json.dumps(body) + "\n"
         self.process.stdin.write(payload.encode("utf-8"))
         await self.process.stdin.drain()
@@ -160,6 +163,21 @@ class MCPClient:
             except Exception as e:
                 print(f"[MCPClient] Read error: {e}")
                 break
+                
+        # If we broke out of the loop, the process is dead or stdout closed.
+        if self.process and self.process.returncode is None:
+            try:
+                await asyncio.wait_for(self.process.wait(), timeout=1.0)
+            except asyncio.TimeoutError:
+                pass
+                
+        exit_code = self.process.returncode if self.process else None
+        error_msg = f"Process exited with code {exit_code}" if exit_code is not None else "Process stdout closed unexpectedly"
+        
+        for req_id, future in list(self._pending_requests.items()):
+            if not future.done():
+                future.set_exception(Exception(f"{error_msg} before responding"))
+        self._pending_requests.clear()
 
     async def _stderr_loop(self):
         """Log stderr from the server."""

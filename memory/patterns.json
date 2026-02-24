@@ -136,36 +136,36 @@
   },
   "new_process_pid": {
     "description": "AMYGDALA [ALERT]: 1 threat(s) detected \u2014 New process: parsec-fbf (PID: 65601, Us",
-    "occurrences": 152,
+    "occurrences": 418,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-02-23T16:51:35.979357",
+    "last_seen": "2026-02-24T00:37:44.967460",
     "resolved": true,
     "associated_skill": "auto_new_process_pid",
     "cluster_size": 2
   },
   "modified_proprioception": {
     "description": "Proprioception: MODIFIED: budget_enforcement.log; MODIFIED: long_term_memory.db;",
-    "occurrences": 56,
+    "occurrences": 199,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-02-23T16:51:35.979357",
+    "last_seen": "2026-02-24T00:37:44.967460",
     "resolved": true,
     "associated_skill": "auto_modified_proprioception",
     "cluster_size": 2
   },
   "modified_proprioception_created": {
     "description": "Proprioception: MODIFIED: long_term_memory.db; CREATED: local_alerts.log; CREATE",
-    "occurrences": 34,
+    "occurrences": 128,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-02-23T16:51:35.979357",
+    "last_seen": "2026-02-24T00:37:44.967460",
     "resolved": true,
     "associated_skill": "auto_modified_proprioception_created",
-    "cluster_size": 4
+    "cluster_size": 6
   },
   "created_proprioception_modified": {
     "description": "Proprioception: CREATED: auto_cluster_4.py; MODIFIED: .DS_Store; CREATED: auto_c",
-    "occurrences": 24,
+    "occurrences": 66,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-02-23T16:51:35.979357",
+    "last_seen": "2026-02-24T00:37:44.967460",
     "resolved": true,
     "associated_skill": "auto_created_proprioception_modified",
     "cluster_size": 3
@@ -181,12 +181,12 @@
   },
   "pain_signal_warning": {
     "description": "PAIN SIGNAL [WARNING]: CPU at 99.1%",
-    "occurrences": 17,
+    "occurrences": 53,
     "first_seen": "2026-02-23T15:59:29.285070",
-    "last_seen": "2026-02-23T16:49:10.977036",
+    "last_seen": "2026-02-24T00:28:15.085739",
     "resolved": true,
     "associated_skill": "auto_pain_signal_warning",
-    "cluster_size": 4
+    "cluster_size": 3
   },
   "proprioception_modified_created": {
     "description": "Proprioception: MODIFIED: .DS_Store; CREATED: .DS_Store",
@@ -199,11 +199,29 @@
   },
   "proprioception_modified": {
     "description": "Proprioception: MODIFIED: long_term_memory.db",
-    "occurrences": 4,
+    "occurrences": 18,
     "first_seen": "2026-02-23T16:49:10.977036",
-    "last_seen": "2026-02-23T16:49:10.977036",
+    "last_seen": "2026-02-24T00:28:15.085739",
     "resolved": true,
     "associated_skill": "auto_proprioception_modified",
-    "cluster_size": 4
+    "cluster_size": 2
+  },
+  "cpu_usage_predicted": {
+    "description": "PHANTOM_SPIKE: CPU Usage predicted to breach 90% in ~7.4 min (currently 60.0%, r",
+    "occurrences": 5,
+    "first_seen": "2026-02-23T22:21:39.742924",
+    "last_seen": "2026-02-24T00:21:47.183485",
+    "resolved": true,
+    "associated_skill": "auto_cpu_usage_predicted",
+    "cluster_size": 2
+  },
+  "webhook_received_github": {
+    "description": "Webhook Received: [GITHUB] push 'Commit 1a2b3c by Alice'",
+    "occurrences": 5,
+    "first_seen": "2026-02-24T00:28:15.085739",
+    "last_seen": "2026-02-24T00:37:44.967460",
+    "resolved": true,
+    "associated_skill": "auto_webhook_received_github",
+    "cluster_size": 2
   }
 }

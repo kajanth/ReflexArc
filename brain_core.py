@@ -17,6 +17,7 @@ from heartbeat import DigitalHeart
 from dream_engine import DreamEngine
 from prefrontal_cortex import PrefrontalCortex
 from predictive_cortex import PredictiveCortex
+from brocas_area import BrocasArea
 
 
 class NSAOrchestrator:
@@ -34,7 +35,11 @@ class NSAOrchestrator:
         # 3. Layer 1: RAS (Local Embedding Model - $0 tokens)
         self.ras_model = SentenceTransformer('all-MiniLM-L6-v2')
         self.habituation_vector = None
-        self.novelty_threshold = 0.22  # Lower = more sensitive
+        
+        # Adaptive RAS Variables
+        self.base_novelty_threshold = 0.22  # Lower = more sensitive
+        self.novelty_threshold = self.base_novelty_threshold
+        self.ras_spike_times = []
 
         # 4. Layer 5.5: Basal Ganglia (Habit Formation)
         self.basal_ganglia = BasalGanglia()
@@ -53,6 +58,17 @@ class NSAOrchestrator:
         self.predictive_cortex = PredictiveCortex()
         self.predictive_cortex.set_orchestrator(self)
 
+        # 9. Broca's Area (Natural Language Interface)
+        self.brocas_area = BrocasArea(self)
+
+    def _handle_reinforce_spike(self, event_data):
+        """Synaptic Plasticity: Lower the baseline threshold (increase sensitivity) for useful vectors."""
+        desc = event_data.get('description', '')[:50]
+        print(f"[RAS] Synaptic Reward: Lowering baseline threshold. Learned from useful action.")
+        # Make the global novelty baseline slightly more sensitive
+        self.base_novelty_threshold = max(0.10, self.base_novelty_threshold - 0.01)
+        self.novelty_threshold = self.base_novelty_threshold
+
     async def process_spike(self, sense_type, description):
         """The Neural Cascade: From Stimulus to Action."""
         start_time = time.time()
@@ -63,21 +79,24 @@ class NSAOrchestrator:
         if "Protocol Gamma" in description or ("SLEEP" in description and "HEARTBEAT" not in description):
             return await self.dream()
 
+        bypass_ras = False
+
         # ──────────────────────────────────────────────
         # GOAL INVESTIGATION FAST-PATH (proactive spikes from prefrontal cortex)
         # ──────────────────────────────────────────────
         if "GOAL_INVESTIGATION" in description:
             # These bypass RAS — they're deliberate, not environmental
+            bypass_ras = True
             event_bus.publish("goal_spike", {
                 "description": description[:120],
             })
-            # Fall through to normal Thalamus routing (don't return early)
-            # The spike will be triaged and handled by the appropriate layer
+            # Fall through to normal Thalamus routing
 
         # ──────────────────────────────────────────────
         # PHANTOM SPIKE FAST-PATH (predictive spikes bypass RAS)
         # ──────────────────────────────────────────────
         if "PHANTOM_SPIKE" in description:
+            bypass_ras = True
             event_bus.publish("phantom_spike_exec", {
                 "description": description[:120],
             })
@@ -124,24 +143,41 @@ class NSAOrchestrator:
         # ──────────────────────────────────────────────
         # LAYER 1: RAS (Habituation/Novelty)
         # ──────────────────────────────────────────────
-        current_vec = self.ras_model.encode(description)
-        if self.habituation_vector is not None:
-            similarity = np.dot(current_vec, self.habituation_vector) / (
-                np.linalg.norm(current_vec) * np.linalg.norm(self.habituation_vector)
-            )
-            distance = 1 - similarity
-            
-            if distance < self.novelty_threshold:
-                event_bus.publish("ras_filter", {
-                    "result": "HABITUATED",
-                    "distance": round(float(distance), 4),
-                    "description": description[:80]
-                })
-                return None
+        now = time.time()
+        self.ras_spike_times.append(now)
+        # Prune older than 60 seconds
+        self.ras_spike_times = [t for t in self.ras_spike_times if now - t <= 60.0]
         
-        self.habituation_vector = current_vec
-        novelty_dist = distance if 'distance' in locals() else 'Init'
-        print(f"\n[RAS]: Novelty Spike Detected ({sense_type.upper()}). Distance: {novelty_dist}")
+        spm = len(self.ras_spike_times)
+        if spm > 20: # High noise environment
+            self.novelty_threshold = min(0.60, self.base_novelty_threshold + 0.15)
+        elif spm < 5: # Quiet environment
+            self.novelty_threshold = max(0.05, self.base_novelty_threshold - 0.05)
+        else:
+            self.novelty_threshold = self.base_novelty_threshold
+            
+        novelty_dist = "Bypass"
+        if not bypass_ras:
+            current_vec = self.ras_model.encode(description)
+            if self.habituation_vector is not None:
+                similarity = np.dot(current_vec, self.habituation_vector) / (
+                    np.linalg.norm(current_vec) * np.linalg.norm(self.habituation_vector)
+                )
+                distance = 1 - similarity
+                
+                if distance < self.novelty_threshold:
+                    event_bus.publish("ras_filter", {
+                        "result": "HABITUATED",
+                        "distance": round(float(distance), 4),
+                        "description": description[:80]
+                    })
+                    return None
+            
+            self.habituation_vector = current_vec
+            novelty_dist = distance if 'distance' in locals() else 'Init'
+            print(f"\n[RAS]: Novelty Spike Detected ({sense_type.upper()}). Distance: {novelty_dist}")
+        else:
+            print(f"\n[RAS]: Bypassed for deliberate internal spike.")
         event_bus.publish("spike", {
             "sense_type": sense_type,
             "description": description,
@@ -177,6 +213,10 @@ class NSAOrchestrator:
         
         If an available reflex matches the task exactly, reply 'REFLEX:name'.
         If an available template matches the task, reply 'TEMPLATE:name'.
+        If the stimulus is a PHANTOM_SPIKE predicting a future breach:
+          - If a reflex/template can PREVENT it, reply 'REFLEX:name' or 'TEMPLATE:name'.
+          - If it requires monitoring or complex planning, reply 'COMPLEX'.
+          - If it's a low-confidence prediction to ignore, reply 'LOG'.
         If it's a routine observation, reply 'LOG'.
         If it's truly novel and no reflex or template fits, reply 'COMPLEX'.
         Prefer REFLEX > TEMPLATE > LOG > COMPLEX (cheapest first).
@@ -219,6 +259,13 @@ class NSAOrchestrator:
                 # Layer 5.5: Basal Ganglia — reinforce successful reflex
                 pattern_id = f"REFLEX:{skill_name}"
                 self.basal_ganglia.reinforce_habit(pattern_id)
+                
+                # Synaptic Plasticity — Reward the RAS for letting this through
+                event_bus.publish("reinforce_spike", {
+                    "description": description
+                })
+                self._handle_reinforce_spike({"description": description})
+                
                 # Causal feedback to prefrontal cortex
                 if "GOAL_INVESTIGATION" in description:
                     self._report_goal_action(description, f"REFLEX:{skill_name}")
