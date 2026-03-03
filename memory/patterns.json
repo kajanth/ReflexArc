@@ -136,36 +136,36 @@
   },
   "new_process_pid": {
     "description": "AMYGDALA [ALERT]: 1 threat(s) detected \u2014 New process: parsec-fbf (PID: 65601, Us",
-    "occurrences": 418,
+    "occurrences": 475,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-02-24T00:37:44.967460",
+    "last_seen": "2026-02-24T10:29:35.630098",
     "resolved": true,
     "associated_skill": "auto_new_process_pid",
     "cluster_size": 2
   },
   "modified_proprioception": {
     "description": "Proprioception: MODIFIED: budget_enforcement.log; MODIFIED: long_term_memory.db;",
-    "occurrences": 199,
+    "occurrences": 213,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-02-24T00:37:44.967460",
+    "last_seen": "2026-02-24T10:29:35.630098",
     "resolved": true,
     "associated_skill": "auto_modified_proprioception",
     "cluster_size": 2
   },
   "modified_proprioception_created": {
     "description": "Proprioception: MODIFIED: long_term_memory.db; CREATED: local_alerts.log; CREATE",
-    "occurrences": 128,
+    "occurrences": 165,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-02-24T00:37:44.967460",
+    "last_seen": "2026-02-24T10:29:35.630098",
     "resolved": true,
     "associated_skill": "auto_modified_proprioception_created",
-    "cluster_size": 6
+    "cluster_size": 7
   },
   "created_proprioception_modified": {
     "description": "Proprioception: CREATED: auto_cluster_4.py; MODIFIED: .DS_Store; CREATED: auto_c",
-    "occurrences": 66,
+    "occurrences": 75,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-02-24T00:37:44.967460",
+    "last_seen": "2026-02-24T10:29:35.630098",
     "resolved": true,
     "associated_skill": "auto_created_proprioception_modified",
     "cluster_size": 3
@@ -181,9 +181,9 @@
   },
   "pain_signal_warning": {
     "description": "PAIN SIGNAL [WARNING]: CPU at 99.1%",
-    "occurrences": 53,
+    "occurrences": 56,
     "first_seen": "2026-02-23T15:59:29.285070",
-    "last_seen": "2026-02-24T00:28:15.085739",
+    "last_seen": "2026-02-24T10:29:35.630098",
     "resolved": true,
     "associated_skill": "auto_pain_signal_warning",
     "cluster_size": 3
@@ -217,9 +217,9 @@
   },
   "webhook_received_github": {
     "description": "Webhook Received: [GITHUB] push 'Commit 1a2b3c by Alice'",
-    "occurrences": 5,
+    "occurrences": 11,
     "first_seen": "2026-02-24T00:28:15.085739",
-    "last_seen": "2026-02-24T00:37:44.967460",
+    "last_seen": "2026-02-24T10:29:35.630098",
     "resolved": true,
     "associated_skill": "auto_webhook_received_github",
     "cluster_size": 2

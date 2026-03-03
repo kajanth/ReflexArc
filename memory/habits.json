@@ -15,19 +15,19 @@
     "cost_multiplier": 1.0
   },
   "REFLEX:system_check": {
-    "count": 4,
-    "latency_multiplier": 0.8573749999999999,
-    "cost_multiplier": 0.7290000000000001
+    "count": 7,
+    "latency_multiplier": 0.7350918906249998,
+    "cost_multiplier": 0.5314410000000002
   },
   "REFLEX:quarantine_process": {
-    "count": 3,
-    "latency_multiplier": 0.9025,
-    "cost_multiplier": 0.81
+    "count": 6,
+    "latency_multiplier": 0.7737809374999999,
+    "cost_multiplier": 0.5904900000000002
   },
   "REFLEX:token_budget_enforcer": {
-    "count": 9,
-    "latency_multiplier": 0.6634204312890623,
-    "cost_multiplier": 0.43046721000000016
+    "count": 13,
+    "latency_multiplier": 0.5403600876626365,
+    "cost_multiplier": 0.28242953648100017
   },
   "TEMPLATE:summarize_event": {
     "count": 2,
@@ -38,5 +38,15 @@
     "count": 1,
     "latency_multiplier": 1.0,
     "cost_multiplier": 1.0
+  },
+  "REFLEX:disk_pressure_relief": {
+    "count": 65,
+    "latency_multiplier": 0.1,
+    "cost_multiplier": 0.1
+  },
+  "REFLEX:memory_cleanup": {
+    "count": 3,
+    "latency_multiplier": 0.9025,
+    "cost_multiplier": 0.81
   }
 }

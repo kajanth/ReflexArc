@@ -66,6 +66,7 @@ class NSAApiServer:
         self.app.router.add_get("/stream/video", self._handle_video_stream)
         self.app.router.add_get("/ws/live", self._handle_websocket)
         self.app.router.add_get("/stats", self._handle_stats)
+        self.app.router.add_get("/graph/data", self._handle_graph_data)
 
         # Spike injection
         self.app.router.add_post("/spike", self._handle_spike)
@@ -122,6 +123,49 @@ class NSAApiServer:
         if os.path.exists(html_path):
             return web.FileResponse(html_path)
         return web.Response(text="Dashboard HTML not found", status=404)
+
+    async def _handle_graph_data(self, request):
+        """GET /graph/data — Serve nodes/edges for the Cognitive Map."""
+        # Core Architecture Nodes
+        nodes = [
+            {"id": "Sensors", "label": "Peripheral Senses\n(Layer 0)", "group": "sensor", "level": 1},
+            {"id": "RAS", "label": "RAS / Attention\n(Layer 1)", "group": "core", "level": 2},
+            {"id": "Hippocampus", "label": "Hippocampus\n(Layer 3)", "group": "memory", "level": 2},
+            {"id": "Thalamus", "label": "Thalamus Switch\n(Layer 2)", "group": "core", "level": 3},
+            {"id": "Cerebellum", "label": "Cerebellum\n(Layer 5)", "group": "action", "level": 4},
+            {"id": "Cortex", "label": "Cortex\n(Layer 4)", "group": "reasoning", "level": 4},
+            {"id": "PFC", "label": "Prefrontal\n(Goals)", "group": "executive", "level": 4},
+            {"id": "BasalGanglia", "label": "Basal Ganglia\n(Habits)", "group": "action", "level": 5},
+            {"id": "Action", "label": "System Response", "group": "output", "level": 6},
+        ]
+        
+        # Structural Edges
+        edges = [
+            {"from": "Sensors", "to": "RAS"},
+            {"from": "RAS", "to": "Hippocampus", "dashes": True},
+            {"from": "RAS", "to": "Thalamus"},
+            {"from": "Thalamus", "to": "Cerebellum", "label": "REFLEX"},
+            {"from": "Thalamus", "to": "Cortex", "label": "COMPLEX"},
+            {"from": "PFC", "to": "Thalamus", "dashes": True, "label": "Proactive"},
+            {"from": "Cerebellum", "to": "BasalGanglia", "dashes": True},
+            {"from": "Cerebellum", "to": "Action"},
+            {"from": "Cortex", "to": "Action"}
+        ]
+        
+        # Dynamically append recent memories
+        try:
+            recent_memories = event_bus.get_history(50)
+            mem_count = 0
+            for event in recent_memories:
+                if event['type'] == 'spike':
+                    mem_id = f"mem_{mem_count}"
+                    nodes.append({"id": mem_id, "label": "Spike", "group": "spike", "level": 0, "size": 10})
+                    edges.append({"from": mem_id, "to": "Sensors", "dashes": True})
+                    mem_count += 1
+        except Exception:
+            pass
+
+        return web.json_response({"nodes": nodes, "edges": edges})
 
     async def _handle_openapi_yaml(self, request):
         """GET /openapi.yaml — Serve the OpenAPI specification."""
