@@ -1116,5 +1116,314 @@
         "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%"
       }
     ]
+  },
+  {
+    "timestamp": "2026-02-26T13:30:19.687562",
+    "memories_before": 135,
+    "memories_after": 52,
+    "duplicates_removed": 83,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2264,
+        "removed": 2213,
+        "similarity": 0.9948550462722778,
+        "kept_desc": "PHANTOM_SPIKE: CPU Usage predicted to breach 90% i",
+        "removed_desc": "PHANTOM_SPIKE: CPU Usage predicted to breach 90% i"
+      },
+      {
+        "kept": 2254,
+        "removed": 2243,
+        "similarity": 0.940857470035553,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2248,
+        "removed": 2244,
+        "similarity": 0.9356908798217773,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 97.1%"
+      },
+      {
+        "kept": 2250,
+        "removed": 2248,
+        "similarity": 0.9356269240379333,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 88.1%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%"
+      },
+      {
+        "kept": 2253,
+        "removed": 2250,
+        "similarity": 0.9643380045890808,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 90.1%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 88.1%"
+      },
+      {
+        "kept": 2255,
+        "removed": 2253,
+        "similarity": 0.9693589210510254,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 91.2%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 90.1%"
+      },
+      {
+        "kept": 2375,
+        "removed": 2254,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2260,
+        "removed": 2255,
+        "similarity": 0.9395216107368469,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 99.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 91.2%"
+      },
+      {
+        "kept": 2269,
+        "removed": 2260,
+        "similarity": 0.9519495964050293,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 96.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 99.0%"
+      },
+      {
+        "kept": 2268,
+        "removed": 2264,
+        "similarity": 0.9961379766464233,
+        "kept_desc": "PHANTOM_SPIKE: CPU Usage predicted to breach 90% i",
+        "removed_desc": "PHANTOM_SPIKE: CPU Usage predicted to breach 90% i"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-26T17:18:28.383315",
+    "memories_before": 60,
+    "memories_after": 51,
+    "duplicates_removed": 9,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2436,
+        "removed": 2180,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: stats.json",
+        "removed_desc": "Proprioception: MODIFIED: stats.json"
+      },
+      {
+        "kept": 2432,
+        "removed": 2182,
+        "similarity": 0.932596743106842,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon"
+      },
+      {
+        "kept": 2432,
+        "removed": 2240,
+        "similarity": 0.9923418760299683,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2434,
+        "removed": 2430,
+        "similarity": 0.9414680004119873,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 89.5%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%"
+      },
+      {
+        "kept": 2433,
+        "removed": 2431,
+        "similarity": 0.940857470035553,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2435,
+        "removed": 2433,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2438,
+        "removed": 2434,
+        "similarity": 0.9776004552841187,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 90.4%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 89.5%"
+      },
+      {
+        "kept": 2437,
+        "removed": 2435,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2439,
+        "removed": 2437,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-28T10:58:25.511979",
+    "memories_before": 75,
+    "memories_after": 54,
+    "duplicates_removed": 21,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2440,
+        "removed": 2144,
+        "similarity": 0.9710701107978821,
+        "kept_desc": "Proprioception: CREATED: auto_high_cpu_usage.py; M",
+        "removed_desc": "Proprioception: CREATED: auto_cpu_usage_predicted."
+      },
+      {
+        "kept": 2442,
+        "removed": 2438,
+        "similarity": 0.9573616981506348,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 97.1%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 90.4%"
+      },
+      {
+        "kept": 2441,
+        "removed": 2439,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2443,
+        "removed": 2441,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2444,
+        "removed": 2442,
+        "similarity": 0.9787367582321167,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 93.1%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 97.1%"
+      },
+      {
+        "kept": 2445,
+        "removed": 2443,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2446,
+        "removed": 2444,
+        "similarity": 0.934769868850708,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 93.1%"
+      },
+      {
+        "kept": 2447,
+        "removed": 2445,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2448,
+        "removed": 2446,
+        "similarity": 1.0,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%"
+      },
+      {
+        "kept": 2449,
+        "removed": 2447,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-03-03T12:14:16.432781",
+    "memories_before": 70,
+    "memories_after": 54,
+    "duplicates_removed": 16,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 2469,
+        "removed": 2424,
+        "similarity": 0.9980571866035461,
+        "kept_desc": "PHANTOM_SPIKE: CPU Usage predicted to breach 90% i",
+        "removed_desc": "PHANTOM_SPIKE: CPU Usage predicted to breach 90% i"
+      },
+      {
+        "kept": 2464,
+        "removed": 2432,
+        "similarity": 0.9998945593833923,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2478,
+        "removed": 2458,
+        "similarity": 0.9395216107368469,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 91.2%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 99.0%"
+      },
+      {
+        "kept": 2478,
+        "removed": 2460,
+        "similarity": 0.9555378556251526,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 91.2%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 87.3%"
+      },
+      {
+        "kept": 2465,
+        "removed": 2461,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2466,
+        "removed": 2462,
+        "similarity": 0.993704617023468,
+        "kept_desc": "PHANTOM_SPIKE: Avg Response Latency predicted to b",
+        "removed_desc": "PHANTOM_SPIKE: Avg Response Latency predicted to b"
+      },
+      {
+        "kept": 2477,
+        "removed": 2465,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 2467,
+        "removed": 2466,
+        "similarity": 1.0,
+        "kept_desc": "PHANTOM_SPIKE: Avg Response Latency predicted to b",
+        "removed_desc": "PHANTOM_SPIKE: Avg Response Latency predicted to b"
+      },
+      {
+        "kept": 2468,
+        "removed": 2467,
+        "similarity": 1.0,
+        "kept_desc": "PHANTOM_SPIKE: Avg Response Latency predicted to b",
+        "removed_desc": "PHANTOM_SPIKE: Avg Response Latency predicted to b"
+      },
+      {
+        "kept": 2470,
+        "removed": 2468,
+        "similarity": 1.0,
+        "kept_desc": "PHANTOM_SPIKE: Avg Response Latency predicted to b",
+        "removed_desc": "PHANTOM_SPIKE: Avg Response Latency predicted to b"
+      }
+    ]
   }
 ]

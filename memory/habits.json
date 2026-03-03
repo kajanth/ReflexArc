@@ -40,7 +40,7 @@
     "cost_multiplier": 1.0
   },
   "REFLEX:disk_pressure_relief": {
-    "count": 65,
+    "count": 67,
     "latency_multiplier": 0.1,
     "cost_multiplier": 0.1
   },

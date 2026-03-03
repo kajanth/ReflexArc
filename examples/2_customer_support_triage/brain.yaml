@@ -1,0 +1,42 @@
+# ═══════════════════════════════════════════════
+# ReflexArc Example — Customer Support Triage
+# ═══════════════════════════════════════════════
+# Start this brain: 
+# NSA_BRAIN_CONFIG=examples/2_customer_support_triage/brain.yaml python main.py
+
+brain:
+  name: "Support Automation Brain"
+  description: "Monitors incoming tickets, flags urgent issues, and attempts automated resolution"
+  heartbeat_interval: 60
+  prediction_interval: 300
+  goal_eval_interval: 600
+
+sensors:
+  - name: webhooks
+    module: sensors.webhook_receptor.WebhookReceptor
+    emoji: "📩"
+    label: "Zendesk/Intercom Hooks"
+    type: peripheral
+
+  - name: auditory
+    module: sensors.auditory.AudioSensor
+    args:
+      rms_threshold: 1000  # Listen for voice mail queues
+    emoji: "📞"
+    label: "Voice Queue Monitoring"
+    type: peripheral
+
+predictions:
+  - name: ticket_queue_size
+    measurer: builtin.dummy_measurer
+    threshold: 50
+    direction: above
+    unit: "tickets"
+    description: "Unresolved Tickets"
+
+  - name: avg_resolution_time
+    measurer: builtin.dummy_measurer
+    threshold: 15.0
+    direction: above
+    unit: "min"
+    description: "Average Time to Resolve"

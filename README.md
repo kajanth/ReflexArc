@@ -20,7 +20,7 @@ A bio-inspired, config-driven AI organism that processes the physical world thro
                     │ ~$0.001  │  Cheap model — routes to REFLEX, TEMPLATE, or COMPLEX
                     └────┬─────┘
                    ┌─────┼──────────┐
-              ┌────▼──┐ ┌▼────────┐ ┌▼────────┐
+              ┌────▼──┐ ┌▼────────┐ ┌▼────────-┐
               │Layer 5│ │Layer 4.5│ │ Layer 4  │
               │ $0.00 │ │~$0.001  │ │ ~$0.01+  │
               │Reflex │ │Template │ │ Cortex   │
@@ -32,12 +32,12 @@ A bio-inspired, config-driven AI organism that processes the physical world thro
                         │  $0.00   │  Repeated patterns get faster routing
                         └──────────┘
                               │
-         ┌─────────────────────────┼─────────────────────────┐
+         ┌─────────────────────────┼──────────────|────────----------──┐
     ┌────▼─────┐        ┌────▼─────┐         ┌────▼─────┐         ┌────▼─────┐
-    │  🌙 Dream │        │  🎯 Goals │         │  👁️ Predict│         │  🗣️ Broca │
-    │  Engine   │        │  Engine   │         │  Engine   │         │  NL Chat  │
-    │ Overnight │        │ Every 5m  │         │ Every 2m  │         │ On-Demand │
-    │ $0.03/cyc │        │ $0/eval   │         │  $0.00    │         │ ~$0.001   │
+    │ 🌙 Dream │        │ 🎯 Goals │         │👁️ Predict│         │ 🗣️ Broca │
+    │ Engine   │        │ Engine   │         │  Engine  │         │  NL Chat │
+    │Overnight │        │ Every 5m │         │ Every 2m │         │ On-Demand│
+    │0.03/cyc  │        │ $0/eval  │         │  $0.00   │         │ ~$0.001  │
     └──────────┘        └──────────┘         └──────────┘         └──────────┘
 ```
 

@@ -1,0 +1,42 @@
+# ═══════════════════════════════════════════════
+# ReflexArc Example — Smart Home IoT Automator
+# ═══════════════════════════════════════════════
+# Start this brain: 
+# NSA_BRAIN_CONFIG=examples/3_smart_home_iot/brain.yaml python main.py
+
+brain:
+  name: "Smart Home Brain"
+  description: "Monitors IoT sensors and predicts power usage, temperature, and anomalies."
+  heartbeat_interval: 15
+  prediction_interval: 60
+  goal_eval_interval: 180
+
+sensors:
+  - name: vision
+    module: sensors.vision.OpenCVReflex
+    args:
+      sensitivity: 15000 # Detects motion via camera
+    emoji: "📷"
+    label: "Security Camera"
+    type: security
+
+  - name: webhooks
+    module: sensors.webhook_receptor.WebhookReceptor
+    emoji: "🌡️"
+    label: "IoT Home Assistant Hub"
+    type: peripheral
+
+predictions:
+  - name: room_temp
+    measurer: builtin.dummy_measurer
+    threshold: 78
+    direction: above
+    unit: "°F"
+    description: "Living Room Temp."
+
+  - name: energy_usage
+    measurer: builtin.dummy_measurer
+    threshold: 500
+    direction: above
+    unit: "kWh"
+    description: "Monthly Energy Use"

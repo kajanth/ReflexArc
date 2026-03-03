@@ -1,21 +1,21 @@
 {
   "cluster_1": {
     "description": "Significant motion detected (Intensity: 2073600)",
-    "occurrences": 890,
+    "occurrences": 892,
     "first_seen": "2026-02-23T13:45:37.597048",
-    "last_seen": "2026-02-23T14:20:31.178220",
+    "last_seen": "2026-02-28T10:58:25.487549",
     "resolved": true,
     "associated_skill": "auto_cluster_1",
-    "cluster_size": 8
+    "cluster_size": 1
   },
   "cluster_2": {
     "description": "Circadian transition: ACTIVE -> SLEEP. Triggering Protocol Gamma (memory consoli",
-    "occurrences": 24,
+    "occurrences": 25,
     "first_seen": "2026-02-23T13:45:37.597048",
-    "last_seen": "2026-02-23T14:20:31.178220",
+    "last_seen": "2026-02-26T13:30:19.650665",
     "resolved": true,
     "associated_skill": "auto_cluster_2",
-    "cluster_size": 6
+    "cluster_size": 1
   },
   "cluster_3": {
     "description": "Proprioception: MODIFIED: long_term_memory.db; MODIFIED: stats.json",
@@ -222,6 +222,33 @@
     "last_seen": "2026-02-24T10:29:35.630098",
     "resolved": true,
     "associated_skill": "auto_webhook_received_github",
+    "cluster_size": 2
+  },
+  "high_cpu_usage": {
+    "description": "Repeated CPU usage warnings indicate persistent and critical processing load.",
+    "occurrences": 3,
+    "first_seen": "2026-02-26T17:18:25.974653",
+    "last_seen": "2026-02-26T17:18:25.974653",
+    "resolved": true,
+    "associated_skill": "auto_high_cpu_usage",
+    "cluster_size": 3
+  },
+  "frequent_db_and_state_modification": {
+    "description": "Core files such as the memory database and stats were modified several times, signaling ongoing updates to long-term state.",
+    "occurrences": 5,
+    "first_seen": "2026-02-26T17:18:25.974653",
+    "last_seen": "2026-02-26T17:18:25.974653",
+    "resolved": true,
+    "associated_skill": null,
+    "cluster_size": 5
+  },
+  "short_snake_case": {
+    "description": "Repeated modifications to both long_term_memory.db and stats.json files detected.",
+    "occurrences": 2,
+    "first_seen": "2026-03-03T12:14:16.420770",
+    "last_seen": "2026-03-03T12:14:16.420770",
+    "resolved": false,
+    "associated_skill": null,
     "cluster_size": 2
   }
 }

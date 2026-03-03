@@ -1,0 +1,53 @@
+# ═══════════════════════════════════════════════
+# ReflexArc Example — DevOps Incident Response
+# ═══════════════════════════════════════════════
+# Start this brain: 
+# NSA_BRAIN_CONFIG=examples/1_incident_response_devops/brain.yaml python main.py
+
+brain:
+  name: "SRE Auto-Remediation Brain"
+  description: "Monitors infrastructure vitals and responds to incidents autonomously"
+  heartbeat_interval: 30
+  prediction_interval: 120
+  goal_eval_interval: 300
+
+sensors:
+  - name: system_vitals
+    module: sensors.system_vitals.SystemVitalsSensor
+    emoji: "📡"
+    label: "Server Vitals"
+    type: peripheral
+
+  - name: network_probe
+    module: sensors.network_probe.NetworkProbeSensor
+    emoji: "🌐"
+    label: "Network Probe"
+    type: peripheral
+
+  - name: threat_detection
+    module: sensors.threat_detection.ThreatDetectionSensor
+    emoji: "🛡️"
+    label: "Security Audit"
+    type: security
+
+  - name: webhooks
+    module: sensors.webhook_receptor.WebhookReceptor
+    emoji: "🪝"
+    label: "PagerDuty/Datadog Hooks"
+    type: peripheral
+
+predictions:
+  - name: cpu_percent
+    measurer: psutil.cpu_percent
+    threshold: 90
+    direction: above
+    unit: "%"
+    description: "CPU Usage"
+
+  - name: memory_percent
+    measurer: psutil.virtual_memory
+    attribute: percent
+    threshold: 85
+    direction: above
+    unit: "%"
+    description: "Memory Usage"
