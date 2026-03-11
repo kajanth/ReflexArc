@@ -1,0 +1,1 @@
+# Mock objects for testing without external dependencies

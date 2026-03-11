@@ -1,8 +1,9 @@
 import os
 import time
 import importlib
+import asyncio
 import numpy as np
-from sentence_transformers import SentenceTransformer
+from typing import Optional, Dict, Any, List, Tuple
 
 # Local Imports
 from memory.hippocampus import Hippocampus
@@ -10,6 +11,7 @@ from sensors.curiosity import CuriositySensor
 from sensors.cognitive_load import CognitiveLoadSensor
 from sensors.circadian import CircadianSensor
 from providers import ModelRouter
+from providers.base import StandardResponse
 from skill_template_engine import SkillTemplateEngine
 from event_bus import event_bus
 from basal_ganglia import BasalGanglia
@@ -18,58 +20,92 @@ from dream_engine import DreamEngine
 from prefrontal_cortex import PrefrontalCortex
 from predictive_cortex import PredictiveCortex
 from brocas_area import BrocasArea
+from utils.logging_config import get_logger
+from utils.embeddings import get_embedding_model, cleanup_embedding_model
+
+logger = get_logger(__name__)
 
 
 class NSAOrchestrator:
-    def __init__(self):
+    """
+    The central nervous system orchestrator for the NSA.
+    
+    Coordinates the neural cascade from sensory input through
+    decision-making to action execution.
+    """
+    
+    def __init__(self, db_path: str = "memory/long_term_memory.db",
+                 min_pool_size: int = 1, max_pool_size: int = 5,
+                 mcp_tool_timeout: float = 30.0) -> None:
+        """
+        Initialize the NSA Orchestrator.
+        
+        Args:
+            db_path: Path to the SQLite database for memory storage
+            min_pool_size: Minimum number of database connections to maintain
+            max_pool_size: Maximum number of database connections allowed
+            mcp_tool_timeout: Timeout for MCP tool execution in seconds
+        """
         # 1. Digital Receptors & Memory
-        self.router = ModelRouter()
-        self.memory = Hippocampus()
-        self.curiosity = CuriositySensor()
-        self.cognitive_load = CognitiveLoadSensor()
-        self.circadian = CircadianSensor()
+        self.router: ModelRouter = ModelRouter()
+        self.memory: Hippocampus = Hippocampus(
+            db_path=db_path,
+            min_pool_size=min_pool_size,
+            max_pool_size=max_pool_size
+        )
+        self.curiosity: CuriositySensor = CuriositySensor()
+        self.cognitive_load: CognitiveLoadSensor = CognitiveLoadSensor()
+        self.circadian: CircadianSensor = CircadianSensor()
+        
+        # MCP tool execution timeout
+        self.mcp_tool_timeout: float = mcp_tool_timeout
         
         # 2. AI Skill Template Engine (Layer 4.5: Guided AI)
-        self.template_engine = SkillTemplateEngine(router=self.router)
+        self.template_engine: SkillTemplateEngine = SkillTemplateEngine(router=self.router)
         
         # 3. Layer 1: RAS (Local Embedding Model - $0 tokens)
-        self.ras_model = SentenceTransformer('all-MiniLM-L6-v2')
-        self.habituation_vector = None
+        # Note: Embedding model is now shared via get_embedding_model() for memory efficiency
+        self.habituation_vector: Optional[np.ndarray] = None
         
         # Adaptive RAS Variables
-        self.base_novelty_threshold = 0.22  # Lower = more sensitive
-        self.novelty_threshold = self.base_novelty_threshold
-        self.ras_spike_times = []
+        self.base_novelty_threshold: float = 0.22  # Lower = more sensitive
+        self.novelty_threshold: float = self.base_novelty_threshold
+        self.ras_spike_times: List[float] = []
 
         # 4. Layer 5.5: Basal Ganglia (Habit Formation)
-        self.basal_ganglia = BasalGanglia()
+        self.basal_ganglia: BasalGanglia = BasalGanglia()
 
         # 5. Digital Heart
-        self.heart = DigitalHeart(bpm=2)
+        self.heart: DigitalHeart = DigitalHeart(bpm=2)
 
         # 6. Dream Engine (REM Sleep / Memory Consolidation)
-        self.dream_engine = DreamEngine(router=self.router)
+        self.dream_engine: DreamEngine = DreamEngine(router=self.router)
 
         # 7. Prefrontal Cortex (Long-Term Planning & Goals)
-        self.prefrontal_cortex = PrefrontalCortex(router=self.router)
+        self.prefrontal_cortex: PrefrontalCortex = PrefrontalCortex(router=self.router)
         self.prefrontal_cortex.set_orchestrator(self)
 
         # 8. Predictive Cortex (Anticipatory Sensing)
-        self.predictive_cortex = PredictiveCortex()
+        self.predictive_cortex: PredictiveCortex = PredictiveCortex()
         self.predictive_cortex.set_orchestrator(self)
 
         # 9. Broca's Area (Natural Language Interface)
-        self.brocas_area = BrocasArea(self)
+        self.brocas_area: BrocasArea = BrocasArea(self)
+        
+        # MCP Manager (attached later by main.py)
+        self.mcp_manager: Optional[Any] = None
 
-    def _handle_reinforce_spike(self, event_data):
+    def _handle_reinforce_spike(self, event_data: Dict[str, Any]) -> None:
         """Synaptic Plasticity: Lower the baseline threshold (increase sensitivity) for useful vectors."""
         desc = event_data.get('description', '')[:50]
-        print(f"[RAS] Synaptic Reward: Lowering baseline threshold. Learned from useful action.")
+        logger.info("synaptic_reward",
+                   description_preview=desc,
+                   old_threshold=self.base_novelty_threshold)
         # Make the global novelty baseline slightly more sensitive
         self.base_novelty_threshold = max(0.10, self.base_novelty_threshold - 0.01)
         self.novelty_threshold = self.base_novelty_threshold
 
-    async def process_spike(self, sense_type, description):
+    async def process_spike(self, sense_type: str, description: str) -> Optional[str]:
         """The Neural Cascade: From Stimulus to Action."""
         start_time = time.time()
 
@@ -106,7 +142,7 @@ class NSAOrchestrator:
         # HEARTBEAT FAST-PATH (bypasses RAS — never redundant)
         # ──────────────────────────────────────────────
         if "HEARTBEAT_SIGNAL" in description:
-            print("[Thalamus]: Internal Pulse received. Running System Checks.")
+            logger.info("heartbeat_received", message="Internal pulse received")
             event_bus.publish("heartbeat_exec", {
                 "description": "Periodic maintenance check",
             })
@@ -117,7 +153,9 @@ class NSAOrchestrator:
                 
                 # If health_status is a number > 90, escalate to Cortex
                 if isinstance(health_status, (int, float)) and health_status > 90:
-                    print("[Heart → Cortex]: System stress detected, escalating...")
+                    logger.warning("system_stress_detected",
+                                  health_score=health_status,
+                                  message="Escalating to Cortex")
                     cortex_res = self.router.route(
                         tier="cortex",
                         messages=[
@@ -137,7 +175,7 @@ class NSAOrchestrator:
 
                 return f"Heartbeat: System Healthy. ({health_status})"
             except Exception as e:
-                print(f"[Heart] Maintenance check failed: {e}")
+                logger.error("heartbeat_check_failed", error=str(e))
                 return f"Heartbeat: Check failed — {e}"
         
         # ──────────────────────────────────────────────
@@ -158,7 +196,8 @@ class NSAOrchestrator:
             
         novelty_dist = "Bypass"
         if not bypass_ras:
-            current_vec = self.ras_model.encode(description)
+            ras_model = get_embedding_model()
+            current_vec = ras_model.encode(description)
             if self.habituation_vector is not None:
                 similarity = np.dot(current_vec, self.habituation_vector) / (
                     np.linalg.norm(current_vec) * np.linalg.norm(self.habituation_vector)
@@ -175,9 +214,11 @@ class NSAOrchestrator:
             
             self.habituation_vector = current_vec
             novelty_dist = distance if 'distance' in locals() else 'Init'
-            print(f"\n[RAS]: Novelty Spike Detected ({sense_type.upper()}). Distance: {novelty_dist}")
+            logger.info("novelty_spike_detected",
+                       sense_type=sense_type,
+                       novelty_distance=novelty_dist)
         else:
-            print(f"\n[RAS]: Bypassed for deliberate internal spike.")
+            logger.debug("ras_bypassed", reason="deliberate_internal_spike")
         event_bus.publish("spike", {
             "sense_type": sense_type,
             "description": description,
@@ -191,8 +232,8 @@ class NSAOrchestrator:
         # ──────────────────────────────────────────────
         # LAYER 3: HIPPOCAMPUS (Context Retrieval)
         # ──────────────────────────────────────────────
-        context = self.memory.retrieve_context(description)
-        self.memory.store_memory(sense_type, description)
+        context = await self.memory.retrieve_context(description)
+        await self.memory.store_memory(sense_type, description)
 
         # ──────────────────────────────────────────────
         # LAYER 2: THALAMUS (Triage/Decision)
@@ -247,7 +288,7 @@ class NSAOrchestrator:
         # ──────────────────────────────────────────────
         if "REFLEX" in decision:
             skill_name = decision.split(":")[1].strip()
-            print(f"[Cerebellum]: Executing Reflexive Action: {skill_name}")
+            logger.info("executing_reflex", skill=skill_name, layer="cerebellum")
             try:
                 module = importlib.import_module(f"skills.{skill_name}")
                 importlib.reload(module)
@@ -275,13 +316,21 @@ class NSAOrchestrator:
                 # Check if this is actually a template before escalating to Cortex
                 template_path = os.path.join("skills", "templates", f"{skill_name}.md")
                 if os.path.exists(template_path):
-                    print(f"[Cerebellum]: No Python skill '{skill_name}', but template exists. Rerouting to Template Engine.")
+                    logger.info("rerouting_to_template",
+                               skill=skill_name,
+                               reason="no_python_skill_found")
                     decision = f"TEMPLATE:{skill_name}"
                 else:
-                    print(f"[!] Reflex Failed: No skill '{skill_name}'. Escalating to Cortex.")
+                    logger.error("reflex_failed",
+                                skill=skill_name,
+                                reason="skill_not_found",
+                                action="escalating_to_cortex")
                     decision = "COMPLEX"
             except Exception as e:
-                print(f"[!] Reflex Failed: {e}. Escalating to Template/Cortex.")
+                logger.error("reflex_execution_failed",
+                            skill=skill_name,
+                            error=str(e),
+                            action="escalating")
                 decision = "COMPLEX"
 
         # ──────────────────────────────────────────────
@@ -289,7 +338,7 @@ class NSAOrchestrator:
         # ──────────────────────────────────────────────
         if "TEMPLATE" in decision:
             template_name = decision.split(":")[1].strip()
-            print(f"[Template Engine]: Executing AI Template: {template_name}")
+            logger.info("executing_template", template=template_name, layer="template_engine")
             try:
                 variables = {
                     "stimulus": description,
@@ -317,14 +366,17 @@ class NSAOrchestrator:
                     self._log_stats(triage_res, start_time)
                 return result
             except Exception as e:
-                print(f"[!] Template Failed: {e}. Escalating to Cortex.")
+                logger.error("template_execution_failed",
+                            template=template_name,
+                            error=str(e),
+                            action="escalating_to_cortex")
                 decision = "COMPLEX"
 
         # ──────────────────────────────────────────────
         # LAYER 4: CORTEX (High-Level Reasoning & Learning)
         # ──────────────────────────────────────────────
         if "COMPLEX" in decision:
-            print("[Cortex]: Critical Event. Reasoning...")
+            logger.info("cortex_reasoning", layer="cortex", message="Critical event")
             
             # 1. Fetch available MCP tools
             mcp_tools = []
@@ -352,29 +404,79 @@ class NSAOrchestrator:
                 assistant_msg = {"role": "assistant", "content": cortex_res.content or "", "tool_calls": cortex_res.tool_calls}
                 messages.append(assistant_msg)
                 
-                # Execute each tool
-                # (MCP tools are executed sequentially here for safety, though they could be async gathered)
-                for tc in cortex_res.tool_calls:
+                # Execute tools in parallel with error isolation
+                # Each tool is wrapped in try/except to prevent one failure from affecting others
+                # Timeouts are per-tool (default 30s) to prevent one slow tool from blocking others
+                # Errors are returned as tuples (tc, result, error) rather than raised
+                # See docs/MCP_ERROR_ISOLATION.md for details
+                logger.info("executing_mcp_tools",
+                           num_tools=len(cortex_res.tool_calls),
+                           execution="parallel")
+                
+                async def _execute_one_tool(tc: Dict) -> Tuple[Dict, str, Optional[str]]:
+                    """
+                    Execute a single tool with error isolation.
+                    
+                    Returns:
+                        Tuple[Dict, str, Optional[str]]: (tool_call, result_text, error_message)
+                        - On success: (tc, result, None)
+                        - On failure: (tc, "", error_message)
+                    
+                    Error isolation ensures:
+                    - One tool failure doesn't prevent other tools from executing
+                    - Timeout in one tool doesn't block other tools
+                    - Parse errors are handled gracefully
+                    - All errors are logged with context
+                    """
                     tool_name = tc["function"]["name"]
                     import json
                     try:
                         args = json.loads(tc["function"]["arguments"])
-                    except Exception:
+                    except Exception as e:
+                        logger.warning("tool_args_parse_failed",
+                                      tool=tool_name,
+                                      error=str(e))
                         args = {}
-                        
-                    print(f"  [Cortex 🔨] Executing MCP Tool: {tool_name}")
-                    result_text = await self.mcp_manager.execute_tool(tool_name, args)
                     
-                    # Append the tool result
+                    try:
+                        logger.debug("mcp_tool_start", tool=tool_name)
+                        result_text = await asyncio.wait_for(
+                            self.mcp_manager.execute_tool(tool_name, args),
+                            timeout=self.mcp_tool_timeout
+                        )
+                        logger.info("mcp_tool_success",
+                                   tool=tool_name,
+                                   result_length=len(result_text))
+                        return (tc, result_text, None)
+                    except asyncio.TimeoutError:
+                        error_msg = f"Tool execution timed out after {self.mcp_tool_timeout} seconds"
+                        logger.error("mcp_tool_timeout", tool=tool_name, timeout=self.mcp_tool_timeout)
+                        return (tc, "", error_msg)
+                    except Exception as e:
+                        error_msg = f"Tool execution failed: {str(e)}"
+                        logger.error("mcp_tool_failed",
+                                    tool=tool_name,
+                                    error=str(e))
+                        return (tc, "", error_msg)
+                
+                # Execute all tools in parallel
+                tool_tasks = [_execute_one_tool(tc) for tc in cortex_res.tool_calls]
+                tool_results = await asyncio.gather(*tool_tasks, return_exceptions=False)
+                
+                # Append all tool results to messages
+                for tc, result_text, error in tool_results:
+                    tool_name = tc["function"]["name"]
+                    content = result_text if not error else f"ERROR: {error}"
+                    
                     messages.append({
                         "role": "tool",
                         "tool_call_id": tc["id"],
                         "name": tool_name,
-                        "content": result_text
+                        "content": content
                     })
                 
                 # 4. Second Cortex pass (with tool results)
-                print("[Cortex]: Processing tool results...")
+                logger.info("processing_tool_results", num_tools=len(cortex_res.tool_calls))
                 final_res = self.router.route(
                     tier="cortex",
                     messages=messages,
@@ -407,7 +509,7 @@ class NSAOrchestrator:
 
         return "Log recorded."
 
-    def _get_internal_state(self):
+    def _get_internal_state(self) -> str:
         """Gather internal sensor readings for triage context."""
         curiosity_state = self.curiosity.get_internal_state()
         cognitive_metrics = self.cognitive_load.get_metrics()
@@ -430,14 +532,14 @@ class NSAOrchestrator:
             f"Providers: {', '.join(available_providers)}"
         )
 
-    async def dream(self):
+    async def dream(self) -> str:
         """Trigger the dream cycle (REM sleep / memory consolidation)."""
-        print("\n🌙 [Brain]: Entering dream state...")
+        logger.info("dream_cycle_start", phase="entering_dream_state")
         result = await self.dream_engine.dream()
-        print("☀️  [Brain]: Dream cycle complete. Waking up.")
+        logger.info("dream_cycle_complete", phase="waking_up")
         return result
 
-    def _log_stats(self, response, start_time):
+    def _log_stats(self, response: StandardResponse, start_time: float) -> None:
         """Interoception: Log cost and latency for the 6th sense."""
         latency = time.time() - start_time
         cost = getattr(response, 'cost', 0.0)
@@ -447,7 +549,7 @@ class NSAOrchestrator:
             cost = (prompt_tokens * 0.000005) + (completion_tokens * 0.000015)
         self.curiosity.log_event(cost, latency)
 
-    def _report_goal_action(self, description, action):
+    def _report_goal_action(self, description: str, action: str) -> None:
         """Report a completed action to the prefrontal cortex for causal tracking."""
         # Extract goal ID from the GOAL_INVESTIGATION description
         # Format: "GOAL_INVESTIGATION: [objective] strategy"
@@ -455,3 +557,13 @@ class NSAOrchestrator:
             if goal["objective"] in description:
                 self.prefrontal_cortex.record_action(goal_id, action)
                 break
+    
+    def cleanup_models(self) -> None:
+        """
+        Release SentenceTransformer model resources.
+        
+        Called during shutdown to free memory and ensure clean exit.
+        Uses the shared embedding model cleanup to release resources.
+        """
+        logger.info("cleaning_up_models", component="nsa_orchestrator")
+        cleanup_embedding_model()

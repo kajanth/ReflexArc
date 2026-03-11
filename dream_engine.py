@@ -29,8 +29,27 @@ from sentence_transformers import SentenceTransformer
 
 from event_bus import event_bus
 
+# Configure HuggingFace cache directory
+HF_CACHE_DIR = os.path.expanduser("~/.cache/huggingface/hub")
+os.environ.setdefault("HF_HOME", os.path.expanduser("~/.cache/huggingface"))
+os.environ.setdefault("TRANSFORMERS_CACHE", HF_CACHE_DIR)
+os.environ.setdefault("SENTENCE_TRANSFORMERS_HOME", HF_CACHE_DIR)
+
 # Reuse the same embedding model as the RAS / Hippocampus
-_model = SentenceTransformer('all-MiniLM-L6-v2')
+_model = SentenceTransformer('all-MiniLM-L6-v2', cache_folder=HF_CACHE_DIR)
+
+
+def cleanup_dream_model() -> None:
+    """
+    Release the dream engine embedding model resources.
+    
+    Called during shutdown to free memory and ensure clean exit.
+    """
+    global _model
+    if _model is not None:
+        print("[Dream] Cleaning up embedding model...")
+        del _model
+        _model = None
 
 DB_PATH = "memory/long_term_memory.db"
 PATTERNS_FILE = "memory/patterns.json"

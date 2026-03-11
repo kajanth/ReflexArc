@@ -12,6 +12,20 @@ brain:
   heartbeat_interval: 30     # seconds between heartbeat pulses
   prediction_interval: 120   # seconds between prediction cycles
   goal_eval_interval: 300    # seconds between goal evaluations
+  mcp_tool_timeout: 30.0     # seconds to wait for MCP tool execution (default: 30.0)
+  health_check_timeout: 5.0  # seconds to wait for health checks (default: 5.0)
+  
+  # Database connection pooling configuration
+  database:
+    path: "memory/long_term_memory.db"  # SQLite database file path
+    min_pool_size: 1                     # Minimum connections to maintain
+    max_pool_size: 5                     # Maximum connections allowed
+  
+  # Embedding model caching configuration
+  embedding_model:
+    model_name: "all-MiniLM-L6-v2"      # SentenceTransformer model name or path
+    cache_enabled: true                  # Enable in-memory model caching
+    device: null                         # Device: cpu, cuda, mps, or null for auto
 
 # ─── Sensors ───────────────────────────────────
 # Each sensor needs:

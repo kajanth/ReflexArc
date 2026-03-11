@@ -26,8 +26,22 @@ import json
 import os
 import time
 from aiohttp import web
+from pydantic import ValidationError
 
+# Local Imports
 from event_bus import event_bus
+from utils.rate_limiter import rate_limit_middleware
+from utils.content_validation import content_type_middleware, cors_middleware
+from api.models import (
+    SpikeRequest, 
+    GoalRequest, 
+    SkillRunRequest, 
+    SensorToggleRequest,
+    ThreatSpikeRequest,
+    MetricSpikeRequest,
+    GoalDeleteRequest,
+    BrocaChatRequest
+)
 
 
 class NSAApiServer:
@@ -54,7 +68,11 @@ class NSAApiServer:
         if hasattr(self.brain, "brocas_area"):
             self.brain.brocas_area.sensor_mgr = sensor_mgr
             
-        self.app = web.Application()
+        self.app = web.Application(middlewares=[
+            cors_middleware,
+            content_type_middleware, 
+            rate_limit_middleware
+        ])
         self._setup_routes()
         self._spike_count = 0
         self._start_time = time.time()
@@ -79,6 +97,8 @@ class NSAApiServer:
         self.app.router.add_get("/memories/recent", self._handle_memories)
         self.app.router.add_post("/skill/run", self._handle_run_skill)
         self.app.router.add_get("/health", self._handle_health)
+        self.app.router.add_get("/ready", self._handle_ready)
+        self.app.router.add_get("/live", self._handle_live)
 
         # Sensor Controls
         self.app.router.add_get("/sensors", self._handle_sensors)
@@ -267,29 +287,32 @@ class NSAApiServer:
         except json.JSONDecodeError:
             return web.json_response({"error": "Invalid JSON body"}, status=400)
 
-        description = data.get("description")
-        if not description:
-            return web.json_response({"error": "Missing required field: description"}, status=400)
+        # Validate using Pydantic model
+        try:
+            spike_req = SpikeRequest(**data)
+        except ValidationError as e:
+            return web.json_response({
+                "error": "Validation failed",
+                "details": e.errors()
+            }, status=400)
 
-        sense_type = data.get("sense_type", "api")
-        priority = data.get("priority", "normal")
-        tagged_desc = f"[API/{priority.upper()}] {description}"
+        tagged_desc = f"[API/{spike_req.priority.upper()}] {spike_req.description}"
 
         self._spike_count += 1
         event_bus.publish("spike", {
-            "sense_type": sense_type,
+            "sense_type": spike_req.sense_type,
             "description": tagged_desc,
-            "priority": priority,
+            "priority": spike_req.priority,
             "source": "api",
             "spike_id": self._spike_count,
         })
 
         try:
-            result = await self.brain.process_spike(sense_type, tagged_desc)
+            result = await self.brain.process_spike(spike_req.sense_type, tagged_desc)
             return web.json_response({
                 "status": "processed",
-                "sense_type": sense_type,
-                "priority": priority,
+                "sense_type": spike_req.sense_type,
+                "priority": spike_req.priority,
                 "result": str(result) if result else "Filtered by RAS (habituation)",
                 "spike_id": self._spike_count,
             })
@@ -303,19 +326,23 @@ class NSAApiServer:
         except json.JSONDecodeError:
             return web.json_response({"error": "Invalid JSON body"}, status=400)
 
-        description = data.get("description")
-        if not description:
-            return web.json_response({"error": "Missing required field: description"}, status=400)
+        # Validate using Pydantic model
+        try:
+            threat_req = ThreatSpikeRequest(**data)
+        except ValidationError as e:
+            return web.json_response({
+                "error": "Validation failed",
+                "details": e.errors()
+            }, status=400)
 
-        source = data.get("source", "external")
-        tagged_desc = f"[THREAT/{source}] {description}"
+        tagged_desc = f"[THREAT/{threat_req.source}] {threat_req.description}"
 
         self._spike_count += 1
         event_bus.publish("spike", {
             "sense_type": "threat_api",
             "description": tagged_desc,
             "priority": "critical",
-            "source": source,
+            "source": threat_req.source,
             "spike_id": self._spike_count,
         })
 
@@ -337,26 +364,26 @@ class NSAApiServer:
         except json.JSONDecodeError:
             return web.json_response({"error": "Invalid JSON body"}, status=400)
 
-        metric = data.get("metric")
-        value = data.get("value")
-        if not metric or value is None:
-            return web.json_response({"error": "Missing required fields: metric, value"}, status=400)
+        # Validate using Pydantic model
+        try:
+            metric_req = MetricSpikeRequest(**data)
+        except ValidationError as e:
+            return web.json_response({
+                "error": "Validation failed",
+                "details": e.errors()
+            }, status=400)
 
-        unit = data.get("unit", "")
-        source = data.get("source", "external")
-        threshold = data.get("threshold")
-
-        description = f"[METRIC/{source}] {metric}: {value}{unit}"
-        if threshold is not None:
-            description += f" (threshold: {threshold}{unit}, BREACHED)"
+        description = f"[METRIC/{metric_req.source}] {metric_req.metric}: {metric_req.value}{metric_req.unit}"
+        if metric_req.threshold is not None:
+            description += f" (threshold: {metric_req.threshold}{metric_req.unit}, BREACHED)"
 
         self._spike_count += 1
         event_bus.publish("spike", {
             "sense_type": "metric_api",
             "description": description,
-            "metric": metric,
-            "value": value,
-            "source": source,
+            "metric": metric_req.metric,
+            "value": metric_req.value,
+            "source": metric_req.source,
             "spike_id": self._spike_count,
         })
 
@@ -364,8 +391,8 @@ class NSAApiServer:
             result = await self.brain.process_spike("metric_api", description)
             return web.json_response({
                 "status": "processed",
-                "metric": metric,
-                "value": value,
+                "metric": metric_req.metric,
+                "value": metric_req.value,
                 "result": str(result) if result else "Filtered by RAS",
                 "spike_id": self._spike_count,
             })
@@ -451,41 +478,76 @@ class NSAApiServer:
         except json.JSONDecodeError:
             return web.json_response({"error": "Invalid JSON body"}, status=400)
 
-        skill_name = data.get("skill")
-        if not skill_name:
-            return web.json_response({"error": "Missing required field: skill"}, status=400)
-
-        skill_data = data.get("data", "Triggered via API")
+        # Validate using Pydantic model
+        try:
+            skill_req = SkillRunRequest(**data)
+        except ValidationError as e:
+            return web.json_response({
+                "error": "Validation failed",
+                "details": e.errors()
+            }, status=400)
 
         try:
             import importlib
-            module = importlib.import_module(f"skills.{skill_name}")
+            module = importlib.import_module(f"skills.{skill_req.skill}")
             importlib.reload(module)
-            result = module.run(skill_data)
+            result = module.run(skill_req.data)
 
             event_bus.publish("reflex_exec", {
-                "skill": skill_name,
+                "skill": skill_req.skill,
                 "result": str(result)[:200],
                 "source": "api",
             })
 
             return web.json_response({
                 "status": "executed",
-                "skill": skill_name,
+                "skill": skill_req.skill,
                 "result": str(result),
             })
         except ModuleNotFoundError:
-            return web.json_response({"error": f"Skill '{skill_name}' not found"}, status=404)
+            return web.json_response({"error": f"Skill '{skill_req.skill}' not found"}, status=404)
         except Exception as e:
             return web.json_response({"error": f"Skill execution failed: {e}"}, status=500)
 
     async def _handle_health(self, request):
-        """GET /health — Simple health check."""
-        return web.json_response({
-            "status": "healthy",
-            "uptime": time.time() - self._start_time,
-            "dashboard_viewers": event_bus.subscriber_count,
-        })
+        """GET /health — Comprehensive health check with detailed component status."""
+        from utils.health_checker import HealthChecker
+        
+        # Create health checker with brain and sensor manager references
+        health_checker = HealthChecker(brain=self.brain, sensor_mgr=self.sensor_mgr)
+        
+        # Perform comprehensive health check
+        health_result = await health_checker.check_full_health()
+        
+        # Determine HTTP status code based on health
+        if health_result["status"] == "healthy":
+            status_code = 200
+        elif health_result["status"] == "degraded":
+            status_code = 200  # Still operational but with warnings
+        else:  # unhealthy
+            status_code = 503  # Service Unavailable
+        
+        return web.json_response(health_result, status=status_code)
+
+    async def _handle_ready(self, request):
+        """GET /ready — Kubernetes readiness probe."""
+        from utils.health_checker import HealthChecker
+        
+        health_checker = HealthChecker(brain=self.brain, sensor_mgr=self.sensor_mgr)
+        readiness_result = await health_checker.check_readiness()
+        
+        status_code = 200 if readiness_result["ready"] else 503
+        return web.json_response(readiness_result, status=status_code)
+
+    async def _handle_live(self, request):
+        """GET /live — Kubernetes liveness probe.""" 
+        from utils.health_checker import HealthChecker
+        
+        health_checker = HealthChecker(brain=self.brain, sensor_mgr=self.sensor_mgr)
+        liveness_result = await health_checker.check_liveness()
+        
+        status_code = 200 if liveness_result["alive"] else 503
+        return web.json_response(liveness_result, status=status_code)
 
     # ──────────────────────────────────────────────
     # Server Lifecycle
@@ -528,27 +590,30 @@ class NSAApiServer:
         except json.JSONDecodeError:
             return web.json_response({"error": "Invalid JSON body"}, status=400)
 
-        sensor_name = data.get("sensor")
-        if not sensor_name:
-            return web.json_response({"error": "Missing required field: sensor"}, status=400)
+        # Validate using Pydantic model
+        try:
+            sensor_req = SensorToggleRequest(**data)
+        except ValidationError as e:
+            return web.json_response({
+                "error": "Validation failed",
+                "details": e.errors()
+            }, status=400)
 
-        action = data.get("action", "toggle")  # "enable", "disable", or "toggle"
-
-        if action == "enable":
-            ok = self.sensor_mgr.enable(sensor_name)
-        elif action == "disable":
-            ok = self.sensor_mgr.disable(sensor_name)
+        if sensor_req.action == "enable":
+            ok = self.sensor_mgr.enable(sensor_req.sensor)
+        elif sensor_req.action == "disable":
+            ok = self.sensor_mgr.disable(sensor_req.sensor)
         else:
-            new_state = self.sensor_mgr.toggle(sensor_name)
+            new_state = self.sensor_mgr.toggle(sensor_req.sensor)
             ok = new_state is not None
 
         if not ok:
-            return web.json_response({"error": f"Sensor '{sensor_name}' not found"}, status=404)
+            return web.json_response({"error": f"Sensor '{sensor_req.sensor}' not found"}, status=404)
 
         return web.json_response({
             "status": "ok",
-            "sensor": sensor_name,
-            "enabled": self.sensor_mgr.is_enabled(sensor_name),
+            "sensor": sensor_req.sensor,
+            "enabled": self.sensor_mgr.is_enabled(sensor_req.sensor),
             "sensors": self.sensor_mgr.all_sensors(),
         })
 
@@ -614,45 +679,43 @@ class NSAApiServer:
         except Exception:
             return web.json_response({"error": "Invalid JSON"}, status=400)
 
-        objective = body.get("objective")
-        metric = body.get("metric")
-        operator = body.get("operator", "<")
-        value = body.get("value")
-        priority = body.get("priority", "medium")
-
-        if not objective or not metric or value is None:
-            return web.json_response(
-                {"error": "Required fields: objective, metric, value"}, status=400
-            )
-
+        # Validate using Pydantic model
         try:
-            value = float(value)
-        except (TypeError, ValueError):
-            return web.json_response({"error": "value must be numeric"}, status=400)
+            goal_req = GoalRequest(**body)
+        except ValidationError as e:
+            return web.json_response({
+                "error": "Validation failed",
+                "details": e.errors()
+            }, status=400)
 
         goal = self.brain.prefrontal_cortex.add_goal(
-            objective=objective,
-            metric=metric,
-            operator=operator,
-            value=value,
-            priority=priority,
+            objective=goal_req.objective,
+            metric=goal_req.metric,
+            operator=goal_req.operator,
+            value=goal_req.value,
+            priority=goal_req.priority,
         )
         return web.json_response({"status": "created", "goal": goal})
 
     async def _handle_delete_goal(self, request):
         """DELETE /goal — Remove a goal by ID."""
         try:
-            body = await request.json()
-        except Exception:
-            return web.json_response({"error": "Invalid JSON"}, status=400)
+            data = await request.json()
+        except json.JSONDecodeError:
+            return web.json_response({"error": "Invalid JSON body"}, status=400)
 
-        goal_id = body.get("id")
-        if not goal_id:
-            return web.json_response({"error": "Required field: id"}, status=400)
+        # Validate using Pydantic model
+        try:
+            delete_req = GoalDeleteRequest(**data)
+        except ValidationError as e:
+            return web.json_response({
+                "error": "Validation failed",
+                "details": e.errors()
+            }, status=400)
 
-        if self.brain.prefrontal_cortex.remove_goal(goal_id):
-            return web.json_response({"status": "deleted", "id": goal_id})
-        return web.json_response({"error": f"Goal '{goal_id}' not found"}, status=404)
+        if self.brain.prefrontal_cortex.remove_goal(delete_req.id):
+            return web.json_response({"status": "deleted", "id": delete_req.id})
+        return web.json_response({"error": f"Goal '{delete_req.id}' not found"}, status=404)
 
     async def _handle_goal_evaluate(self, request):
         """POST /goal/evaluate — Force a goal evaluation cycle."""
@@ -731,14 +794,23 @@ class NSAApiServer:
         """POST /broca/chat — Chat with the brain's natural language interface."""
         try:
             data = await request.json()
-            message = data.get("message", "")
-            if not message:
-                return web.json_response({"error": "No message provided"}, status=400)
+        except json.JSONDecodeError:
+            return web.json_response({"error": "Invalid JSON body"}, status=400)
+
+        # Validate using Pydantic model
+        try:
+            chat_req = BrocaChatRequest(**data)
+        except ValidationError as e:
+            return web.json_response({
+                "error": "Validation failed",
+                "details": e.errors()
+            }, status=400)
                 
-            if not hasattr(self.brain, "brocas_area"):
-                return web.json_response({"error": "Broca's Area not initialized"}, status=501)
+        if not hasattr(self.brain, "brocas_area"):
+            return web.json_response({"error": "Broca's Area not initialized"}, status=501)
                 
-            response = await self.brain.brocas_area.chat(message)
+        try:
+            response = await self.brain.brocas_area.chat(chat_req.message)
             return web.json_response(response)
         except Exception as e:
             print(f"[ApiServer] Error in Broca chat: {e}")

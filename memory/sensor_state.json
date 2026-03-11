@@ -4,7 +4,8 @@
   "system_vitals": true,
   "filesystem": true,
   "network_probe": true,
-  "threat_detection": false,
+  "threat_detection": true,
   "circadian": true,
-  "cognitive_load": true
+  "cognitive_load": true,
+  "webhooks": true
 }
