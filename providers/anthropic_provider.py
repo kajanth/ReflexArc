@@ -5,7 +5,7 @@ Authenticates with a minimal test call and discovers models from catalog.
 """
 
 import time
-from typing import List, Dict
+from typing import List, Dict, Optional
 from providers.base import BaseProvider, StandardResponse, ModelInfo
 from providers.pricing import ANTHROPIC_PRICING
 
@@ -98,7 +98,7 @@ class AnthropicProvider(BaseProvider):
         return discovered
 
     def chat(self, messages: List[Dict], model: str,
-             max_tokens: int = 200) -> StandardResponse:
+             max_tokens: int = 200, tools: Optional[List[Dict]] = None) -> StandardResponse:
         client = self._get_client()
         start = time.time()
 
@@ -123,13 +123,38 @@ class AnthropicProvider(BaseProvider):
         if system_msg:
             kwargs["system"] = system_msg
 
+        if tools:
+            # Convert OpenAI format (used by MCP manager) to Anthropic format
+            anthropic_tools = []
+            for t in tools:
+                if t.get("type") == "function":
+                    func = t["function"]
+                    anthropic_tools.append({
+                        "name": func["name"],
+                        "description": func.get("description", ""),
+                        "input_schema": func.get("parameters", {"type": "object", "properties": {}})
+                    })
+            if anthropic_tools:
+                kwargs["tools"] = anthropic_tools
+
         response = client.messages.create(**kwargs)
         latency = time.time() - start
 
         content = ""
+        tool_calls = []
         for block in response.content:
-            if hasattr(block, "text"):
+            if block.type == "text":
                 content += block.text
+            elif block.type == "tool_use":
+                # Standardize to OpenAI format which the core expects
+                tool_calls.append({
+                    "id": block.id,
+                    "type": "function",
+                    "function": {
+                        "name": block.name,
+                        "arguments": block.input
+                    }
+                })
 
         return StandardResponse(
             content=content.strip(),
@@ -138,4 +163,5 @@ class AnthropicProvider(BaseProvider):
             model=model,
             provider=self.provider_name,
             latency=latency,
+            tool_calls=tool_calls
         )

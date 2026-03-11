@@ -21,6 +21,7 @@ import json
 import os
 import sys
 from collections import deque
+from typing import Dict, Any
 
 # Try YAML first, fall back to JSON-only
 try:
@@ -28,6 +29,12 @@ try:
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False
+
+from pydantic import ValidationError
+from config.schema import FullBrainConfigSchema
+from utils.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 # ══════════════════════════════════════════════
@@ -130,40 +137,71 @@ class BrainConfig:
         self.config = self._load_config()
         self.brain_config = self.config.get("brain", {})
 
-    def _load_config(self):
-        """Load config from YAML or JSON file."""
+    def _load_config(self) -> Dict[str, Any]:
+        """Load and validate config from YAML or JSON file."""
         if not os.path.exists(self.config_path):
-            print(f"[PluginLoader] Config not found: {self.config_path} — using defaults")
+            logger.warning("config_not_found",
+                          path=self.config_path,
+                          action="using_defaults")
             return self._default_config()
 
         with open(self.config_path, "r") as f:
             raw = f.read()
 
-        # Try YAML first
+        # Parse config based on file type
+        raw_config = None
         if self.config_path.endswith((".yaml", ".yml")) and HAS_YAML:
-            config = yaml.safe_load(raw)
-            print(f"[PluginLoader] Loaded YAML config: {self.config_path}")
-            return config
-
-        # Try JSON
-        if self.config_path.endswith(".json"):
-            config = json.loads(raw)
-            print(f"[PluginLoader] Loaded JSON config: {self.config_path}")
-            return config
-
-        # YAML file but no PyYAML — try JSON fallback
-        if not HAS_YAML:
+            raw_config = yaml.safe_load(raw)
+            logger.info("yaml_config_loaded", path=self.config_path)
+        elif self.config_path.endswith(".json"):
+            raw_config = json.loads(raw)
+            logger.info("json_config_loaded", path=self.config_path)
+        elif not HAS_YAML:
+            # YAML file but no PyYAML — try JSON fallback
             json_path = self.config_path.rsplit(".", 1)[0] + ".json"
             if os.path.exists(json_path):
                 with open(json_path, "r") as f:
-                    config = json.load(f)
-                print(f"[PluginLoader] PyYAML not installed, loaded JSON fallback: {json_path}")
-                return config
-            print(f"[PluginLoader] PyYAML not installed and no JSON fallback found — using defaults")
+                    raw_config = json.load(f)
+                logger.info("json_fallback_loaded",
+                           path=json_path,
+                           reason="pyyaml_not_installed")
+            else:
+                logger.warning("no_yaml_no_fallback",
+                              message="PyYAML not installed and no JSON fallback found")
+                return self._default_config()
+        else:
+            logger.warning("unknown_config_format",
+                          path=self.config_path,
+                          action="using_defaults")
             return self._default_config()
-
-        print(f"[PluginLoader] Unknown config format: {self.config_path} — using defaults")
-        return self._default_config()
+        
+        # Validate config with Pydantic
+        try:
+            validated = FullBrainConfigSchema(**raw_config)
+            logger.info("config_validated_successfully",
+                       sensors=len(validated.sensors),
+                       predictions=len(validated.predictions),
+                       mcp_servers=len(validated.mcp_servers))
+            # Convert back to dict for backward compatibility
+            return validated.model_dump()
+        except ValidationError as e:
+            logger.error("config_validation_failed",
+                        path=self.config_path,
+                        errors=e.errors())
+            # Print user-friendly error message
+            print("\n" + "="*60)
+            print("❌ CONFIGURATION VALIDATION FAILED")
+            print("="*60)
+            print(f"\nConfig file: {self.config_path}\n")
+            for error in e.errors():
+                loc = " -> ".join(str(l) for l in error['loc'])
+                print(f"  • {loc}: {error['msg']}")
+                if 'input' in error:
+                    print(f"    Got: {error['input']}")
+            print("\n" + "="*60)
+            print("Please fix the configuration errors above and restart.")
+            print("="*60 + "\n")
+            sys.exit(1)
 
     def _default_config(self):
         """Return the hardcoded default config (backward compatible)."""
@@ -199,6 +237,10 @@ class BrainConfig:
     def goal_eval_interval(self):
         return self.brain_config.get("goal_eval_interval", 300)
 
+    @property
+    def mcp_tool_timeout(self):
+        return self.brain_config.get("mcp_tool_timeout", 30.0)
+
     # ──────────────────────────────────────────
     # Sensor Builder
     # ──────────────────────────────────────────
@@ -217,7 +259,8 @@ class BrainConfig:
         sensor_configs = self.config.get("sensors", [])
 
         if not sensor_configs:
-            print("[PluginLoader] No sensors in config — using legacy registration")
+            logger.warning("no_sensor_config",
+                          message="Using legacy registration")
             return sensor_mgr
 
         for sensor_def in sensor_configs:
@@ -227,26 +270,33 @@ class BrainConfig:
             sensor_type = sensor_def.get("type", "peripheral")
 
             # Internal sensors (reference brain attributes)
-            if "source" in sensor_def:
-                source_path = sensor_def["source"]
+            source_path = sensor_def.get("source")
+            if source_path is not None:
                 # e.g., "brain.circadian" → brain.circadian
                 parts = source_path.split(".")
                 obj = brain
                 for part in parts[1:]:  # skip "brain"
                     obj = getattr(obj, part, None)
                     if obj is None:
-                        print(f"  ⚠️  Internal sensor '{name}': {source_path} not found, skipping")
+                        logger.warning("internal_sensor_not_found",
+                                      sensor=name,
+                                      source=source_path)
                         break
                 if obj is not None and obj is not brain:
                     sensor_mgr.register(name, obj, emoji=emoji,
                                          label=label, sensor_type=sensor_type)
-                    print(f"  ✓ {emoji} {label} (internal: {source_path})")
+                    logger.info("internal_sensor_registered",
+                               sensor=name,
+                               label=label,
+                               source=source_path)
                 continue
 
             # External sensors (dynamic import)
             module_path = sensor_def.get("module")
             if not module_path:
-                print(f"  ⚠️  Sensor '{name}': no module specified, skipping")
+                logger.warning("sensor_no_module",
+                              sensor=name,
+                              action="skipping")
                 continue
 
             try:
@@ -255,9 +305,15 @@ class BrainConfig:
                 sensor = cls(**args) if args else cls()
                 sensor_mgr.register(name, sensor, emoji=emoji,
                                      label=label, sensor_type=sensor_type)
-                print(f"  ✓ {emoji} {label} ({module_path})")
+                logger.info("external_sensor_registered",
+                           sensor=name,
+                           label=label,
+                           module=module_path)
             except Exception as e:
-                print(f"  ⚠️  Sensor '{name}' ({module_path}): {e} — skipping")
+                logger.error("sensor_registration_failed",
+                            sensor=name,
+                            module=module_path,
+                            error=str(e))
 
         return sensor_mgr
 
@@ -294,7 +350,9 @@ class BrainConfig:
             # Resolve the measurer function
             measurer = self._resolve_measurer(measurer_path, attribute, args)
             if measurer is None:
-                print(f"  ⚠️  Prediction '{name}': could not resolve measurer '{measurer_path}', skipping")
+                logger.warning("measurer_resolution_failed",
+                              prediction=name,
+                              measurer=measurer_path)
                 continue
 
             channels[name] = MetricChannel(
@@ -305,7 +363,9 @@ class BrainConfig:
                 unit=unit,
                 description=description,
             )
-            print(f"  ✓ Prediction channel: {name} ({description})")
+            logger.info("prediction_channel_created",
+                       name=name,
+                       description=description)
 
         return channels if channels else None
 
@@ -361,11 +421,43 @@ class BrainConfig:
             try:
                 func = load_function(module_path)
                 measurers[name] = func
-                print(f"  ✓ Custom measurer: {name} ({module_path})")
+                logger.info("custom_measurer_loaded",
+                           name=name,
+                           module=module_path)
             except Exception as e:
-                print(f"  ⚠️  Measurer '{name}' ({module_path}): {e} — skipping")
+                logger.error("measurer_load_failed",
+                            name=name,
+                            module=module_path,
+                            error=str(e))
 
         return measurers
+
+    # ──────────────────────────────────────────
+    # MCP Server Builder
+    # ──────────────────────────────────────────
+
+    def build_mcp_servers(self, loop=None):
+        """
+        Initializes an MCPServerManager and connects to all configured MCP servers.
+        This spawns subprocesses, so it must be run within the event loop.
+
+        Returns:
+            MCPServerManager instance (started)
+        """
+        from mcp_client import MCPServerManager
+        
+        mcp_configs = self.config.get("mcp_servers", [])
+        manager = MCPServerManager()
+        
+        if not mcp_configs:
+            return manager
+            
+        # We need to run the async start_all.
+        # It's usually called from async main() so we can either wait or just return
+        # the coroutine for the caller to await.
+        # Let's return a tuple of (manager, coroutine_to_await)
+        start_coro = manager.start_all(mcp_configs)
+        return manager, start_coro
 
     def get_raw_config(self):
         """Return the raw config dict."""

@@ -12,6 +12,20 @@ brain:
   heartbeat_interval: 30     # seconds between heartbeat pulses
   prediction_interval: 120   # seconds between prediction cycles
   goal_eval_interval: 300    # seconds between goal evaluations
+  mcp_tool_timeout: 30.0     # seconds to wait for MCP tool execution (default: 30.0)
+  health_check_timeout: 5.0  # seconds to wait for health checks (default: 5.0)
+  
+  # Database connection pooling configuration
+  database:
+    path: "memory/long_term_memory.db"  # SQLite database file path
+    min_pool_size: 1                     # Minimum connections to maintain
+    max_pool_size: 5                     # Maximum connections allowed
+  
+  # Embedding model caching configuration
+  embedding_model:
+    model_name: "all-MiniLM-L6-v2"      # SentenceTransformer model name or path
+    cache_enabled: true                  # Enable in-memory model caching
+    device: null                         # Device: cpu, cuda, mps, or null for auto
 
 # ─── Sensors ───────────────────────────────────
 # Each sensor needs:
@@ -48,6 +62,11 @@ sensors:
       watch_paths:
         - "skills/"
         - "memory/"
+      ignore_patterns:
+        - "__pycache__"
+        - ".pyc"
+        - ".db-journal"
+        - ".DS_Store"
     emoji: "📂"
     label: "Filesystem"
     type: peripheral
@@ -63,6 +82,12 @@ sensors:
     emoji: "🛡️"
     label: "Threat Detection"
     type: security
+
+  - name: webhooks
+    module: sensors.webhook_receptor.WebhookReceptor
+    emoji: "🪝"
+    label: "External Webhooks"
+    type: peripheral
 
   # Internal sensors (initialized from brain, not imported)
   - name: circadian
@@ -128,6 +153,24 @@ predictions:
 # so goals can reference custom metrics.
 
 custom_measurers: []
-  # Example:
-  # - name: portfolio_value
-  #   module: plugins.measurers.portfolio.get_value
+# Example:
+# - name: portfolio_value
+#   module: plugins.measurers.portfolio.get_value
+
+# ─── MCP Servers ───────────────────────────────
+# External tools provided via Model Context Protocol
+mcp_servers:
+  # 1. Your existing SQLite local database server
+  - name: sqlite
+    command: uvx
+    args: ["mcp-server-sqlite", "--db-path", "memory/long_term_memory.db"]
+  # 2. Example: Adding Github via NPX
+  # - name: github
+  #   command: npx
+  #   args: ["-y", "@modelcontextprotocol/server-github"]
+  #   env:
+  #     GITHUB_PERSONAL_ACCESS_TOKEN: "ghp_your_actual_token_here"
+  # # 3. Example: Adding Google Drive 
+  # - name: google_drive
+  #   command: npx
+  #   args: ["-y", "@modelcontextprotocol/server-google-drive"]

@@ -1,21 +1,21 @@
 {
   "cluster_1": {
     "description": "Significant motion detected (Intensity: 2073600)",
-    "occurrences": 890,
+    "occurrences": 893,
     "first_seen": "2026-02-23T13:45:37.597048",
-    "last_seen": "2026-02-23T14:20:31.178220",
+    "last_seen": "2026-03-06T16:21:11.483837",
     "resolved": true,
     "associated_skill": "auto_cluster_1",
-    "cluster_size": 8
+    "cluster_size": 1
   },
   "cluster_2": {
     "description": "Circadian transition: ACTIVE -> SLEEP. Triggering Protocol Gamma (memory consoli",
-    "occurrences": 24,
+    "occurrences": 25,
     "first_seen": "2026-02-23T13:45:37.597048",
-    "last_seen": "2026-02-23T14:20:31.178220",
+    "last_seen": "2026-02-26T13:30:19.650665",
     "resolved": true,
     "associated_skill": "auto_cluster_2",
-    "cluster_size": 6
+    "cluster_size": 1
   },
   "cluster_3": {
     "description": "Proprioception: MODIFIED: long_term_memory.db; MODIFIED: stats.json",
@@ -136,36 +136,36 @@
   },
   "new_process_pid": {
     "description": "AMYGDALA [ALERT]: 1 threat(s) detected \u2014 New process: parsec-fbf (PID: 65601, Us",
-    "occurrences": 57,
+    "occurrences": 475,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-02-23T14:33:43.404774",
+    "last_seen": "2026-02-24T10:29:35.630098",
     "resolved": true,
     "associated_skill": "auto_new_process_pid",
     "cluster_size": 2
   },
   "modified_proprioception": {
     "description": "Proprioception: MODIFIED: budget_enforcement.log; MODIFIED: long_term_memory.db;",
-    "occurrences": 15,
+    "occurrences": 245,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-02-23T14:33:43.404774",
+    "last_seen": "2026-03-04T12:19:32.698271",
     "resolved": true,
     "associated_skill": "auto_modified_proprioception",
-    "cluster_size": 3
+    "cluster_size": 2
   },
   "modified_proprioception_created": {
     "description": "Proprioception: MODIFIED: long_term_memory.db; CREATED: local_alerts.log; CREATE",
-    "occurrences": 6,
+    "occurrences": 165,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-02-23T14:33:43.404774",
+    "last_seen": "2026-02-24T10:29:35.630098",
     "resolved": true,
     "associated_skill": "auto_modified_proprioception_created",
-    "cluster_size": 2
+    "cluster_size": 7
   },
   "created_proprioception_modified": {
     "description": "Proprioception: CREATED: auto_cluster_4.py; MODIFIED: .DS_Store; CREATED: auto_c",
-    "occurrences": 9,
+    "occurrences": 75,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-02-23T14:33:43.404774",
+    "last_seen": "2026-02-24T10:29:35.630098",
     "resolved": true,
     "associated_skill": "auto_created_proprioception_modified",
     "cluster_size": 3
@@ -175,6 +175,123 @@
     "occurrences": 2,
     "first_seen": "2026-02-23T14:33:43.404774",
     "last_seen": "2026-02-23T14:33:43.404774",
+    "resolved": false,
+    "associated_skill": null,
+    "cluster_size": 2
+  },
+  "pain_signal_warning": {
+    "description": "PAIN SIGNAL [WARNING]: CPU at 99.1%",
+    "occurrences": 68,
+    "first_seen": "2026-02-23T15:59:29.285070",
+    "last_seen": "2026-03-04T12:03:45.858872",
+    "resolved": true,
+    "associated_skill": "auto_pain_signal_warning",
+    "cluster_size": 6
+  },
+  "proprioception_modified_created": {
+    "description": "Proprioception: MODIFIED: .DS_Store; CREATED: .DS_Store",
+    "occurrences": 2,
+    "first_seen": "2026-02-23T15:59:29.285070",
+    "last_seen": "2026-02-23T15:59:29.285070",
+    "resolved": false,
+    "associated_skill": null,
+    "cluster_size": 2
+  },
+  "proprioception_modified": {
+    "description": "Proprioception: MODIFIED: long_term_memory.db",
+    "occurrences": 32,
+    "first_seen": "2026-02-23T16:49:10.977036",
+    "last_seen": "2026-03-04T12:19:32.698271",
+    "resolved": true,
+    "associated_skill": "auto_proprioception_modified",
+    "cluster_size": 2
+  },
+  "cpu_usage_predicted": {
+    "description": "PHANTOM_SPIKE: CPU Usage predicted to breach 90% in ~7.4 min (currently 60.0%, r",
+    "occurrences": 5,
+    "first_seen": "2026-02-23T22:21:39.742924",
+    "last_seen": "2026-02-24T00:21:47.183485",
+    "resolved": true,
+    "associated_skill": "auto_cpu_usage_predicted",
+    "cluster_size": 2
+  },
+  "webhook_received_github": {
+    "description": "Webhook Received: [GITHUB] push 'Commit 1a2b3c by Alice'",
+    "occurrences": 11,
+    "first_seen": "2026-02-24T00:28:15.085739",
+    "last_seen": "2026-02-24T10:29:35.630098",
+    "resolved": true,
+    "associated_skill": "auto_webhook_received_github",
+    "cluster_size": 2
+  },
+  "high_cpu_usage": {
+    "description": "Repeated CPU usage warnings indicate persistent and critical processing load.",
+    "occurrences": 3,
+    "first_seen": "2026-02-26T17:18:25.974653",
+    "last_seen": "2026-02-26T17:18:25.974653",
+    "resolved": true,
+    "associated_skill": "auto_high_cpu_usage",
+    "cluster_size": 3
+  },
+  "frequent_db_and_state_modification": {
+    "description": "Core files such as the memory database and stats were modified several times, signaling ongoing updates to long-term state.",
+    "occurrences": 5,
+    "first_seen": "2026-02-26T17:18:25.974653",
+    "last_seen": "2026-02-26T17:18:25.974653",
+    "resolved": true,
+    "associated_skill": null,
+    "cluster_size": 5
+  },
+  "short_snake_case": {
+    "description": "Repeated modifications to both long_term_memory.db and stats.json files detected.",
+    "occurrences": 4,
+    "first_seen": "2026-03-03T12:14:16.420770",
+    "last_seen": "2026-03-04T12:39:57.807818",
+    "resolved": true,
+    "associated_skill": "auto_short_snake_case",
+    "cluster_size": 2
+  },
+  "filesystem_modification": {
+    "description": "Repeated modifications to 'long_term_memory.db' and 'stats.json' detected in quick succession.",
+    "occurrences": 2,
+    "first_seen": "2026-03-03T13:36:28.404232",
+    "last_seen": "2026-03-03T13:36:28.404232",
+    "resolved": false,
+    "associated_skill": null,
+    "cluster_size": 2
+  },
+  "repeat_bulk_modifications": {
+    "description": "Bulk modifications detected in multiple memory-related files with duplicate events.",
+    "occurrences": 2,
+    "first_seen": "2026-03-04T12:39:57.807818",
+    "last_seen": "2026-03-04T12:39:57.807818",
+    "resolved": false,
+    "associated_skill": null,
+    "cluster_size": 2
+  },
+  "self_tuning_alert_scripts": {
+    "description": "Modification of system health and warning scripts suggests routine self-tuning or a response to detected anomalies.",
+    "occurrences": 2,
+    "first_seen": "2026-03-04T12:50:43.037106",
+    "last_seen": "2026-03-04T12:50:43.037106",
+    "resolved": true,
+    "associated_skill": null,
+    "cluster_size": 2
+  },
+  "routine_db_and_stats_update": {
+    "description": "Frequent updates to the memory database and statistical logs indicate regular state maintenance or habit tracking.",
+    "occurrences": 2,
+    "first_seen": "2026-03-04T12:50:43.037106",
+    "last_seen": "2026-03-04T12:50:43.037106",
+    "resolved": false,
+    "associated_skill": null,
+    "cluster_size": 2
+  },
+  "db_defragmentation_and_pattern_analysis": {
+    "description": "Consecutive updates to memory, defragmentation logs, and pattern files indicate ongoing optimization and pattern recognition tasks.",
+    "occurrences": 2,
+    "first_seen": "2026-03-04T12:50:43.037106",
+    "last_seen": "2026-03-04T12:50:43.037106",
     "resolved": false,
     "associated_skill": null,
     "cluster_size": 2

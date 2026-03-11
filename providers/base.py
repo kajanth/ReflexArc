@@ -23,6 +23,7 @@ class StandardResponse:
     provider: str = ""
     cost: float = 0.0
     latency: float = 0.0
+    tool_calls: List[Dict] = field(default_factory=list)
 
     def __post_init__(self):
         if self.total_tokens == 0:
@@ -106,7 +107,7 @@ class BaseProvider(ABC):
 
     @abstractmethod
     def chat(self, messages: List[Dict], model: str,
-             max_tokens: int = 200) -> StandardResponse:
+             max_tokens: int = 200, tools: Optional[List[Dict]] = None) -> StandardResponse:
         """Send a chat completion request."""
         ...
 

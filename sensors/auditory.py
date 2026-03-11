@@ -34,6 +34,11 @@ class AudioSensor:
         self.stream = None
         self.pa = None
         self.available = False
+        
+        # Adaptive thresholding (EMA of ambient noise)
+        self.noise_floor_ema = None
+        self.ema_alpha = 0.05
+        self.spike_multiplier = 3.0
 
         if PYAUDIO_AVAILABLE:
             try:
@@ -72,9 +77,18 @@ class AudioSensor:
             data = self.stream.read(self.chunk_size, exception_on_overflow=False)
             rms = self._compute_rms(data)
 
-            if rms > self.rms_threshold:
+            # Update ambient noise floor EMA
+            if self.noise_floor_ema is None:
+                self.noise_floor_ema = rms
+            elif rms < self.rms_threshold * 5:  # Don't let massive spikes skew the noise floor instantly
+                self.noise_floor_ema = (self.ema_alpha * rms) + ((1 - self.ema_alpha) * self.noise_floor_ema)
+
+            # Active threshold is max of base and dynamic
+            active_threshold = max(self.rms_threshold, self.noise_floor_ema * self.spike_multiplier)
+
+            if rms > active_threshold:
                 db_approx = 20 * math.log10(rms + 1)
-                return True, f"Audio spike detected (RMS: {rms:.0f}, ~{db_approx:.1f} dB)"
+                return True, f"Audio spike detected (RMS: {rms:.0f}, Threshold: {active_threshold:.0f}, ~{db_approx:.1f} dB)"
 
         except Exception:
             pass

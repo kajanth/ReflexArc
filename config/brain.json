@@ -4,7 +4,12 @@
         "description": "Infrastructure monitoring and autonomous incident response",
         "heartbeat_interval": 30,
         "prediction_interval": 120,
-        "goal_eval_interval": 300
+        "goal_eval_interval": 300,
+        "database": {
+            "path": "memory/long_term_memory.db",
+            "min_pool_size": 1,
+            "max_pool_size": 5
+        }
     },
     "sensors": [
         {

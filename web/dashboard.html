@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🧠 NSA ReflexArc — Live Dashboard</title>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
@@ -104,7 +105,7 @@
         /* Grid Layout */
         .grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 2fr 1fr;
             grid-template-rows: auto auto auto;
             gap: 12px;
             padding: 12px;
@@ -166,14 +167,17 @@
 
         /* Video Panel */
         .video-panel {
-            grid-column: 1 / 3;
+            grid-column: 1 / 2;
             grid-row: 1 / 3;
+            max-height: calc(100vh - 80px);
         }
 
         .video-panel .card-body {
             padding: 0;
             position: relative;
             background: #000;
+            min-height: 300px;
+            max-height: calc(100vh - 130px);
         }
 
         .video-panel img {
@@ -209,6 +213,21 @@
 
         .no-video span {
             font-size: 48px;
+        }
+
+        /* Network Map */
+        .network-panel {
+            grid-column: 2 / 3;
+            grid-row: 1 / 3;
+            max-height: calc(100vh - 80px);
+        }
+
+        #brain-network {
+            width: 100%;
+            height: 100%;
+            max-height: calc(100vh - 130px);
+            background: #050810;
+            cursor: move;
         }
 
         /* Spike Feed */
@@ -248,13 +267,93 @@
 
         .spike-type {
             display: inline-block;
-            padding: 1px 6px;
+            padding: 2px 6px;
             border-radius: 4px;
+            background: #1e293b;
+            color: #94a3b8;
+            margin-right: 8px;
             font-size: 10px;
             font-weight: 600;
-            margin: 0 4px;
-            font-family: 'JetBrains Mono', monospace;
         }
+
+        /* Broca's Terminal */
+        .broca-panel {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            background: #0a0a0c;
+            border: 1px solid var(--accent-purple);
+        }
+
+        .broca-chat {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+
+        .broca-message {
+            padding: 8px 12px;
+            border-radius: 8px;
+            max-width: 80%;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .broca-user {
+            align-self: flex-end;
+            background: #1e293b;
+            color: #fff;
+            border-bottom-right-radius: 0;
+        }
+
+        .broca-brain {
+            align-self: flex-start;
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #d8b4fe;
+            border-bottom-left-radius: 0;
+        }
+
+        .broca-input-container {
+            display: flex;
+            border-top: 1px solid var(--border);
+            background: #000;
+        }
+
+        .broca-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 12px 16px;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+
+        .broca-input:focus {
+            outline: none;
+        }
+
+        .broca-btn {
+            background: var(--accent-purple);
+            color: #fff;
+            border: none;
+            padding: 0 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .broca-btn:hover {
+            opacity: 0.8;
+        }
+
+
 
         .type-spike {
             background: var(--accent-blue);
@@ -658,6 +757,17 @@
             </div>
         </div>
 
+        <!-- Network Graph Panel -->
+        <div class="card network-panel">
+            <div class="card-header">
+                🌌 Mind's Eye (Cognitive Map)
+                <span class="badge badge-ok" id="network-badge">LIVE</span>
+            </div>
+            <div class="card-body" style="padding: 0; min-height: 250px; position: relative">
+                <div id="brain-network"></div>
+            </div>
+        </div>
+
         <!-- Spike Feed -->
         <div class="card spike-feed">
             <div class="card-header">
@@ -817,6 +927,17 @@
             </div>
         </div>
 
+        <!-- MCP Connections -->
+        <div class="card mcp-panel">
+            <div class="card-header">
+                🔌 MCP Connections
+                <span class="badge badge-ok" id="mcp-server-count">0</span>
+            </div>
+            <div class="card-body" id="mcp-body" style="max-height: 200px;">
+                <div style="color:var(--text-muted); font-size:12px">Waiting for MCP...</div>
+            </div>
+        </div>
+
         <!-- Skills -->
         <div class="card skills-panel">
             <div class="card-header">
@@ -825,6 +946,25 @@
             </div>
             <div class="card-body" id="skills-body" style="max-height: 200px;">
                 <div style="color:var(--text-muted); font-size:12px">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Broca's Area Terminal -->
+        <div class="card broca-panel" style="height: 250px;">
+            <div class="card-header" style="border-bottom-color: var(--accent-purple)">
+                <span>🗣️ Broca's Terminal</span>
+                <span class="badge" style="background:var(--accent-purple);color:#fff">NL INTERFACE</span>
+            </div>
+            <div class="broca-chat" id="broca-chat">
+                <div class="broca-message broca-brain">
+                    System initialized. I am Broca's Area, the natural language interface.<br>
+                    Ask me to explain system behavior, modify active parameters, or set goals.
+                </div>
+            </div>
+            <div class="broca-input-container">
+                <input type="text" class="broca-input" id="broca-input"
+                    placeholder="Talk to the brain... (e.g. 'Why did you restart nginx?')">
+                <button class="broca-btn" onclick="sendBrocaMessage()">SEND</button>
             </div>
         </div>
     </div>
@@ -845,6 +985,93 @@
         }
         setInterval(updateClock, 1000);
         updateClock();
+
+        // ──────────────────────────────────────────────
+        // Mind's Eye Network (Vis.js)
+        // ──────────────────────────────────────────────
+        let network = null;
+        let nodesData = new vis.DataSet([]);
+        let edgesData = new vis.DataSet([]);
+
+        async function initNetwork() {
+            try {
+                const res = await fetch('/graph/data');
+                const data = await res.json();
+
+                nodesData.clear();
+                edgesData.clear();
+                nodesData.add(data.nodes);
+                edgesData.add(data.edges);
+
+                const container = document.getElementById('brain-network');
+                const graphData = { nodes: nodesData, edges: edgesData };
+
+                const options = {
+                    nodes: {
+                        shape: 'dot',
+                        size: 20,
+                        font: { color: '#e5e7eb', size: 12, face: 'JetBrains Mono' },
+                        borderWidth: 2,
+                        shadow: { enabled: true, color: 'rgba(59, 130, 246, 0.4)', size: 15, x: 0, y: 0 }
+                    },
+                    edges: {
+                        width: 2,
+                        color: { color: '#2d3748', highlight: '#3b82f6', hover: '#3b82f6' },
+                        smooth: { type: 'continuous' },
+                        font: { color: '#9ca3af', size: 10, face: 'JetBrains Mono', background: '#0a0e17' }
+                    },
+                    groups: {
+                        sensor: { color: { background: '#1e3a5f', border: '#3b82f6' } },
+                        core: { color: { background: '#2d1e5f', border: '#8b5cf6' } },
+                        memory: { color: { background: '#3f1e5f', border: '#d8b4fe' } },
+                        action: { color: { background: '#1e5f2d', border: '#10b981' } },
+                        reasoning: { color: { background: '#5f1e1e', border: '#ef4444' } },
+                        executive: { color: { background: '#5f3a1e', border: '#f59e0b' } },
+                        output: { color: { background: '#1e1e1e', border: '#6b7280' } },
+                        spike: { color: { background: '#3b82f6', border: '#60a5fa' }, shape: 'diamond' }
+                    },
+                    physics: {
+                        barnesHut: { gravitationalConstant: -3000, centralGravity: 0.3, springLength: 95 },
+                        maxVelocity: 50,
+                        timestep: 0.5
+                    },
+                    layout: {
+                        hierarchical: {
+                            enabled: true,
+                            direction: 'UD',
+                            sortMethod: 'directed',
+                            levelSeparation: 120,
+                            nodeSpacing: 150
+                        }
+                    }
+                };
+
+                network = new vis.Network(container, graphData, options);
+            } catch (e) { console.error("Failed to init network", e); }
+        }
+
+        function pulseNode(nodeId, color) {
+            if (!nodesData.get(nodeId)) return;
+            const originalColor = nodesData.get(nodeId).color || nodesData.get(nodeId).group;
+
+            // Highlight
+            nodesData.update({
+                id: nodeId,
+                color: { background: color, border: '#fff' },
+                shadow: { enabled: true, color: color, size: 30, x: 0, y: 0 }
+            });
+
+            // Restore
+            setTimeout(() => {
+                if (nodesData.get(nodeId)) {
+                    nodesData.update({
+                        id: nodeId,
+                        color: undefined, // revert to group defaults
+                        shadow: { enabled: true, color: 'rgba(59, 130, 246, 0.4)', size: 15, x: 0, y: 0 }
+                    });
+                }
+            }, 1000);
+        }
 
         // ──────────────────────────────────────────────
         // WebSocket — Real-time Events
@@ -887,25 +1114,33 @@
                 document.getElementById('layer-senses').textContent = d.sense_type || 'spike';
                 document.getElementById('cascade-status').textContent = 'ACTIVE';
                 document.getElementById('cascade-status').className = 'badge badge-live';
+                pulseNode('Sensors', '#3b82f6');
             }
             if (t === 'ras_filter') {
                 document.getElementById('layer-ras').textContent = d.result || 'filtered';
+                pulseNode('RAS', '#8b5cf6');
             }
             if (t === 'decision') {
                 document.getElementById('layer-thalamus').textContent = d.decision || '—';
+                pulseNode('Thalamus', '#8b5cf6');
             }
             if (t === 'reflex_exec') {
                 document.getElementById('layer-cerebellum').textContent = d.skill || '—';
                 flashSkill(d.skill);
                 resetCascade();
+                pulseNode('Cerebellum', '#10b981');
+                pulseNode('Action', '#10b981');
             }
             if (t === 'template_exec') {
                 document.getElementById('layer-template').textContent = d.template || '—';
                 resetCascade();
+                pulseNode('Cortex', '#ef4444');
             }
             if (t === 'cortex_exec') {
                 document.getElementById('layer-cortex').textContent = `${d.provider || ''}:${d.model || ''}`;
                 resetCascade();
+                pulseNode('Cortex', '#ef4444');
+                pulseNode('Action', '#ef4444');
             }
             // Dream cycle events
             if (t === 'dream_cycle') {
@@ -1184,6 +1419,7 @@
         // ──────────────────────────────────────────────
         // Init
         // ──────────────────────────────────────────────
+        initNetwork();
         connectWS();
         fetchStatus();
         fetchStats();
@@ -1200,7 +1436,68 @@
         setInterval(fetchGoals, 10000);
 
         // ──────────────────────────────────────────────
-        // Predictions
+        // MCP (Model Context Protocol) 
+        // ──────────────────────────────────────────────
+        async function fetchMCP() {
+            try {
+                // Fetch servers and tools in parallel
+                const [serversRes, toolsRes] = await Promise.all([
+                    fetch('/mcp/servers'),
+                    fetch('/mcp/tools')
+                ]);
+
+                const serversData = await serversRes.json();
+                const toolsData = await toolsRes.json();
+
+                const servers = serversData.servers || {};
+                const tools = toolsData.tools || [];
+
+                const serverEntries = Object.entries(servers);
+                const badge = document.getElementById('mcp-server-count');
+                badge.textContent = serverEntries.length || '0';
+
+                const body = document.getElementById('mcp-body');
+                if (serverEntries.length === 0) {
+                    body.innerHTML = '<div style="color:var(--text-muted);font-size:12px">No MCP servers configured or active.</div>';
+                    return;
+                }
+
+                let html = '';
+                for (const [name, srv] of serverEntries) {
+                    const isConnected = srv.status === 'connected';
+                    const statusColor = isConnected ? 'var(--accent-green)' : 'var(--accent-red)';
+
+                    // Count tools for this specific server
+                    const serverTools = tools.filter(t => t._mcp_server === name);
+
+                    html += `<div class="memory-item">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:600; font-size:12px; color:var(--accent-blue)">⚡ ${name}</span>
+                            <span class="goal-status" style="background:${statusColor}; color:${isConnected ? '#000' : '#fff'}">${srv.status}</span>
+                        </div>
+                        <div style="font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--text-muted); margin-top:4px;">
+                            ${isConnected ? `${serverTools.length} tools available` : (srv.error || 'Initializing...')}
+                        </div>
+                    </div>`;
+
+                    // List tools if connected
+                    if (isConnected && serverTools.length > 0) {
+                        html += `<div style="padding-left:12px; margin-top:4px; margin-bottom:8px;">`;
+                        for (const tool of serverTools) {
+                            const tName = tool.function && tool.function.name ? tool.function.name.replace(`mcp_${name}__`, '') : 'unknown';
+                            const tDesc = tool.function && tool.function.description ? tool.function.description : '';
+                            html += `<span class="skill-tag" title="${tDesc}">🔧 ${tName}</span>`;
+                        }
+                        html += `</div>`;
+                    }
+                }
+
+                body.innerHTML = html;
+            } catch (e) { /* ignore */ }
+        }
+
+        // ──────────────────────────────────────────────
+        // Input Controls
         // ──────────────────────────────────────────────
         async function fetchPredictions() {
             try {
@@ -1252,6 +1549,74 @@
 
         fetchPredictions();
         setInterval(fetchPredictions, 10000);
+
+        // Final Init
+        fetchMCP();
+        setInterval(fetchMCP, 10000);
+
+        // ──────────────────────────────────────────────
+        // Broca's Area
+        // ──────────────────────────────────────────────
+        function addBrocaMessage(text, isUser) {
+            const chatBox = document.getElementById('broca-chat');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `broca-message ${isUser ? 'broca-user' : 'broca-brain'}`;
+            msgDiv.innerHTML = text.replace(/\n/g, '<br>'); // Basic newline handling
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendBrocaMessage() {
+            const input = document.getElementById('broca-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+            input.disabled = true;
+            addBrocaMessage(text, true);
+
+            // Add typing indicator
+            const chatBox = document.getElementById('broca-chat');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'broca-message broca-brain';
+            typingDiv.id = 'broca-typing';
+            typingDiv.innerHTML = '<i>Processing...</i>';
+            chatBox.appendChild(typingDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const res = await fetch('/broca/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+                const data = await res.json();
+
+                // Remove typing indicator
+                const typingObj = document.getElementById('broca-typing');
+                if (typingObj) typingObj.remove();
+
+                if (data.error) {
+                    addBrocaMessage(`Error: ${data.error}`, false);
+                } else {
+                    addBrocaMessage(data.response, false);
+                }
+            } catch (err) {
+                const typingObj = document.getElementById('broca-typing');
+                if (typingObj) typingObj.remove();
+                addBrocaMessage(`Network Error: ${err.message}`, false);
+            } finally {
+                input.disabled = false;
+                input.focus();
+            }
+        }
+
+        // Allow enter key to send
+        document.getElementById('broca-input')?.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendBrocaMessage();
+            }
+        });
     </script>
 </body>
 

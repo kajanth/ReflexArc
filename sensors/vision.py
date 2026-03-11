@@ -50,20 +50,28 @@ class OpenCVReflex:
                 (x, y, w, h) = cv2.boundingRect(contour)
                 cv2.rectangle(display_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
+        # Calculate dynamic sensitivity based on time of day
+        current_hour = time.localtime().tm_hour
+        # Night mode: 8 PM (20) to 6 AM (6) -> highly sensitive
+        if current_hour >= 20 or current_hour < 6:
+            active_sensitivity = int(self.sensitivity * 0.5)
+        else:
+            active_sensitivity = self.sensitivity
+
         # Add HUD overlay
-        status = "MOTION" if change_amount > self.sensitivity else "IDLE"
+        status = "MOTION" if change_amount > active_sensitivity else "IDLE"
         color = (0, 0, 255) if status == "MOTION" else (0, 255, 0)
         cv2.putText(display_frame, f"[{status}] Delta: {change_amount}",
                     (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
-        cv2.putText(display_frame, f"Threshold: {self.sensitivity}",
+        cv2.putText(display_frame, f"Threshold: {active_sensitivity} (Base: {self.sensitivity})",
                     (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
         cv2.putText(display_frame, time.strftime("%H:%M:%S"),
                     (10, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
 
         self._current_processed_frame = display_frame
 
-        if change_amount > self.sensitivity:
-            return True, f"Significant motion detected (Intensity: {change_amount})"
+        if change_amount > active_sensitivity:
+            return True, f"Significant motion detected (Intensity: {change_amount}, Threshold: {active_sensitivity})"
         
         return False, None
 

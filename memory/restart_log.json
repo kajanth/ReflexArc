@@ -4,5 +4,11 @@
     "epoch": 1771843937.114312,
     "reason": "Significant motion detected (Intensity: 140847)",
     "pid": 65324
+  },
+  {
+    "timestamp": "2026-02-23 16:48:51",
+    "epoch": 1771865331.892528,
+    "reason": "Proprioception: MODIFIED: providers.json",
+    "pid": 13767
   }
 ]

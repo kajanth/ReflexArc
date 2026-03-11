@@ -19,6 +19,7 @@ class BedrockProvider(BaseProvider):
         self._region = region or self._get_env_key("AWS_DEFAULT_REGION") or "us-east-1"
         self._access_key = self._get_env_key("AWS_ACCESS_KEY_ID")
         self._secret_key = self._get_env_key("AWS_SECRET_ACCESS_KEY")
+        self._session_token = self._get_env_key("AWS_SESSION_TOKEN")
         self._authenticated = False
         self._models = []
 
@@ -35,19 +36,27 @@ class BedrockProvider(BaseProvider):
     def _get_runtime_client(self):
         if self._runtime_client is None:
             import boto3
-            self._runtime_client = boto3.client(
-                "bedrock-runtime",
-                region_name=self._region,
-            )
+            session_kwargs = {"region_name": self._region}
+            if self._access_key and self._secret_key:
+                session_kwargs["aws_access_key_id"] = self._access_key
+                session_kwargs["aws_secret_access_key"] = self._secret_key
+            if self._session_token:
+                session_kwargs["aws_session_token"] = self._session_token
+            
+            self._runtime_client = boto3.client("bedrock-runtime", **session_kwargs)
         return self._runtime_client
 
     def _get_mgmt_client(self):
         if self._mgmt_client is None:
             import boto3
-            self._mgmt_client = boto3.client(
-                "bedrock",
-                region_name=self._region,
-            )
+            session_kwargs = {"region_name": self._region}
+            if self._access_key and self._secret_key:
+                session_kwargs["aws_access_key_id"] = self._access_key
+                session_kwargs["aws_secret_access_key"] = self._secret_key
+            if self._session_token:
+                session_kwargs["aws_session_token"] = self._session_token
+                
+            self._mgmt_client = boto3.client("bedrock", **session_kwargs)
         return self._mgmt_client
 
     def authenticate(self) -> bool:
@@ -58,7 +67,14 @@ class BedrockProvider(BaseProvider):
 
         try:
             import boto3
-            sts = boto3.client("sts", region_name=self._region)
+            session_kwargs = {"region_name": self._region}
+            if self._access_key and self._secret_key:
+                session_kwargs["aws_access_key_id"] = self._access_key
+                session_kwargs["aws_secret_access_key"] = self._secret_key
+            if self._session_token:
+                session_kwargs["aws_session_token"] = self._session_token
+                
+            sts = boto3.client("sts", **session_kwargs)
             identity = sts.get_caller_identity()
             account = identity.get("Account", "unknown")
             arn = identity.get("Arn", "unknown")
