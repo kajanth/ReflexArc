@@ -1,5 +1,5 @@
 {
-  "discovery_time": 1772814055.673293,
+  "discovery_time": 1773322751.619893,
   "models": [
     {
       "provider": "openai",
@@ -93,7 +93,7 @@
   "config": {
     "strategy": "cheapest",
     "auto_discovered": true,
-    "discovery_time": "2026-03-06T16:20:55Z",
+    "discovery_time": "2026-03-12T13:39:11Z",
     "tiers": {
       "nano": [
         {

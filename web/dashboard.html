@@ -736,246 +736,1416 @@
         </div>
     </div>
 
-    <!-- Dashboard Grid -->
-    <div class="grid">
-        <!-- Video Panel -->
-        <div class="card video-panel">
-            <div class="card-header">
-                🎥 Vision Sensor
-                <span class="badge badge-live" id="video-badge">LIVE</span>
-            </div>
-            <div class="card-body" id="video-container">
-                <img id="video-feed" src="/stream/video" alt="Video Feed"
-                    onerror="this.style.display='none'; document.getElementById('no-video').style.display='flex';">
-                <div class="no-video" id="no-video" style="display:none">
-                    <span>📷</span>
-                    No camera feed available
-                </div>
-                <div class="video-overlay" id="video-overlay">
-                    <span id="vision-stats">Waiting for frames...</span>
-                </div>
-            </div>
-        </div>
+    <!-- Tab Bar -->
+    <div class="tab-bar" id="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('live')" id="tab-live">📡 Live Dashboard</button>
+        <button class="tab-btn" onclick="switchTab('agent')" id="tab-agent">🤖 Agent Intelligence</button>
+        <button class="tab-btn" onclick="switchTab('api')" id="tab-api">⚡ API Console</button>
+    </div>
 
-        <!-- Network Graph Panel -->
-        <div class="card network-panel">
-            <div class="card-header">
-                🌌 Mind's Eye (Cognitive Map)
-                <span class="badge badge-ok" id="network-badge">LIVE</span>
-            </div>
-            <div class="card-body" style="padding: 0; min-height: 250px; position: relative">
-                <div id="brain-network"></div>
-            </div>
-        </div>
+    <!-- Tab: Live Dashboard -->
+    <div id="view-live" class="tab-view active">
+        <div class="grid">
 
-        <!-- Spike Feed -->
-        <div class="card spike-feed">
-            <div class="card-header">
-                ⚡ Live Spike Feed
-                <span class="badge badge-live" id="spike-count">0</span>
-            </div>
-            <div class="card-body" id="spike-feed-body" style="max-height: 250px;">
-                <div style="color: var(--text-muted); font-size: 12px; text-align: center; padding: 20px;">
-                    Waiting for spikes...
+            <!-- Video Panel -->
+            <div class="card video-panel">
+                <div class="card-header">
+                    🎥 Vision Sensor
+                    <span class="badge badge-live" id="video-badge">LIVE</span>
                 </div>
-            </div>
-        </div>
-
-        <!-- Neural Cascade -->
-        <div class="card cascade-panel">
-            <div class="card-header">
-                🧠 Neural Cascade
-                <span class="badge badge-ok" id="cascade-status">IDLE</span>
-            </div>
-            <div class="card-body" id="cascade-body">
-                <div class="layer-row">
-                    <div class="layer-indicator" style="background: #1e3a5f">👁️</div>
-                    <div class="layer-info">
-                        <div class="layer-name">L0: SENSES</div>
-                        <div class="layer-detail" id="layer-senses">Idle</div>
+                <div class="card-body" id="video-container">
+                    <img id="video-feed" src="/stream/video" alt="Video Feed"
+                        onerror="this.style.display='none'; document.getElementById('no-video').style.display='flex';">
+                    <div class="no-video" id="no-video" style="display:none">
+                        <span>📷</span>
+                        No camera feed available
                     </div>
-                    <div class="layer-cost">$0</div>
-                </div>
-                <div class="layer-row">
-                    <div class="layer-indicator" style="background: #1e3a3f">🔍</div>
-                    <div class="layer-info">
-                        <div class="layer-name">L1: RAS</div>
-                        <div class="layer-detail" id="layer-ras">—</div>
-                    </div>
-                    <div class="layer-cost">$0</div>
-                </div>
-                <div class="layer-row">
-                    <div class="layer-indicator" style="background: #2d1e5f">🔀</div>
-                    <div class="layer-info">
-                        <div class="layer-name">L2: THALAMUS</div>
-                        <div class="layer-detail" id="layer-thalamus">—</div>
-                    </div>
-                    <div class="layer-cost" id="thalamus-cost">~$0.001</div>
-                </div>
-                <div class="layer-row">
-                    <div class="layer-indicator" style="background: #1e5f2d">🦾</div>
-                    <div class="layer-info">
-                        <div class="layer-name">L5: CEREBELLUM</div>
-                        <div class="layer-detail" id="layer-cerebellum">—</div>
-                    </div>
-                    <div class="layer-cost">$0</div>
-                </div>
-                <div class="layer-row">
-                    <div class="layer-indicator" style="background: #065f5f">📄</div>
-                    <div class="layer-info">
-                        <div class="layer-name">L4.5: TEMPLATE</div>
-                        <div class="layer-detail" id="layer-template">—</div>
-                    </div>
-                    <div class="layer-cost" id="template-cost">~$0.001</div>
-                </div>
-                <div class="layer-row">
-                    <div class="layer-indicator" style="background: #5f1e1e">🧠</div>
-                    <div class="layer-info">
-                        <div class="layer-name">L4: CORTEX</div>
-                        <div class="layer-detail" id="layer-cortex">—</div>
-                    </div>
-                    <div class="layer-cost" id="cortex-cost">~$0.01+</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Metrics Row -->
-        <div class="card metrics-panel">
-            <div class="card-header">
-                📊 System Metrics
-                <span class="badge badge-ok" id="metrics-badge">OK</span>
-            </div>
-            <div class="card-body">
-                <div class="metrics-grid">
-                    <div class="metric-box">
-                        <div class="metric-value" id="m-spend" style="color:var(--accent-green)">$0.000</div>
-                        <div class="metric-label">Token Spend</div>
-                    </div>
-                    <div class="metric-box">
-                        <div class="metric-value" id="m-spikes" style="color:var(--accent-blue)">0</div>
-                        <div class="metric-label">Spikes</div>
-                    </div>
-                    <div class="metric-box">
-                        <div class="metric-value" id="m-cortex" style="color:var(--accent-purple)">0%</div>
-                        <div class="metric-label">Cortex Ratio</div>
-                    </div>
-                    <div class="metric-box">
-                        <div class="metric-value" id="m-efficiency" style="color:var(--accent-cyan)">0%</div>
-                        <div class="metric-label">Efficiency</div>
-                    </div>
-                    <div class="metric-box">
-                        <div class="metric-value" id="m-latency" style="color:var(--accent-yellow)">0ms</div>
-                        <div class="metric-label">Avg Latency</div>
-                    </div>
-                    <div class="metric-box">
-                        <div class="metric-value" id="m-phase" style="color:var(--accent-pink)">—</div>
-                        <div class="metric-label">Circadian</div>
-                    </div>
-                    <div class="metric-box">
-                        <div class="metric-value" id="m-providers" style="color:var(--accent-green)">0</div>
-                        <div class="metric-label">Providers</div>
-                    </div>
-                    <div class="metric-box">
-                        <div class="metric-value" id="m-models" style="color:var(--accent-blue)">0</div>
-                        <div class="metric-label">Models</div>
+                    <div class="video-overlay" id="video-overlay">
+                        <span id="vision-stats">Waiting for frames...</span>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Sensors (with toggle switches) -->
-        <div class="card providers-panel">
-            <div class="card-header">
-                📡 Sensors
-                <span class="badge badge-ok" id="sensors-badge">—</span>
-            </div>
-            <div class="card-body" id="sensors-body" style="max-height: 200px;">
-                <div style="color:var(--text-muted); font-size:12px">Loading...</div>
-            </div>
-        </div>
-
-        <!-- Goals (Prefrontal Cortex) -->
-        <div class="card" style="grid-column: span 1;">
-            <div class="card-header">
-                🎯 Goals
-                <span class="badge badge-ok" id="goals-badge">—</span>
-            </div>
-            <div class="card-body" id="goals-body" style="max-height: 220px;">
-                <div style="color:var(--text-muted); font-size:12px">No goals set</div>
-            </div>
-        </div>
-
-        <!-- Predictions (Predictive Cortex) -->
-        <div class="card" style="grid-column: span 1;">
-            <div class="card-header">
-                👁️ Predictions
-                <span class="badge badge-ok" id="pred-badge">nominal</span>
-            </div>
-            <div class="card-body" id="pred-body" style="max-height: 220px;">
-                <div style="color:var(--text-muted); font-size:12px">Sampling...</div>
-            </div>
-        </div>
-
-        <!-- Memory Timeline -->
-        <div class="card memory-panel">
-            <div class="card-header">
-                🧬 Recent Memories
-                <span class="badge" style="background:var(--accent-purple);color:#fff" id="memory-count">0</span>
-            </div>
-            <div class="card-body" id="memory-body" style="max-height: 200px;">
-                <div style="color:var(--text-muted); font-size:12px">Loading...</div>
-            </div>
-        </div>
-
-        <!-- MCP Connections -->
-        <div class="card mcp-panel">
-            <div class="card-header">
-                🔌 MCP Connections
-                <span class="badge badge-ok" id="mcp-server-count">0</span>
-            </div>
-            <div class="card-body" id="mcp-body" style="max-height: 200px;">
-                <div style="color:var(--text-muted); font-size:12px">Waiting for MCP...</div>
-            </div>
-        </div>
-
-        <!-- Skills -->
-        <div class="card skills-panel">
-            <div class="card-header">
-                🦾 Skills
-                <span class="badge badge-ok" id="skills-count">0</span>
-            </div>
-            <div class="card-body" id="skills-body" style="max-height: 200px;">
-                <div style="color:var(--text-muted); font-size:12px">Loading...</div>
-            </div>
-        </div>
-
-        <!-- Broca's Area Terminal -->
-        <div class="card broca-panel" style="height: 250px;">
-            <div class="card-header" style="border-bottom-color: var(--accent-purple)">
-                <span>🗣️ Broca's Terminal</span>
-                <span class="badge" style="background:var(--accent-purple);color:#fff">NL INTERFACE</span>
-            </div>
-            <div class="broca-chat" id="broca-chat">
-                <div class="broca-message broca-brain">
-                    System initialized. I am Broca's Area, the natural language interface.<br>
-                    Ask me to explain system behavior, modify active parameters, or set goals.
+            <!-- Network Graph Panel -->
+            <div class="card network-panel">
+                <div class="card-header">
+                    🌌 Mind's Eye (Cognitive Map)
+                    <span class="badge badge-ok" id="network-badge">LIVE</span>
+                </div>
+                <div class="card-body" style="padding: 0; min-height: 250px; position: relative">
+                    <div id="brain-network"></div>
                 </div>
             </div>
-            <div class="broca-input-container">
-                <input type="text" class="broca-input" id="broca-input"
-                    placeholder="Talk to the brain... (e.g. 'Why did you restart nginx?')">
-                <button class="broca-btn" onclick="sendBrocaMessage()">SEND</button>
+
+            <!-- Spike Feed -->
+            <div class="card spike-feed">
+                <div class="card-header">
+                    ⚡ Live Spike Feed
+                    <span class="badge badge-live" id="spike-count">0</span>
+                </div>
+                <div class="card-body" id="spike-feed-body" style="max-height: 250px;">
+                    <div style="color: var(--text-muted); font-size: 12px; text-align: center; padding: 20px;">
+                        Waiting for spikes...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Neural Cascade -->
+            <div class="card cascade-panel">
+                <div class="card-header">
+                    🧠 Neural Cascade
+                    <span class="badge badge-ok" id="cascade-status">IDLE</span>
+                </div>
+                <div class="card-body" id="cascade-body">
+                    <div class="layer-row">
+                        <div class="layer-indicator" style="background: #1e3a5f">👁️</div>
+                        <div class="layer-info">
+                            <div class="layer-name">L0: SENSES</div>
+                            <div class="layer-detail" id="layer-senses">Idle</div>
+                        </div>
+                        <div class="layer-cost">$0</div>
+                    </div>
+                    <div class="layer-row">
+                        <div class="layer-indicator" style="background: #1e3a3f">🔍</div>
+                        <div class="layer-info">
+                            <div class="layer-name">L1: RAS</div>
+                            <div class="layer-detail" id="layer-ras">—</div>
+                        </div>
+                        <div class="layer-cost">$0</div>
+                    </div>
+                    <div class="layer-row">
+                        <div class="layer-indicator" style="background: #2d1e5f">🔀</div>
+                        <div class="layer-info">
+                            <div class="layer-name">L2: THALAMUS</div>
+                            <div class="layer-detail" id="layer-thalamus">—</div>
+                        </div>
+                        <div class="layer-cost" id="thalamus-cost">~$0.001</div>
+                    </div>
+                    <div class="layer-row">
+                        <div class="layer-indicator" style="background: #1e5f2d">🦾</div>
+                        <div class="layer-info">
+                            <div class="layer-name">L5: CEREBELLUM</div>
+                            <div class="layer-detail" id="layer-cerebellum">—</div>
+                        </div>
+                        <div class="layer-cost">$0</div>
+                    </div>
+                    <div class="layer-row">
+                        <div class="layer-indicator" style="background: #065f5f">📄</div>
+                        <div class="layer-info">
+                            <div class="layer-name">L4.5: TEMPLATE</div>
+                            <div class="layer-detail" id="layer-template">—</div>
+                        </div>
+                        <div class="layer-cost" id="template-cost">~$0.001</div>
+                    </div>
+                    <div class="layer-row">
+                        <div class="layer-indicator" style="background: #5f1e1e">🧠</div>
+                        <div class="layer-info">
+                            <div class="layer-name">L4: CORTEX</div>
+                            <div class="layer-detail" id="layer-cortex">—</div>
+                        </div>
+                        <div class="layer-cost" id="cortex-cost">~$0.01+</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Row -->
+            <div class="card metrics-panel">
+                <div class="card-header">
+                    📊 System Metrics
+                    <span class="badge badge-ok" id="metrics-badge">OK</span>
+                </div>
+                <div class="card-body">
+                    <div class="metrics-grid">
+                        <div class="metric-box">
+                            <div class="metric-value" id="m-spend" style="color:var(--accent-green)">$0.000</div>
+                            <div class="metric-label">Token Spend</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value" id="m-spikes" style="color:var(--accent-blue)">0</div>
+                            <div class="metric-label">Spikes</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value" id="m-cortex" style="color:var(--accent-purple)">0%</div>
+                            <div class="metric-label">Cortex Ratio</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value" id="m-efficiency" style="color:var(--accent-cyan)">0%</div>
+                            <div class="metric-label">Efficiency</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value" id="m-latency" style="color:var(--accent-yellow)">0ms</div>
+                            <div class="metric-label">Avg Latency</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value" id="m-phase" style="color:var(--accent-pink)">—</div>
+                            <div class="metric-label">Circadian</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value" id="m-providers" style="color:var(--accent-green)">0</div>
+                            <div class="metric-label">Providers</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-value" id="m-models" style="color:var(--accent-blue)">0</div>
+                            <div class="metric-label">Models</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sensors (with toggle switches) -->
+            <div class="card providers-panel">
+                <div class="card-header">
+                    📡 Sensors
+                    <span class="badge badge-ok" id="sensors-badge">—</span>
+                </div>
+                <div class="card-body" id="sensors-body" style="max-height: 200px;">
+                    <div style="color:var(--text-muted); font-size:12px">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Goals (Prefrontal Cortex) -->
+            <div class="card" style="grid-column: span 1;">
+                <div class="card-header">
+                    🎯 Goals
+                    <span class="badge badge-ok" id="goals-badge">—</span>
+                </div>
+                <div class="card-body" id="goals-body" style="max-height: 220px;">
+                    <div style="color:var(--text-muted); font-size:12px">No goals set</div>
+                </div>
+            </div>
+
+            <!-- Predictions (Predictive Cortex) -->
+            <div class="card" style="grid-column: span 1;">
+                <div class="card-header">
+                    👁️ Predictions
+                    <span class="badge badge-ok" id="pred-badge">nominal</span>
+                </div>
+                <div class="card-body" id="pred-body" style="max-height: 220px;">
+                    <div style="color:var(--text-muted); font-size:12px">Sampling...</div>
+                </div>
+            </div>
+
+            <!-- Memory Timeline -->
+            <div class="card memory-panel">
+                <div class="card-header">
+                    🧬 Recent Memories
+                    <span class="badge" style="background:var(--accent-purple);color:#fff" id="memory-count">0</span>
+                </div>
+                <div class="card-body" id="memory-body" style="max-height: 200px;">
+                    <div style="color:var(--text-muted); font-size:12px">Loading...</div>
+                </div>
+            </div>
+
+            <!-- MCP Connections -->
+            <div class="card mcp-panel">
+                <div class="card-header">
+                    🔌 MCP Connections
+                    <span class="badge badge-ok" id="mcp-server-count">0</span>
+                </div>
+                <div class="card-body" id="mcp-body" style="max-height: 200px;">
+                    <div style="color:var(--text-muted); font-size:12px">Waiting for MCP...</div>
+                </div>
+            </div>
+
+            <!-- Skills -->
+            <div class="card skills-panel">
+                <div class="card-header">
+                    🦾 Skills
+                    <span class="badge badge-ok" id="skills-count">0</span>
+                </div>
+                <div class="card-body" id="skills-body" style="max-height: 200px;">
+                    <div style="color:var(--text-muted); font-size:12px">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Agent Command Centre (full-width) -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header" style="border-bottom-color: var(--accent-purple);">
+                    🤖 Agent Command Centre
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <span class="badge" id="queue-pending-badge"
+                            style="background:var(--accent-purple)20;color:var(--accent-purple);border:1px solid var(--accent-purple)40">0
+                            pending</span>
+                        <span class="badge" id="queue-implemented-badge"
+                            style="background:var(--accent-green)20;color:var(--accent-green);border:1px solid var(--accent-green)40">0
+                            done</span>
+                        <span id="acc-last-updated"
+                            style="font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace"></span>
+                    </div>
+                </div>
+                <div class="card-body" style="padding:0">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;min-height:220px">
+                        <!-- Proposal Queue -->
+                        <div style="border-right:1px solid var(--border);padding:14px">
+                            <div
+                                style="font-size:11px;font-weight:600;color:var(--accent-purple);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">
+                                📋 Proposal Queue</div>
+                            <div id="proposal-queue-list"
+                                style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto">
+                            </div>
+                        </div>
+                        <!-- Error Tasks -->
+                        <div style="border-right:1px solid var(--border);padding:14px">
+                            <div
+                                style="font-size:11px;font-weight:600;color:var(--accent-red);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">
+                                🚨 Recurring Errors</div>
+                            <div id="error-tasks-list"
+                                style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto">
+                            </div>
+                        </div>
+                        <!-- Changes Log -->
+                        <div style="padding:14px">
+                            <div
+                                style="font-size:11px;font-weight:600;color:var(--accent-cyan);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">
+                                📝 Recent Changes</div>
+                            <div id="changes-log-list"
+                                style="display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Swarm Interaction Visualisation (full-width) -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header" style="border-bottom-color: var(--accent-yellow);">
+                    ⚗️ Swarm Interaction Visualiser
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <span class="badge" id="swarm-status-badge"
+                            style="background:var(--accent-yellow)20;color:var(--accent-yellow);border:1px solid var(--accent-yellow)40">IDLE</span>
+                        <span style="font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace">Live
+                            agent message flow during Dream Cycle</span>
+                    </div>
+                </div>
+                <div class="card-body" style="padding:0;position:relative;height:320px">
+                    <div id="swarm-network" style="width:100%;height:100%"></div>
+                    <div id="swarm-log-overlay"
+                        style="position:absolute;right:12px;top:12px;width:260px;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <style>
+            /* Agent Command Centre items */
+            .acc-item {
+                background: var(--bg-secondary);
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                padding: 8px 10px;
+                font-size: 11px;
+                font-family: 'JetBrains Mono', monospace;
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+                transition: border-color .2s;
+            }
+
+            .acc-item:hover {
+                border-color: var(--accent-purple);
+            }
+
+            .acc-item-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 6px;
+            }
+
+            .acc-item-title {
+                color: var(--text-primary);
+                font-weight: 500;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                max-width: 180px;
+            }
+
+            .acc-item-meta {
+                color: var(--text-muted);
+                font-size: 10px;
+            }
+
+            .acc-badge-pending {
+                background: #7c3aed20;
+                color: #c4b5fd;
+                border: 1px solid #7c3aed40;
+                border-radius: 4px;
+                padding: 1px 5px;
+                font-size: 9px;
+                white-space: nowrap;
+            }
+
+            .acc-badge-done {
+                background: #10b98120;
+                color: #6ee7b7;
+                border: 1px solid #10b98140;
+                border-radius: 4px;
+                padding: 1px 5px;
+                font-size: 9px;
+                white-space: nowrap;
+            }
+
+            .acc-badge-failed {
+                background: #ef444420;
+                color: #fca5a5;
+                border: 1px solid #ef444440;
+                border-radius: 4px;
+                padding: 1px 5px;
+                font-size: 9px;
+                white-space: nowrap;
+            }
+
+            .acc-badge-progress {
+                background: #f59e0b20;
+                color: #fcd34d;
+                border: 1px solid #f59e0b40;
+                border-radius: 4px;
+                padding: 1px 5px;
+                font-size: 9px;
+                white-space: nowrap;
+            }
+
+            .acc-badge-error {
+                background: #ef444430;
+                color: #f87171;
+                border: 1px solid #ef444460;
+                border-radius: 4px;
+                padding: 1px 5px;
+                font-size: 9px;
+                white-space: nowrap;
+            }
+
+            .acc-badge-change {
+                background: #06b6d420;
+                color: #67e8f9;
+                border: 1px solid #06b6d440;
+                border-radius: 4px;
+                padding: 1px 5px;
+                font-size: 9px;
+                white-space: nowrap;
+            }
+
+            .acc-actions {
+                display: flex;
+                gap: 5px;
+                margin-top: 3px;
+            }
+
+            .acc-btn {
+                background: none;
+                border: 1px solid var(--border);
+                color: var(--text-secondary);
+                font-size: 10px;
+                font-family: 'JetBrains Mono', monospace;
+                border-radius: 4px;
+                padding: 2px 7px;
+                cursor: pointer;
+                transition: all .15s;
+            }
+
+            .acc-btn:hover {
+                border-color: var(--accent-red);
+                color: var(--accent-red);
+            }
+
+            .acc-btn-wl:hover {
+                border-color: var(--accent-green);
+                color: var(--accent-green);
+            }
+
+            /* Swarm log overlay items */
+            .swarm-log-item {
+                background: rgba(10, 14, 23, .85);
+                border: 1px solid var(--border);
+                border-radius: 5px;
+                padding: 5px 8px;
+                font-size: 10px;
+                font-family: 'JetBrains Mono', monospace;
+                color: var(--text-secondary);
+                animation: fadeIn .3s ease;
+            }
+
+            .swarm-log-item .swarm-agent {
+                font-weight: 600;
+            }
+        </style>
+
+    </div><!-- end view-live -->
+
+    <!-- Tab: Agent Intelligence -->
+    <div id="view-agent" class="tab-view" style="padding:20px;display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px">
+            <!-- Proposal Queue -->
+            <div class="card">
+                <div class="card-header" style="border-bottom-color:var(--accent-purple)">
+                    📋 Proposal Queue
+                    <div style="display:flex;gap:6px">
+                        <span class="badge" id="a-queue-pending"
+                            style="background:var(--accent-purple)20;color:var(--accent-purple);border:1px solid var(--accent-purple)40">0
+                            pending</span>
+                        <span class="badge" id="a-queue-done"
+                            style="background:var(--accent-green)20;color:var(--accent-green);border:1px solid var(--accent-green)40">0
+                            done</span>
+                    </div>
+                </div>
+                <div class="card-body" style="max-height:400px;overflow-y:auto">
+                    <div id="a-proposal-list" style="display:flex;flex-direction:column;gap:6px"></div>
+                </div>
+            </div>
+            <!-- Recurring Errors -->
+            <div class="card">
+                <div class="card-header" style="border-bottom-color:var(--accent-red)">
+                    🚨 Recurring Errors
+                </div>
+                <div class="card-body" style="max-height:400px;overflow-y:auto">
+                    <div id="a-error-list" style="display:flex;flex-direction:column;gap:6px"></div>
+                </div>
+            </div>
+            <!-- Changes Log -->
+            <div class="card">
+                <div class="card-header" style="border-bottom-color:var(--accent-cyan)">
+                    📝 Changes Log
+                </div>
+                <div class="card-body" style="max-height:400px;overflow-y:auto">
+                    <div id="a-changes-list" style="display:flex;flex-direction:column;gap:6px"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Swarm Viz (full width in this tab too) -->
+        <div class="card">
+            <div class="card-header" style="border-bottom-color:var(--accent-yellow)">
+                ⚗️ Swarm Interaction Visualiser
+                <span class="badge" id="a-swarm-badge"
+                    style="background:var(--accent-yellow)20;color:var(--accent-yellow);border:1px solid var(--accent-yellow)40">IDLE</span>
+            </div>
+            <div class="card-body" style="padding:0;position:relative;height:340px">
+                <div id="swarm-network-2" style="width:100%;height:100%"></div>
+                <div id="swarm-log-overlay-2"
+                    style="position:absolute;right:12px;top:12px;width:280px;max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Tab: API Console -->
+    <div id="view-api" class="tab-view" style="display:none;padding:20px">
+        <div style="display:grid;grid-template-columns:280px 1fr;gap:16px;height:calc(100vh - 130px)">
+
+            <!-- Sidebar: Endpoint List -->
+            <div class="card" style="overflow-y:auto">
+                <div class="card-header"
+                    style="border-bottom-color:var(--accent-blue);position:sticky;top:0;z-index:10;background:var(--bg-card)">
+                    ⚡ Endpoints
+                    <input id="api-search" type="text" placeholder="Filter…"
+                        style="background:#111827;border:1px solid var(--border);color:var(--text-primary);border-radius:5px;padding:3px 8px;font-size:11px;font-family:'JetBrains Mono',monospace;width:90px"
+                        oninput="filterApiEndpoints(this.value)">
+                </div>
+                <div id="api-endpoint-list" style="display:flex;flex-direction:column;gap:2px;padding:8px"></div>
+            </div>
+
+            <!-- Main: Request + Response -->
+            <div style="display:flex;flex-direction:column;gap:12px;overflow-y:auto">
+                <div class="card" id="api-request-panel">
+                    <div class="card-header" style="border-bottom-color:var(--accent-blue)">
+                        <span id="api-selected-label"
+                            style="font-family:'JetBrains Mono',monospace;font-size:13px">Select an endpoint →</span>
+                        <div style="display:flex;gap:8px">
+                            <button id="api-run-btn" onclick="runApiCall()"
+                                style="background:var(--accent-blue);border:none;color:#fff;padding:5px 16px;border-radius:6px;font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:background .15s"
+                                onmouseover="this.style.background='#2563eb'"
+                                onmouseout="this.style.background='var(--accent-blue)'">
+                                ▶ RUN
+                            </button>
+                            <button onclick="copyApiCurl()"
+                                style="background:none;border:1px solid var(--border);color:var(--text-secondary);padding:5px 12px;border-radius:6px;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer">
+                                📋 cURL
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                            <div>
+                                <div
+                                    style="font-size:10px;color:var(--text-muted);margin-bottom:6px;font-family:'JetBrains Mono',monospace">
+                                    REQUEST BODY (JSON)</div>
+                                <textarea id="api-body-editor"
+                                    style="width:100%;min-height:140px;background:#0d1117;border:1px solid var(--border);color:#e5e7eb;border-radius:6px;padding:10px;font-size:12px;font-family:'JetBrains Mono',monospace;resize:vertical;outline:none"
+                                    placeholder="{}"></textarea>
+                                <div style="margin-top:8px;font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace"
+                                    id="api-endpoint-desc"></div>
+                            </div>
+                            <div>
+                                <div
+                                    style="font-size:10px;color:var(--text-muted);margin-bottom:6px;font-family:'JetBrains Mono',monospace">
+                                    QUERY PARAMS</div>
+                                <textarea id="api-params-editor"
+                                    style="width:100%;min-height:80px;background:#0d1117;border:1px solid var(--border);color:#e5e7eb;border-radius:6px;padding:10px;font-size:12px;font-family:'JetBrains Mono',monospace;resize:vertical;outline:none"
+                                    placeholder='{"limit": 20}'></textarea>
+                                <div
+                                    style="font-size:10px;color:var(--text-muted);margin-top:8px;font-family:'JetBrains Mono',monospace">
+                                    HEADERS</div>
+                                <textarea id="api-headers-editor"
+                                    style="width:100%;min-height:50px;background:#0d1117;border:1px solid var(--border);color:#e5e7eb;border-radius:6px;padding:10px;font-size:12px;font-family:'JetBrains Mono',monospace;resize:vertical;outline:none"
+                                    placeholder='{"Content-Type": "application/json"}'></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Response Panel -->
+                <div class="card" style="flex:1">
+                    <div class="card-header" id="api-response-header" style="border-bottom-color:var(--border)">
+                        Response
+                        <span id="api-status-badge"
+                            style="font-family:'JetBrains Mono',monospace;font-size:11px"></span>
+                        <span id="api-timing-badge"
+                            style="font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace"></span>
+                    </div>
+                    <div class="card-body" style="padding:0">
+                        <pre id="api-response-body"
+                            style="background:#0d1117;margin:0;padding:14px;font-size:12px;font-family:'JetBrains Mono',monospace;color:#e5e7eb;overflow:auto;max-height:360px;min-height:100px;white-space:pre-wrap;word-break:break-all">
+<span style="color:var(--text-muted)">No response yet. Select an endpoint and click RUN.</span></pre>
+                    </div>
+                </div>
+
+                <!-- History -->
+                <div class="card">
+                    <div class="card-header" style="border-bottom-color:var(--border)">
+                        🕐 Request History
+                        <button onclick="clearApiHistory()"
+                            style="background:none;border:1px solid var(--border);color:var(--text-muted);font-size:10px;font-family:'JetBrains Mono',monospace;border-radius:4px;padding:2px 8px;cursor:pointer">Clear</button>
+                    </div>
+                    <div class="card-body" style="max-height:180px;overflow-y:auto">
+                        <div id="api-history"
+                            style="display:flex;flex-direction:column;gap:5px;font-family:'JetBrains Mono',monospace;font-size:11px">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab CSS + JS skeleton -->
+    <style>
+        .tab-bar {
+            display: flex;
+            gap: 2px;
+            padding: 8px 20px 0;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 57px;
+            z-index: 90;
+            backdrop-filter: blur(12px);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 8px 18px;
+            cursor: pointer;
+            transition: color .15s, border-color .15s;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+        }
+
+        .tab-view {
+            display: block;
+        }
+
+        .tab-view:not(.active) {
+            display: none;
+        }
+
+        /* API Console sidebar items */
+        .api-ep-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+            transition: background .12s, color .12s;
+            user-select: none;
+        }
+
+        .api-ep-item:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        .api-ep-item.selected {
+            background: #1e3a5f;
+            color: var(--accent-blue);
+        }
+
+        .api-method {
+            font-size: 9px;
+            font-weight: 700;
+            border-radius: 3px;
+            padding: 1px 5px;
+            letter-spacing: .05em;
+            min-width: 32px;
+            text-align: center;
+        }
+
+        .method-get {
+            background: #10b98120;
+            color: #6ee7b7;
+            border: 1px solid #10b98140;
+        }
+
+        .method-post {
+            background: #3b82f620;
+            color: #93c5fd;
+            border: 1px solid #3b82f640;
+        }
+
+        .method-delete {
+            background: #ef444420;
+            color: #fca5a5;
+            border: 1px solid #ef444440;
+        }
+
+        .api-ep-label {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .api-group-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            padding: 10px 8px 4px;
+        }
+
+        /* JSON syntax highlight helpers */
+        .json-key {
+            color: #93c5fd;
+        }
+
+        .json-str {
+            color: #86efac;
+        }
+
+        .json-num {
+            color: #fcd34d;
+        }
+
+        .json-bool {
+            color: #c084fc;
+        }
+
+        .json-null {
+            color: #9ca3af;
+        }
+    </style>
+
     <script>
+
+
+        // ──────────────────────────────────────────────
+        // Tab Navigation
+        // ──────────────────────────────────────────────
+        const TAB_VIEWS = ['live', 'agent', 'api'];
+        function switchTab(name) {
+            TAB_VIEWS.forEach(t => {
+                const view = document.getElementById('view-' + t);
+                const btn = document.getElementById('tab-' + t);
+                if (view) view.style.display = (t === name) ? 'block' : 'none';
+                if (btn) btn.classList.toggle('active', t === name);
+            });
+            if (name === 'agent') {
+                refreshAgentTab();
+                initSwarmViz2();
+            }
+            if (name === 'api') {
+                renderApiEndpoints();
+            }
+        }
+
+        // ──────────────────────────────────────────────
+        // Agent Tab refresh (mirrors ACC data)
+        // ──────────────────────────────────────────────
+        async function refreshAgentTab() {
+            try {
+                const r = await fetch('/proposals/queue');
+                const data = await r.json();
+                const stats = data.stats || {};
+                document.getElementById('a-queue-pending').textContent = (stats.pending || 0) + ' pending';
+                document.getElementById('a-queue-done').textContent = (stats.implemented || 0) + ' done';
+                const proposals = (data.proposals || []).slice(-20).reverse();
+                document.getElementById('a-proposal-list').innerHTML = proposals.map(p => {
+                    const badgeCls = STATUS_BADGE[p.status] || 'acc-badge-pending';
+                    const label = STATUS_LABEL[p.status] || p.status;
+                    return `<div class="acc-item">
+                        <div class="acc-item-header">
+                            <span class="acc-item-title" title="${escHtml(p.content || '')}">${escHtml((p.content || '').slice(0, 90))}…</span>
+                            <span class="${badgeCls}">${label}</span>
+                        </div>
+                        <div class="acc-item-meta">${escHtml(p.agent || 'unknown')} · ${p.added_at ? new Date(p.added_at).toLocaleTimeString() : ''}</div>
+                        ${p.implementation_notes ? `<div class="acc-item-meta" style="color:var(--accent-cyan)">${escHtml(p.implementation_notes.slice(0, 70))}</div>` : ''}
+                    </div>`;
+                }).join('') || '<div style="color:var(--text-muted);font-size:12px;padding:10px">No proposals yet</div>';
+            } catch (e) { }
+
+            try {
+                const wl = await (await fetch('/errors/whitelist')).json();
+                const errs = window._recurringErrors || [];
+                document.getElementById('a-error-list').innerHTML = errs.length ?
+                    errs.map(a => `<div class="acc-item">
+                        <div class="acc-item-header">
+                            <span class="acc-item-title">${escHtml((a.message || '').slice(0, 80))}</span>
+                            <span class="acc-badge-error">${a.occurrences}x</span>
+                        </div>
+                        <div class="acc-item-meta">${escHtml(a.logger || '')}</div>
+                        <div class="acc-actions">
+                            <button class="acc-btn acc-btn-wl" onclick="whitelistError('${escHtml(a.error_key || '')}')">✓ Whitelist</button>
+                            <button class="acc-btn" onclick="dismissError('${escHtml(a.error_key || '')}')">Dismiss</button>
+                        </div>
+                    </div>`).join('') :
+                    '<div style="color:var(--text-muted);font-size:12px;padding:10px">No recurring errors</div>';
+            } catch (e) { }
+
+            try {
+                const r = await fetch('/agent_logs/changes');
+                if (r.ok) {
+                    const data = await r.json();
+                    const entries = (data.entries || []).slice(-20).reverse();
+                    const typeIcon = { skill_added: '🧬', code_modified: '✏️', proposal_saved: '📋', config_changed: '⚙️' };
+                    document.getElementById('a-changes-list').innerHTML = entries.map(e => `
+                        <div class="acc-item">
+                            <div class="acc-item-header">
+                                <span class="acc-item-title">${typeIcon[e.type] || '📄'} ${escHtml((e.file || '').split('/').pop())}</span>
+                                <span class="acc-badge-change">${escHtml(e.type || '')}</span>
+                            </div>
+                            <div class="acc-item-meta">${escHtml((e.description || '').slice(0, 70))} · ${e.timestamp ? new Date(e.timestamp).toLocaleTimeString() : ''}</div>
+                        </div>`).join('') || '<div style="color:var(--text-muted);font-size:12px;padding:10px">No changes logged yet</div>';
+                }
+            } catch (e) { }
+        }
+
+        let swarmNet2 = null;
+        let swarmNet2Inited = false;
+        const swarmNodes2 = new vis.DataSet([]);
+        const swarmEdges2 = new vis.DataSet([]);
+
+        function initSwarmViz2() {
+            if (swarmNet2Inited) return;
+            swarmNet2Inited = true;
+            SWARM_AGENTS.forEach(a => swarmNodes2.add({
+                ...a, size: a.group === 'orchestrator' ? 32 : 22,
+                font: { color: '#e5e7eb', size: 12, face: 'JetBrains Mono' }, borderWidth: 2, shadow: { enabled: true, size: 14 }
+            }));
+            const container = document.getElementById('swarm-network-2');
+            if (!container) return;
+            swarmNet2 = new vis.Network(container,
+                { nodes: swarmNodes2, edges: swarmEdges2 },
+                {
+                    physics: false,
+                    groups: {
+                        orchestrator: { color: { background: '#2d1e5f', border: '#8b5cf6' } },
+                        enhancer: { color: { background: '#1e3a5f', border: '#3b82f6' } },
+                        fixer: { color: { background: '#1e5f2d', border: '#10b981' } },
+                        auditor: { color: { background: '#5f3a1e', border: '#f59e0b' } },
+                        queue: { color: { background: '#3f1e5f', border: '#c084fc' } },
+                        error: { color: { background: '#5f1e1e', border: '#ef4444' } },
+                    },
+                    edges: { arrows: { to: { enabled: true, scaleFactor: .6 } }, color: { color: '#2d3748' }, smooth: { type: 'curvedCW', roundness: .3 }, width: 2 },
+                    interaction: { dragNodes: true, zoomView: true, hover: true },
+                }
+            );
+        }
+
+        // ──────────────────────────────────────────────
+        // API Console Endpoint Catalog
+        // ──────────────────────────────────────────────
+        const API_ENDPOINTS = [
+            // ── Spikes ─────────────────────────────────
+            {
+                group: 'Spikes & Sensors', method: 'POST', path: '/spike',
+                desc: 'Inject a generic event spike into the nervous system',
+                body: JSON.stringify({ sense_type: "vision", payload: { event: "test_spike", value: 42 }, priority: 5 }, null, 2)
+            },
+            {
+                group: 'Spikes & Sensors', method: 'POST', path: '/spike/threat',
+                desc: 'Inject a threat spike (AMYGDALA)',
+                body: JSON.stringify({ threat_type: "process_anomaly", process: "suspicious.exe", threat_count: 3, user: "testuser" }, null, 2)
+            },
+            {
+                group: 'Spikes & Sensors', method: 'POST', path: '/spike/metric',
+                desc: 'Inject a system metric spike',
+                body: JSON.stringify({ metric: "cpu_percent", value: 87.5, source: "phantom_spike" }, null, 2)
+            },
+            {
+                group: 'Spikes & Sensors', method: 'GET', path: '/sensors',
+                desc: 'List all registered sensor modules and their state', body: ''
+            },
+            {
+                group: 'Spikes & Sensors', method: 'POST', path: '/sensor/toggle',
+                desc: 'Enable or disable a sensor',
+                body: JSON.stringify({ sensor: "vision", enabled: false }, null, 2)
+            },
+            // ── Status ─────────────────────────────────
+            { group: 'System Status', method: 'GET', path: '/status', desc: 'Full system status snapshot', body: '' },
+            { group: 'System Status', method: 'GET', path: '/health', desc: 'Kubernetes-style health check', body: '' },
+            { group: 'System Status', method: 'GET', path: '/ready', desc: 'Readiness probe', body: '' },
+            { group: 'System Status', method: 'GET', path: '/live', desc: 'Liveness probe', body: '' },
+            { group: 'System Status', method: 'GET', path: '/stats', desc: 'Runtime statistics and counters', body: '' },
+            // ── Skills ─────────────────────────────────
+            { group: 'Skills', method: 'GET', path: '/skills', desc: 'List all loaded skills', body: '', params: JSON.stringify({}, null, 2) },
+            {
+                group: 'Skills', method: 'POST', path: '/skill/run',
+                desc: 'Manually trigger a skill by name',
+                body: JSON.stringify({ skill: "adk_pilot_skill", context: { test: true } }, null, 2)
+            },
+            // ── Memory ─────────────────────────────────
+            {
+                group: 'Memory & Dreams', method: 'GET', path: '/memories/recent',
+                desc: 'Return recent episodic memories', body: '', params: JSON.stringify({ limit: 20 }, null, 2)
+            },
+            {
+                group: 'Memory & Dreams', method: 'GET', path: '/dreams/recent',
+                desc: 'Return recent dream journal entries', body: '', params: JSON.stringify({ limit: 5 }, null, 2)
+            },
+            {
+                group: 'Memory & Dreams', method: 'GET', path: '/patterns',
+                desc: 'Return recognized behavioral patterns', body: ''
+            },
+            {
+                group: 'Memory & Dreams', method: 'POST', path: '/dream/trigger',
+                desc: 'Manually kick off a full dream cycle', body: ''
+            },
+            // ── Goals ──────────────────────────────────
+            { group: 'Goal System', method: 'GET', path: '/goals', desc: 'List all active goals', body: '' },
+            {
+                group: 'Goal System', method: 'POST', path: '/goal',
+                desc: 'Create a new goal',
+                body: JSON.stringify({ title: "Reduce CPU usage", description: "Keep average CPU below 60%", priority: "high" }, null, 2)
+            },
+            {
+                group: 'Goal System', method: 'DELETE', path: '/goal',
+                desc: 'Remove a goal by ID',
+                body: JSON.stringify({ goal_id: "goal_001" }, null, 2)
+            },
+            {
+                group: 'Goal System', method: 'POST', path: '/goal/evaluate',
+                desc: 'Trigger goal evaluation cycle', body: JSON.stringify({}, null, 2)
+            },
+            // ── Predictions ────────────────────────────
+            {
+                group: 'Predictions', method: 'GET', path: '/predictions',
+                desc: 'Current active phantom-spike predictions', body: ''
+            },
+            {
+                group: 'Predictions', method: 'GET', path: '/predictions/history',
+                desc: 'Historical prediction accuracy log', body: '', params: JSON.stringify({ limit: 30 }, null, 2)
+            },
+            // ── MCP ────────────────────────────────────
+            { group: 'MCP', method: 'GET', path: '/mcp/servers', desc: 'List connected MCP servers', body: '' },
+            { group: 'MCP', method: 'GET', path: '/mcp/tools', desc: 'List all available MCP tools', body: '' },
+            // ── Broca Chat ─────────────────────────────
+            {
+                group: 'Natural Language', method: 'POST', path: '/broca/chat',
+                desc: 'Send a natural language query to the brain',
+                body: JSON.stringify({ message: "Why is CPU usage high?", context: {} }, null, 2)
+            },
+            // ── Proposals & Errors ─────────────────────
+            {
+                group: 'Agent Intelligence', method: 'GET', path: '/proposals/queue',
+                desc: 'View the proposal queue (optionally filter by status)',
+                body: '', params: JSON.stringify({ status: "pending" }, null, 2)
+            },
+            {
+                group: 'Agent Intelligence', method: 'POST', path: '/errors/whitelist',
+                desc: 'Whitelist a recurring error (stop alerting)',
+                body: JSON.stringify({ error_key: "utils.content_validation::Invalid content type" }, null, 2)
+            },
+            {
+                group: 'Agent Intelligence', method: 'POST', path: '/errors/dismiss',
+                desc: 'Dismiss a recurring error without whitelisting it',
+                body: JSON.stringify({ error_key: "utils.content_validation::Invalid content type" }, null, 2)
+            },
+            {
+                group: 'Agent Intelligence', method: 'GET', path: '/errors/whitelist',
+                desc: 'View the current error whitelist', body: ''
+            },
+            {
+                group: 'Agent Intelligence', method: 'GET', path: '/agent_logs/changes',
+                desc: 'Recent code changes and skill additions log',
+                body: '', params: JSON.stringify({ limit: 50 }, null, 2)
+            },
+            {
+                group: 'Agent Intelligence', method: 'GET', path: '/agent_logs/activity',
+                desc: 'Recent agent activity log',
+                body: '', params: JSON.stringify({ limit: 30 }, null, 2)
+            },
+            // ── Webhook ────────────────────────────────
+            {
+                group: 'Webhooks', method: 'POST', path: '/webhook/github',
+                desc: 'Receive an external webhook (replace {source} with your source name)',
+                body: JSON.stringify({ event: "push", ref: "refs/heads/main", repository: { name: "ReflexArc" } }, null, 2)
+            },
+            // ── Docs ───────────────────────────────────
+            { group: 'Docs', method: 'GET', path: '/openapi.yaml', desc: 'OpenAPI spec (YAML)', body: '' },
+            { group: 'Docs', method: 'GET', path: '/docs', desc: 'Swagger UI', body: '' },
+        ];
+
+        let selectedEndpoint = null;
+        let apiHistory = [];
+
+        function renderApiEndpoints(filter = '') {
+            const container = document.getElementById('api-endpoint-list');
+            if (!container) return;
+            const groups = {};
+            API_ENDPOINTS.forEach(ep => {
+                const label = ep.path + ep.method;
+                if (filter && !ep.path.toLowerCase().includes(filter.toLowerCase()) &&
+                    !ep.desc.toLowerCase().includes(filter.toLowerCase())) return;
+                if (!groups[ep.group]) groups[ep.group] = [];
+                groups[ep.group].push(ep);
+            });
+            container.innerHTML = Object.entries(groups).map(([grp, eps]) => `
+                <div class="api-group-label">${grp}</div>
+                ${eps.map((ep, i) => `
+                    <div class="api-ep-item ${selectedEndpoint === ep ? 'selected' : ''}"
+                         onclick="selectEndpoint(API_ENDPOINTS[${API_ENDPOINTS.indexOf(ep)}])">
+                        <span class="api-method method-${ep.method.toLowerCase()}">${ep.method}</span>
+                        <span class="api-ep-label" title="${ep.path}">${ep.path}</span>
+                    </div>`).join('')}
+            `).join('');
+        }
+
+        function selectEndpoint(ep) {
+            selectedEndpoint = ep;
+            document.getElementById('api-selected-label').textContent = ep.method + ' ' + ep.path;
+            document.getElementById('api-body-editor').value = ep.body || '';
+            document.getElementById('api-params-editor').value = ep.params || '';
+            document.getElementById('api-headers-editor').value = ep.method !== 'GET' ? '{\n  "Content-Type": "application/json"\n}' : '';
+            document.getElementById('api-endpoint-desc').textContent = ep.desc;
+            renderApiEndpoints(document.getElementById('api-search')?.value || '');
+        }
+
+        function filterApiEndpoints(val) { renderApiEndpoints(val); }
+
+        async function runApiCall() {
+            if (!selectedEndpoint) return;
+            const ep = selectedEndpoint;
+            const btn = document.getElementById('api-run-btn');
+            btn.textContent = '⏳ Running…';
+            btn.disabled = true;
+
+            let url = ep.path;
+            // Append query params
+            try {
+                const params = JSON.parse(document.getElementById('api-params-editor').value || '{}');
+                const qs = new URLSearchParams(params).toString();
+                if (qs) url += '?' + qs;
+            } catch (e) { }
+
+            const headersTxt = document.getElementById('api-headers-editor').value || '{}';
+            let headers = {};
+            try { headers = JSON.parse(headersTxt); } catch (e) { }
+
+            const bodyTxt = document.getElementById('api-body-editor').value.trim();
+            const fetchOpts = { method: ep.method, headers };
+            if (ep.method !== 'GET' && ep.method !== 'DELETE' || bodyTxt) {
+                if (bodyTxt) fetchOpts.body = bodyTxt;
+            }
+
+            const t0 = performance.now();
+            try {
+                const res = await fetch(url, fetchOpts);
+                const elapsed = Math.round(performance.now() - t0);
+                const contentType = res.headers.get('content-type') || '';
+                let body;
+                if (contentType.includes('json')) {
+                    const json = await res.json();
+                    body = syntaxHighlight(JSON.stringify(json, null, 2));
+                } else {
+                    body = escHtml(await res.text());
+                }
+
+                const statusColor = res.ok ? 'var(--accent-green)' : 'var(--accent-red)';
+                document.getElementById('api-status-badge').innerHTML =
+                    `<span style="color:${statusColor};font-weight:700">${res.status} ${res.statusText}</span>`;
+                document.getElementById('api-timing-badge').textContent = elapsed + 'ms';
+                document.getElementById('api-response-header').style.borderBottomColor =
+                    res.ok ? 'var(--accent-green)' : 'var(--accent-red)';
+                document.getElementById('api-response-body').innerHTML = body;
+
+                // Add to history
+                apiHistory.unshift({ method: ep.method, path: ep.path, status: res.status, elapsed, ts: new Date().toLocaleTimeString() });
+                if (apiHistory.length > 30) apiHistory.pop();
+                renderApiHistory();
+            } catch (err) {
+                document.getElementById('api-response-body').innerHTML = `<span style="color:var(--accent-red)">Error: ${escHtml(String(err))}</span>`;
+            } finally {
+                btn.textContent = '▶ RUN';
+                btn.disabled = false;
+            }
+        }
+
+        function renderApiHistory() {
+            const el = document.getElementById('api-history');
+            if (!el) return;
+            const statusColor = s => s < 300 ? 'var(--accent-green)' : s < 400 ? 'var(--accent-yellow)' : 'var(--accent-red)';
+            el.innerHTML = apiHistory.map((h, i) => `
+                <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border);cursor:pointer"
+                     onclick="replayHistory(${i})">
+                    <span class="api-method method-${h.method.toLowerCase()}">${h.method}</span>
+                    <span style="flex:1;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.path}</span>
+                    <span style="color:${statusColor(h.status)}">${h.status}</span>
+                    <span style="color:var(--text-muted)">${h.elapsed}ms</span>
+                    <span style="color:var(--text-muted);font-size:10px">${h.ts}</span>
+                </div>`).join('');
+        }
+
+        function replayHistory(i) {
+            const h = apiHistory[i];
+            const ep = API_ENDPOINTS.find(e => e.path === h.path && e.method === h.method);
+            if (ep) selectEndpoint(ep);
+        }
+
+        function clearApiHistory() {
+            apiHistory = [];
+            renderApiHistory();
+        }
+
+        function copyApiCurl() {
+            if (!selectedEndpoint) return;
+            const ep = selectedEndpoint;
+            const body = document.getElementById('api-body-editor').value.trim();
+            const base = location.origin;
+            let curl = `curl -X ${ep.method} ${base}${ep.path}`;
+            if (ep.method !== 'GET' && body) {
+                curl += `\\\n  -H "Content-Type: application/json"\\\n  -d '${body}'`;
+            }
+            navigator.clipboard.writeText(curl).then(() => {
+                const btn = event.target;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => btn.textContent = '📋 cURL', 1500);
+            });
+        }
+
+        function syntaxHighlight(json) {
+            return json
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m => {
+                    let cls = 'json-num';
+                    if (/^"/.test(m)) cls = /:$/.test(m) ? 'json-key' : 'json-str';
+                    else if (/true|false/.test(m)) cls = 'json-bool';
+                    else if (/null/.test(m)) cls = 'json-null';
+                    return `<span class="${cls}">${m}</span>`;
+                });
+        }
+
+        // initialise endpoint list when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            renderApiEndpoints();
+        });
+        // also init immediately in case DOMContentLoaded already fired
+        renderApiEndpoints();
+
         // ──────────────────────────────────────────────
         // State
         // ──────────────────────────────────────────────
         let spikeCount = 0;
+
         let ws = null;
         const MAX_SPIKES = 50;
+
+        // ──────────────────────────────────────────────
+        // Agent Command Centre
+        // ──────────────────────────────────────────────
+        const STATUS_BADGE = {
+            pending: 'acc-badge-pending',
+            in_progress: 'acc-badge-progress',
+            implemented: 'acc-badge-done',
+            failed: 'acc-badge-failed',
+            rejected: 'acc-badge-failed',
+        };
+        const STATUS_LABEL = {
+            pending: 'pending', in_progress: 'working…', implemented: 'done', failed: 'failed', rejected: 'rejected'
+        };
+
+        async function refreshAgentCommandCentre() {
+            await Promise.all([
+                loadProposalQueue(),
+                loadErrorTasks(),
+                loadChangesLog(),
+            ]);
+            document.getElementById('acc-last-updated').textContent =
+                'updated ' + new Date().toLocaleTimeString();
+        }
+
+        async function loadProposalQueue() {
+            try {
+                const r = await fetch('/proposals/queue');
+                const data = await r.json();
+                const el = document.getElementById('proposal-queue-list');
+                const stats = data.stats || {};
+                document.getElementById('queue-pending-badge').textContent =
+                    (stats.pending || 0) + ' pending';
+                document.getElementById('queue-implemented-badge').textContent =
+                    (stats.implemented || 0) + ' done';
+
+                const proposals = (data.proposals || []).slice(-12).reverse();
+                if (!proposals.length) {
+                    el.innerHTML = '<div style="color:var(--text-muted);font-size:11px;padding:8px">No proposals queued yet</div>';
+                    return;
+                }
+                el.innerHTML = proposals.map(p => {
+                    const badgeCls = STATUS_BADGE[p.status] || 'acc-badge-pending';
+                    const label = STATUS_LABEL[p.status] || p.status;
+                    const preview = (p.content || '').slice(0, 80).replace(/\n/g, ' ');
+                    const ts = p.added_at ? new Date(p.added_at).toLocaleTimeString() : '';
+                    return `<div class="acc-item">
+                        <div class="acc-item-header">
+                            <span class="acc-item-title" title="${escHtml(p.content || '')}">${escHtml(preview)}…</span>
+                            <span class="${badgeCls}">${label}</span>
+                        </div>
+                        <div class="acc-item-meta">${escHtml(p.agent || 'unknown')} · ${ts}</div>
+                        ${p.implementation_notes ? `<div class="acc-item-meta" style="color:var(--accent-cyan)">${escHtml(p.implementation_notes.slice(0, 60))}</div>` : ''}
+                    </div>`;
+                }).join('');
+            } catch (e) { /* server may not be up yet */ }
+        }
+
+        async function loadErrorTasks() {
+            try {
+                const wlR = await fetch('/errors/whitelist');
+                const whitelist = await wlR.json();
+                const el = document.getElementById('error-tasks-list');
+                // Load raw error tasks file via a dedicated endpoint or reuse proposal queue patterns
+                // We surface the whitelist + call the 'check' indirectly via event bus alerts
+                const wlKeys = Object.keys(whitelist);
+                if (!wlKeys.length && !window._recurringErrors?.length) {
+                    el.innerHTML = '<div style="color:var(--text-muted);font-size:11px;padding:8px">No recurring errors detected</div>';
+                    return;
+                }
+                const items = (window._recurringErrors || []).map(a => {
+                    const key = a.error_key || '';
+                    const isWL = whitelist[key];
+                    return `<div class="acc-item">
+                        <div class="acc-item-header">
+                            <span class="acc-item-title" title="${escHtml(a.message)}">${escHtml((a.message || '').slice(0, 70))}</span>
+                            <span class="${isWL ? 'acc-badge-done' : 'acc-badge-error'}">${isWL ? 'whitelisted' : a.occurrences + 'x'}</span>
+                        </div>
+                        <div class="acc-item-meta">${escHtml(a.logger || '')} · ${a.severity || 'error'}</div>
+                        ${!isWL ? `<div class="acc-actions">
+                            <button class="acc-btn acc-btn-wl" onclick="whitelistError('${escHtml(key)}')">✓ Whitelist</button>
+                            <button class="acc-btn" onclick="dismissError('${escHtml(key)}')">Dismiss</button>
+                        </div>` : ''}
+                    </div>`;
+                });
+                // Also show whitelisted items dimmed
+                wlKeys.forEach(k => {
+                    if (!(window._recurringErrors || []).find(e => e.error_key === k)) {
+                        items.push(`<div class="acc-item" style="opacity:.5">
+                            <div class="acc-item-header">
+                                <span class="acc-item-title">${escHtml(k.split('::')[1] || k)}</span>
+                                <span class="acc-badge-done">whitelisted</span>
+                            </div>
+                            <div class="acc-item-meta">${whitelist[k].whitelisted_at ? new Date(whitelist[k].whitelisted_at).toLocaleDateString() : ''}</div>
+                        </div>`);
+                    }
+                });
+                el.innerHTML = items.length ? items.join('') : '<div style="color:var(--text-muted);font-size:11px;padding:8px">No recurring errors</div>';
+            } catch (e) { }
+        }
+
+        async function loadChangesLog() {
+            try {
+                const r = await fetch('/agent_logs/changes');
+                if (!r.ok) return;
+                const data = await r.json();
+                const el = document.getElementById('changes-log-list');
+                const entries = (data.entries || []).slice(-15).reverse();
+                if (!entries.length) {
+                    el.innerHTML = '<div style="color:var(--text-muted);font-size:11px;padding:8px">No changes logged yet</div>';
+                    return;
+                }
+                const typeIcon = { skill_added: '🧬', code_modified: '✏️', proposal_saved: '📋', config_changed: '⚙️' };
+                el.innerHTML = entries.map(e => {
+                    const icon = typeIcon[e.type] || '📄';
+                    const ts = e.timestamp ? new Date(e.timestamp).toLocaleTimeString() : '';
+                    return `<div class="acc-item">
+                        <div class="acc-item-header">
+                            <span class="acc-item-title">${icon} ${escHtml((e.file || '').split('/').pop())}</span>
+                            <span class="acc-badge-change">${escHtml(e.type || '')}</span>
+                        </div>
+                        <div class="acc-item-meta">${escHtml((e.description || '').slice(0, 60))} · ${ts}</div>
+                    </div>`;
+                }).join('');
+            } catch (e) { }
+        }
+
+        async function whitelistError(key) {
+            try {
+                await fetch('/errors/whitelist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error_key: key }) });
+                window._recurringErrors = (window._recurringErrors || []).filter(e => e.error_key !== key);
+                loadErrorTasks();
+            } catch (e) { }
+        }
+        async function dismissError(key) {
+            try {
+                await fetch('/errors/dismiss', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error_key: key }) });
+                window._recurringErrors = (window._recurringErrors || []).filter(e => e.error_key !== key);
+                loadErrorTasks();
+            } catch (e) { }
+        }
+        function escHtml(s) {
+            return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // Poll every 15s
+        refreshAgentCommandCentre();
+        setInterval(refreshAgentCommandCentre, 15000);
+
+        // ──────────────────────────────────────────────
+        // Swarm Interaction Visualiser
+        // ──────────────────────────────────────────────
+        let swarmNet = null;
+        const swarmNodes = new vis.DataSet([]);
+        const swarmEdges = new vis.DataSet([]);
+        const SWARM_AGENTS = [
+            { id: 'dream', label: '🌙 DreamEngine', group: 'orchestrator', x: 0, y: 0 },
+            { id: 'enh', label: '💡 CapabilityEnhancer', group: 'enhancer', x: -240, y: 120 },
+            { id: 'fix', label: '🔧 CodeFixer', group: 'fixer', x: 0, y: 200 },
+            { id: 'aud', label: '🛡️ SecurityAuditor', group: 'auditor', x: 240, y: 120 },
+            { id: 'queue', label: '📋 ProposalQueue', group: 'queue', x: 0, y: -200 },
+            { id: 'err', label: '🚨 ErrorMonitor', group: 'error', x: -240, y: -120 },
+        ];
+
+        function initSwarmViz() {
+            SWARM_AGENTS.forEach(a => swarmNodes.add({
+                ...a,
+                size: a.group === 'orchestrator' ? 32 : 22,
+                font: { color: '#e5e7eb', size: 12, face: 'JetBrains Mono' },
+                borderWidth: 2,
+                shadow: { enabled: true, size: 14 },
+            }));
+
+            const container = document.getElementById('swarm-network');
+            swarmNet = new vis.Network(container,
+                { nodes: swarmNodes, edges: swarmEdges },
+                {
+                    physics: false,
+                    groups: {
+                        orchestrator: { color: { background: '#2d1e5f', border: '#8b5cf6' } },
+                        enhancer: { color: { background: '#1e3a5f', border: '#3b82f6' } },
+                        fixer: { color: { background: '#1e5f2d', border: '#10b981' } },
+                        auditor: { color: { background: '#5f3a1e', border: '#f59e0b' } },
+                        queue: { color: { background: '#3f1e5f', border: '#c084fc' } },
+                        error: { color: { background: '#5f1e1e', border: '#ef4444' } },
+                    },
+                    edges: {
+                        arrows: { to: { enabled: true, scaleFactor: 0.6 } },
+                        color: { color: '#2d3748', highlight: '#8b5cf6', hover: '#8b5cf6' },
+                        smooth: { type: 'curvedCW', roundness: 0.3 },
+                        width: 2,
+                    },
+                    interaction: { dragNodes: true, zoomView: true, hover: true },
+                }
+            );
+        }
+
+        let swarmEdgeSeq = 0;
+        function addSwarmMessage(from, to, label, color) {
+            const eid = 'se_' + (++swarmEdgeSeq);
+            swarmEdges.add({
+                id: eid, from, to, label, color: { color, highlight: color, hover: color },
+                font: { color: '#9ca3af', size: 9, face: 'JetBrains Mono', background: '#0a0e17' }
+            });
+            // Flash sender
+            const orig = swarmNodes.get(from)?.color;
+            swarmNodes.update({ id: from, color: { background: color + '40', border: color }, shadow: { enabled: true, color, size: 25 } });
+            setTimeout(() => {
+                swarmNodes.update({ id: from, color: undefined, shadow: { enabled: true, size: 14 } });
+                if (swarmEdges.get(eid)) swarmEdges.remove(eid);
+            }, 3500);
+
+            // Log overlay
+            const overlay = document.getElementById('swarm-log-overlay');
+            const item = document.createElement('div');
+            item.className = 'swarm-log-item';
+            item.innerHTML = `<span class="swarm-agent" style="color:${color}">${from} → ${to}</span> ${escHtml(label)}`;
+            overlay.prepend(item);
+            if (overlay.children.length > 12) overlay.lastChild.remove();
+        }
+
+        function handleSwarmEvent(event) {
+            const d = event.data || {};
+            const phase = d.phase || '';
+            if (phase === 'SELF_EVOLUTION' || phase === 'PROPOSAL_IMPLEMENTATION') {
+                document.getElementById('swarm-status-badge').textContent = 'ACTIVE';
+                document.getElementById('swarm-status-badge').style.color = 'var(--accent-green)';
+                addSwarmMessage('dream', 'enh', 'analyze logs', '#3b82f6');
+                setTimeout(() => addSwarmMessage('dream', 'fix', 'fix errors', '#10b981'), 400);
+                setTimeout(() => addSwarmMessage('dream', 'aud', 'audit security', '#f59e0b'), 800);
+            } else if (phase === 'COMPLETE') {
+                document.getElementById('swarm-status-badge').textContent = 'IDLE';
+                document.getElementById('swarm-status-badge').style.color = 'var(--accent-yellow)';
+                addSwarmMessage('enh', 'queue', 'proposal', '#c084fc');
+                setTimeout(() => addSwarmMessage('fix', 'queue', 'proposal', '#c084fc'), 300);
+                setTimeout(() => addSwarmMessage('aud', 'queue', 'proposal', '#c084fc'), 600);
+                setTimeout(() => addSwarmMessage('queue', 'dream', 'queued ✓', '#8b5cf6'), 1200);
+                setTimeout(refreshAgentCommandCentre, 2000);
+            } else if (phase === 'PROPOSAL_IMPLEMENTATION') {
+                addSwarmMessage('queue', 'fix', 'implement next', '#10b981');
+            }
+        }
+
+        function handleUserAlert(event) {
+            const d = event.data || {};
+            if (d.type === 'recurring_error') {
+                window._recurringErrors = window._recurringErrors || [];
+                const exists = window._recurringErrors.find(e => e.error_key === d.error_key);
+                if (!exists) window._recurringErrors.push(d);
+                addSwarmMessage('err', 'dream', `${d.occurrences}x: ${(d.message || '').slice(0, 20)}`, '#ef4444');
+                loadErrorTasks();
+            }
+        }
+
+        // Load agent_activity log and animate on load
+        async function loadAgentActivity() {
+            try {
+                const r = await fetch('/agent_logs/activity');
+                if (!r.ok) return;
+                const data = await r.json();
+                (data.entries || []).slice(-5).forEach((entry, i) => {
+                    const agentMap = { CapabilityEnhancer: 'enh', CodeFixer: 'fix', SecurityAuditor: 'aud', EvolutionSwarm: 'dream' };
+                    const from = agentMap[entry.agent] || 'dream';
+                    setTimeout(() => addSwarmMessage(from, 'queue', (entry.preview || '').slice(0, 25), '#8b5cf6'), i * 500);
+                });
+            } catch (e) { }
+        }
+
+        initSwarmViz();
+        setTimeout(loadAgentActivity, 2000);
+
+
 
         // ──────────────────────────────────────────────
         // Clock
@@ -1154,6 +2324,8 @@
                 } else {
                     ds.textContent = `🌙 ${d.phase}`;
                 }
+                // Animate the swarm visualiser
+                handleSwarmEvent(event);
             }
             if (t === 'skill_genesis') {
                 fetchSkills();
@@ -1169,7 +2341,12 @@
             if (t === 'prediction_update' || t === 'phantom_spike') {
                 fetchPredictions();
             }
+            // User alerts (recurring errors, etc.)
+            if (t === 'user_alert') {
+                handleUserAlert(event);
+            }
         }
+
 
         function resetCascade() {
             setTimeout(() => {
@@ -1214,7 +2391,11 @@
         async function triggerDream() {
             if (confirm('Trigger a dream cycle? This will consolidate memories and may generate new skills.')) {
                 try {
-                    const res = await fetch('/dream/trigger', { method: 'POST' });
+                    const res = await fetch('/dream/trigger', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({})
+                    });
                     const data = await res.json();
                     if (data.error) alert(data.error);
                 } catch (e) { /* ignore */ }

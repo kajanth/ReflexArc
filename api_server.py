@@ -109,6 +109,17 @@ class NSAApiServer:
         self.app.router.add_get("/patterns", self._handle_patterns)
         self.app.router.add_post("/dream/trigger", self._handle_dream_trigger)
 
+        # Proposal Queue & Error Whitelist
+        self.app.router.add_get("/proposals/queue", self._handle_proposal_queue)
+        self.app.router.add_post("/errors/whitelist", self._handle_whitelist_error)
+        self.app.router.add_post("/errors/dismiss", self._handle_dismiss_error)
+        self.app.router.add_get("/errors/whitelist", self._handle_get_whitelist)
+
+        # Agent Log Readers (dashboard)
+        self.app.router.add_get("/agent_logs/changes", self._handle_changes_log)
+        self.app.router.add_get("/agent_logs/activity", self._handle_activity_log)
+
+
         # Goal System (Prefrontal Cortex)
         self.app.router.add_get("/goals", self._handle_goals)
         self.app.router.add_post("/goal", self._handle_create_goal)
@@ -852,6 +863,98 @@ class NSAApiServer:
         except Exception as e:
             print(f"[ApiServer] Error processing webhook from '{source}': {e}")
             return web.json_response({"error": f"Invalid payload: {e}"}, status=400)
+
+    async def _handle_proposal_queue(self, request):
+        """GET /proposals/queue — View the proposal backlog with optional ?status= filter."""
+        from utils.proposal_queue import load_queue, queue_stats
+        queue = load_queue()
+        status_filter = request.rel_url.query.get("status")
+        if status_filter:
+            queue = [p for p in queue if p.get("status") == status_filter]
+        return web.json_response({
+            "stats": queue_stats(),
+            "proposals": queue[-50:],
+        })
+
+    async def _handle_whitelist_error(self, request):
+        """POST /errors/whitelist — Suppress future alerts for a recurring error."""
+        from utils.error_whitelist import whitelist_error, mark_errors_reviewed
+        try:
+            data = await request.json()
+        except Exception:
+            data = {}
+        error_key = data.get("error_key", "")
+        if not error_key:
+            return web.json_response({"error": "error_key is required"}, status=400)
+        whitelist_error(error_key, reason="user_whitelisted_via_dashboard")
+        mark_errors_reviewed(error_key)
+        return web.json_response({
+            "status": "whitelisted",
+            "error_key": error_key,
+            "message": f"This error will no longer generate alerts.",
+        })
+
+    async def _handle_dismiss_error(self, request):
+        """POST /errors/dismiss — Mark errors reviewed without whitelisting."""
+        from utils.error_whitelist import mark_errors_reviewed
+        try:
+            data = await request.json()
+        except Exception:
+            data = {}
+        error_key = data.get("error_key", "")
+        if not error_key:
+            return web.json_response({"error": "error_key is required"}, status=400)
+        mark_errors_reviewed(error_key)
+        return web.json_response({
+            "status": "dismissed",
+            "error_key": error_key,
+            "message": "Errors marked as reviewed — will re-alert if they recur.",
+        })
+
+    async def _handle_get_whitelist(self, request):
+        """GET /errors/whitelist — View the current error whitelist."""
+        from utils.error_whitelist import load_whitelist
+        return web.json_response(load_whitelist())
+
+    async def _handle_changes_log(self, request):
+        """GET /agent_logs/changes — Return recent changes log entries as JSON."""
+        import json as _json
+        from pathlib import Path
+        log_path = Path("memory/agent_logs/changes_log.jsonl")
+        entries = []
+        if log_path.exists():
+            try:
+                with open(log_path, "r") as f:
+                    for line in f:
+                        try:
+                            entries.append(_json.loads(line.strip()))
+                        except _json.JSONDecodeError:
+                            pass
+            except IOError:
+                pass
+        limit = int(request.rel_url.query.get("limit", 50))
+        return web.json_response({"entries": entries[-limit:], "total": len(entries)})
+
+    async def _handle_activity_log(self, request):
+        """GET /agent_logs/activity — Return recent agent activity log entries as JSON."""
+        import json as _json
+        from pathlib import Path
+        log_path = Path("memory/agent_logs/agent_activity.jsonl")
+        entries = []
+        if log_path.exists():
+            try:
+                with open(log_path, "r") as f:
+                    for line in f:
+                        try:
+                            entries.append(_json.loads(line.strip()))
+                        except _json.JSONDecodeError:
+                            pass
+            except IOError:
+                pass
+        limit = int(request.rel_url.query.get("limit", 30))
+        return web.json_response({"entries": entries[-limit:], "total": len(entries)})
+
+
 
 
 

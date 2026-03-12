@@ -14,7 +14,10 @@ Usage:
 import logging
 import os
 import sys
+import json
+import time
 from typing import Any, Dict
+from pathlib import Path
 
 import structlog
 
@@ -51,6 +54,8 @@ def configure_logging() -> None:
         structlog.stdlib.add_logger_name,
         structlog.processors.TimeStamper(fmt="iso"),
         structlog.processors.StackInfoRenderer(),
+        redact_sensitive_data,
+        intercept_errors_processor,
     ]
     
     if is_production():
@@ -117,6 +122,53 @@ def redact_sensitive_data(logger: Any, method_name: str, event_dict: Dict[str, A
         if any(sensitive in key.lower() for sensitive in sensitive_keys):
             event_dict[key] = "***REDACTED***"
     
+    return event_dict
+
+
+def intercept_errors_processor(logger: Any, method_name: str, event_dict: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Interceptor that grabs any error/critical logs and writes 
+    them to a task list file for the ADK Swarm to fix overnight.
+    """
+    if method_name in ("error", "exception", "critical"):
+        try:
+            # Ensure memory directory exists
+            memory_dir = Path("memory")
+            memory_dir.mkdir(exist_ok=True)
+            
+            task_file = memory_dir / "error_tasks.json"
+            
+            # Load existing tasks
+            tasks = []
+            if task_file.exists():
+                with open(task_file, "r") as f:
+                    try:
+                        tasks = json.load(f)
+                    except json.JSONDecodeError:
+                        pass
+                        
+            # Create new task entry
+            new_task = {
+                "id": f"err_{int(time.time()*1000)}",
+                "timestamp": time.time(),
+                "time_str": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "logger": event_dict.get("logger", "unknown"),
+                "message": event_dict.get("event", "Unknown Error"),
+                "context": {k: v for k, v in event_dict.items() if k not in ("event", "timestamp", "level", "logger")},
+                "status": "pending",
+                "severity": method_name
+            }
+            
+            tasks.append(new_task)
+            
+            # Write back to file
+            with open(task_file, "w") as f:
+                json.dump(tasks, f, indent=2)
+                
+        except Exception:
+            # We must fail silently here so we don't break the logging pipeline itself
+            pass
+            
     return event_dict
 
 

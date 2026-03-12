@@ -54,6 +54,7 @@ def cleanup_dream_model() -> None:
 DB_PATH = "memory/long_term_memory.db"
 PATTERNS_FILE = "memory/patterns.json"
 JOURNAL_DIR = "memory/dream_journal"
+EVOLUTION_PROPOSALS = "memory/evolution_proposals.md"
 CLUSTER_THRESHOLD = 0.78      # Cosine similarity to group memories
 RECURRENCE_THRESHOLD = 3      # Minimum occurrences to trigger skill genesis
 STALE_DAYS = 30               # Memories older than this get pruned
@@ -120,6 +121,19 @@ class DreamEngine:
             prune_report = self._phase_prune()
             journal_lines.append(f"## Phase 4: Prune")
             journal_lines.append(prune_report + "\n")
+            
+            # ── Phase 5: SELF EVOLUTION (ADK SWARM) ───
+            evolution_report = await self._phase_self_evolution(clusters, memories)
+            journal_lines.append(f"## Phase 5: Self-Evolution (ADK Swarm)")
+            journal_lines.append(evolution_report + "\n")
+
+            # ── Phase 6: IMPLEMENT PROPOSAL ──────────
+            impl_report = await self._phase_implement_next_proposal()
+            journal_lines.append(f"## Phase 6: Proposal Implementation")
+            journal_lines.append(impl_report + "\n")
+
+            # ── Error Whitelist Check ─────────────────
+            self._check_and_flag_recurring_errors()
 
             elapsed = time.time() - start
             journal_lines.append(f"---")
@@ -498,6 +512,24 @@ class DreamEngine:
                     "occurrences": info["occurrences"],
                 })
 
+                # Log to memory/agent_logs/changes_log.jsonl
+                try:
+                    from pathlib import Path
+                    changes_log = Path("memory/agent_logs/changes_log.jsonl")
+                    changes_log.parent.mkdir(parents=True, exist_ok=True)
+                    change_entry = {
+                        "timestamp": datetime.now().isoformat(),
+                        "type": "skill_added",
+                        "file": skill_path,
+                        "skill_name": skill_name,
+                        "trigger": f"Recurring pattern '{name}' ({info['occurrences']} occurrences)",
+                        "author": "dream_engine"
+                    }
+                    with open(changes_log, "a") as clf:
+                        clf.write(json.dumps(change_entry) + "\n")
+                except Exception:
+                    pass
+
                 report_lines.append(
                     f"- 🧬 **{skill_name}.py** generated for pattern `{name}` "
                     f"({info['occurrences']} occurrences)"
@@ -545,8 +577,306 @@ class DreamEngine:
         return "\n".join(results)
 
     # ══════════════════════════════════════════════
+    # Phase 5: SELF EVOLUTION — ADK Agent Swarm
+    # ══════════════════════════════════════════════
+
+    async def _phase_self_evolution(self, clusters, all_memories):
+        """
+        Spin up an ADK ParallelAgent with 3 personas (Capability, Fixer, Security)
+        to evaluate the day's memories and propose codebase updates.
+        Cost: ~$0.05
+        """
+        event_bus.publish("dream_cycle", {"phase": "SELF_EVOLUTION"})
+        print("  💤 Phase 5: SELF-EVOLUTION — Spawning ADK reasoning swarm...")
+        
+        try:
+            from google.adk.agents import ParallelAgent, LlmAgent
+            has_adk = True
+        except ImportError:
+            has_adk = False
+            
+        if not has_adk:
+             print("    [Dream] google-adk not found. Skipping self-evolution swarm.")
+             return "- Swarm skipped (`google-adk` package not available in this environment)."
+
+        if not all_memories:
+             return "- No memories today to analyze for evolution."
+
+        # Prepare context for the agents
+        recent_log_data = "\n".join([m["description"][:100] for m in all_memories[-15:]])
+        
+        # Load error tasks backlog
+        import json
+        from pathlib import Path
+        error_tasks_summary = "No pending error tasks."
+        try:
+            task_file = Path("memory/error_tasks.json")
+            if task_file.exists():
+                with open(task_file, "r") as f:
+                    tasks = json.load(f)
+                    pending_tasks = [t for t in tasks if t.get("status") == "pending"]
+                    if pending_tasks:
+                        error_tasks_summary = "\n".join(
+                            [f"- [{t['id']}] {t['logger']}: {t['message']} (Severity: {t['severity']})" 
+                             for t in pending_tasks[-10:]]
+                        )
+        except Exception as e:
+            error_tasks_summary = f"Could not load error tasks: {e}"
+
+        context = {
+            "recent_logs": recent_log_data,
+            "error_tasks": error_tasks_summary
+        }
+
+        report_lines = []
+
+        try:
+            # Truncate to avoid exceeding context limits
+            log_snippet = recent_log_data[:2000]
+            task_snippet = error_tasks_summary[:1000]
+
+            # Persona 1: Enhancer
+            enhancer = LlmAgent(
+                name="CapabilityEnhancer",
+                instruction=(
+                    f"You are a product manager AI. Review these recent system logs:\n{log_snippet}\n"
+                    "Suggest one new feature, skill, or capability the system should build to handle "
+                    "these events better in the future. Be highly specific but concise."
+                )
+            )
+
+            # Persona 2: Code Fixer
+            fixer = LlmAgent(
+                name="CodeFixer",
+                instruction=(
+                    f"You are a Staff Engineer AI. Review these recent system logs:\n{log_snippet}\n\n"
+                    f"Pending error tasks from the live system:\n{task_snippet}\n\n"
+                    "Identify the root cause of these errors and propose a concrete "
+                    "architectural fix or Python refactor to resolve them. Include the filename and modified code."
+                )
+            )
+
+            # Persona 3: Security Auditor
+            auditor = LlmAgent(
+                name="SecurityAuditor",
+                instruction=(
+                    f"You are a Cyber Security AI. Review these recent system logs:\n{log_snippet}\n"
+                    "Look for exposed secrets, unusual payloads, or dangerous system calls. "
+                    "Identify the top vulnerability and propose a mitigation."
+                )
+            )
+
+            # Orchestrate in Parallel using InMemoryRunner (correct ADK pattern)
+            swarm = ParallelAgent(
+                name="EvolutionSwarm",
+                sub_agents=[enhancer, fixer, auditor]
+            )
+
+            print("    [Dream] Swarm initialized. Awaiting proposals...")
+            event_bus.publish("log", {
+                "source": "dream_engine",
+                "description": "[ADK Swarm] Evolution Swarm initialized with Enhancer, Fixer, and Auditor. Analyzing 24h logs..."
+            })
+
+            from google.adk.runners import InMemoryRunner
+            import uuid
+            import google.genai.types as types
+
+            runner = InMemoryRunner(agent=swarm, app_name="reflexarc_dream")
+            session = await runner.session_service.create_session(
+                app_name="reflexarc_dream",
+                user_id="dream_engine"
+            )
+
+            # Build the user prompt combining logs and error tasks
+            user_prompt = (
+                f"Analyze the following system logs and error backlog.\n\n"
+                f"Recent Logs:\n{recent_log_data}\n\n"
+                f"Pending Error Tasks:\n{error_tasks_summary}"
+            )
+
+            new_message = types.Content(
+                role="user",
+                parts=[types.Part(text=user_prompt)]
+            )
+
+            # Collect all final responses from each sub-agent
+            proposals = []
+            report_lines.append("### Swarm Architecture Review:")
+
+            async for event in runner.run_async(
+                user_id="dream_engine",
+                session_id=session.id,
+                new_message=new_message
+            ):
+                # Grab final text responses from each persona
+                if event.is_final_response() and event.content and event.content.parts:
+                    agent_name = getattr(event, 'author', 'Swarm')
+                    content = event.content.parts[0].text or ""
+
+                    proposals.append(f"#### {agent_name} Proposal\n{content}\n")
+                    
+                    preview = content[:150].replace('\n', ' ') + "..."
+                    report_lines.append(f"- **{agent_name}**: {preview}")
+
+                    event_bus.publish("log", {
+                        "source": "dream_engine",
+                        "description": f"[ADK Proposal - {agent_name}] {preview}"
+                    })
+
+                    # Write to memory/agent_logs/
+                    try:
+                        agent_logs_dir = Path("memory/agent_logs")
+                        agent_logs_dir.mkdir(parents=True, exist_ok=True)
+                        log_entry = {
+                            "timestamp": datetime.now().isoformat(),
+                            "agent": agent_name,
+                            "session_id": session.id,
+                            "swarm": "EvolutionSwarm",
+                            "preview": preview,
+                            "full_response_length": len(content)
+                        }
+                        with open(agent_logs_dir / "agent_activity.jsonl", "a") as lf:
+                            lf.write(json.dumps(log_entry) + "\n")
+                    except Exception as log_err:
+                        pass  # Never let log writes crash the swarm
+
+
+            # Save full proposals to independent file
+            if proposals:
+                proposal_text = f"# 🚀 Self-Evolution Proposals ({datetime.now().strftime('%Y-%m-%d')})\n\n" + "\n".join(proposals)
+                os.makedirs(os.path.dirname(EVOLUTION_PROPOSALS), exist_ok=True)
+                with open(EVOLUTION_PROPOSALS, "w") as f:
+                    f.write(proposal_text)
+                report_lines.append(f"\n*Full proposals saved to `{EVOLUTION_PROPOSALS}`*")
+                print(f"    ✓ Swarm complete. Saved to {EVOLUTION_PROPOSALS}")
+
+                # Log to the changes log
+                from utils.changes_logger import log_change
+                log_change(
+                    change_type="proposal_saved",
+                    file=EVOLUTION_PROPOSALS,
+                    description=f"ADK EvolutionSwarm wrote {len(proposals)} proposals: {', '.join(p.split(chr(10))[0] for p in proposals)}",
+                    author="evolution_swarm",
+                    extra={"agent_count": len(proposals), "date": datetime.now().strftime('%Y-%m-%d')}
+                )
+
+                # De-duplicate and enqueue for implementation next cycle
+                from utils.proposal_queue import enqueue_proposals
+                structured = []
+                for raw in proposals:
+                    lines = raw.strip().split("\n", 1)
+                    agent = lines[0].replace("####", "").replace("Proposal", "").strip() if lines else "unknown"
+                    content = lines[1].strip() if len(lines) > 1 else raw
+                    structured.append({"agent": agent, "content": content})
+
+                q_result = enqueue_proposals(structured)
+                report_lines.append(
+                    f"- Proposal queue: **{q_result['added']} added**, "
+                    f"{q_result['duplicates_skipped']} duplicates skipped"
+                )
+                print(f"    \U0001f4e5 Queue: +{q_result['added']} new, {q_result['duplicates_skipped']} dupes skipped")
+
+            return "\n".join(report_lines)
+
+
+        except Exception as e:
+            print(f"    [Dream] Swarm execution failed: {e}")
+            return f"- Swarm execution failed: {e}"
+
+    # ══════════════════════════════════════════════
+    # Phase 6: IMPLEMENT — Apply Next Queued Proposal
+    # ══════════════════════════════════════════════
+
+    async def _phase_implement_next_proposal(self) -> str:
+        """
+        Pick up the next pending proposal from the queue and attempt to apply it.
+        Only one proposal is implemented per dream cycle to keep changes atomic.
+        """
+        event_bus.publish("dream_cycle", {"phase": "PROPOSAL_IMPLEMENTATION"})
+        print("  💤 Phase 6: PROPOSAL IMPLEMENTATION — Checking queue...")
+
+        from utils.proposal_queue import next_pending, mark_proposal, queue_stats, attempt_implementation
+
+        stats = queue_stats()
+        stats_str = ", ".join(f"{k}: {v}" for k, v in stats.items()) or "empty"
+        print(f"    Queue status: {stats_str}")
+
+        proposal = next_pending()
+        if not proposal:
+            return f"- Queue is empty or all proposals processed. Stats: {stats_str}"
+
+        print(f"    📋 Implementing: [{proposal['id']}] from {proposal['agent']}")
+        event_bus.publish("log", {
+            "source": "dream_engine",
+            "description": f"[Proposal Queue] Attempting to implement proposal {proposal['id']} from {proposal['agent']}"
+        })
+
+        # Mark as in-progress before attempting (in case of crash)
+        mark_proposal(proposal["id"], "in_progress")
+
+        result = attempt_implementation(proposal, self.router)
+
+        if result.startswith("APPLIED"):
+            mark_proposal(proposal["id"], "implemented", result)
+            print(f"    ✓ {result}")
+            event_bus.publish("log", {
+                "source": "dream_engine",
+                "description": f"[Proposal Queue] ✅ {result}"
+            })
+            return f"- {result} (proposal `{proposal['id']}`)"
+        elif result.startswith("ADVISORY"):
+            mark_proposal(proposal["id"], "implemented", result)
+            return f"- {result} (recorded as advisory, no code change)"
+        else:
+            mark_proposal(proposal["id"], "failed", result)
+            print(f"    ✗ {result}")
+            return f"- {result} (proposal `{proposal['id']}` marked as failed)"
+
+    # ══════════════════════════════════════════════
+    # Error Whitelist — Recurring Error Flagging
+    # ══════════════════════════════════════════════
+
+    def _check_and_flag_recurring_errors(self) -> None:
+        """
+        Scan the error backlog for recurring errors and fire a dashboard alert
+        so the user can whitelist them or keep them flagged.
+        """
+        try:
+            from utils.error_whitelist import check_recurring_errors
+
+            alerts = check_recurring_errors()
+            for alert in alerts:
+                print(f"    🚨 Recurring error detected ({alert['occurrences']}x): {alert['message'][:60]}")
+                event_bus.publish("user_alert", {
+                    "type": "recurring_error",
+                    "title": f"Recurring Error ({alert['occurrences']}x): {alert['logger']}",
+                    "message": alert["message"],
+                    "severity": alert["severity"],
+                    "occurrences": alert["occurrences"],
+                    "error_key": alert["error_key"],
+                    "actions": [
+                        {
+                            "label": "Whitelist (stop flagging)",
+                            "url": f"/errors/whitelist",
+                            "method": "POST",
+                            "body": {"error_key": alert["error_key"]},
+                        },
+                        {
+                            "label": "Keep flagging",
+                            "url": f"/errors/dismiss",
+                            "method": "POST",
+                            "body": {"error_key": alert["error_key"]},
+                        },
+                    ],
+                })
+        except Exception as e:
+            print(f"    [Dream] Recurring error check failed: {e}")
+
+    # ══════════════════════════════════════════════
     # Persistence
     # ══════════════════════════════════════════════
+
 
     def _load_patterns(self):
         """Load patterns from disk."""
