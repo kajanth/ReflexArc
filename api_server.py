@@ -280,9 +280,14 @@ class NSAApiServer:
 
     async def _handle_stats(self, request):
         """GET /stats — Token spend and latency stats."""
-        try:
+        def _read_stats():
             with open("memory/stats.json", "r") as f:
-                stats = json.load(f)
+                return json.load(f)
+
+        try:
+            # ⚡ Bolt: Offload synchronous file I/O to a background thread
+            # Impact: Prevents blocking the asyncio event loop during disk reads
+            stats = await asyncio.to_thread(_read_stats)
             return web.json_response(stats)
         except Exception:
             return web.json_response({"total_spent": 0, "calls": 0, "avg_latency": 0})
@@ -441,7 +446,10 @@ class NSAApiServer:
     async def _handle_skills(self, request):
         """GET /skills — List all available skills and templates."""
         skills = []
-        for f in sorted(os.listdir("skills")):
+        # ⚡ Bolt: Offload synchronous os.listdir to a background thread
+        # Impact: Reduces blocking on disk I/O when reading the directory contents
+        skill_files = await asyncio.to_thread(os.listdir, "skills")
+        for f in sorted(skill_files):
             if f.endswith(".py") and f != "__init__.py":
                 skills.append(f.replace(".py", ""))
 
@@ -458,21 +466,27 @@ class NSAApiServer:
         limit = int(request.query.get("limit", "10"))
         limit = min(limit, 50)
 
-        try:
+        def _fetch_memories(limit_val):
             import sqlite3
             db_path = "memory/long_term_memory.db"
             if not os.path.exists(db_path):
-                return web.json_response({"memories": [], "count": 0})
+                return []
 
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
             cursor.execute(
                 "SELECT timestamp, sense_type, description "
                 "FROM memories ORDER BY timestamp DESC LIMIT ?",
-                (limit,)
+                (limit_val,)
             )
             rows = cursor.fetchall()
             conn.close()
+            return rows
+
+        try:
+            # ⚡ Bolt: Offload synchronous SQLite operations to a background thread
+            # Impact: Prevents database query latencies from stalling the asyncio event loop
+            rows = await asyncio.to_thread(_fetch_memories, limit)
 
             memories = [
                 {"timestamp": r[0], "sense_type": r[1], "description": r[2]}
