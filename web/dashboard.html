@@ -339,6 +339,11 @@
             outline: none;
         }
 
+        .broca-input:focus-visible {
+            outline: 2px solid var(--accent-purple);
+            outline-offset: -2px;
+        }
+
         .broca-btn {
             background: var(--accent-purple);
             color: #fff;
@@ -349,8 +354,18 @@
             transition: opacity 0.2s;
         }
 
-        .broca-btn:hover {
+        .broca-btn:hover:not(:disabled) {
             opacity: 0.8;
+        }
+
+        .broca-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .broca-btn:focus-visible {
+            outline: 2px solid var(--accent-purple);
+            outline-offset: -2px;
         }
 
 
@@ -587,6 +602,11 @@
         .toggle-switch input:checked+.toggle-slider::before {
             transform: translateX(16px);
             background: #fff;
+        }
+
+        .toggle-switch input:focus-visible+.toggle-slider {
+            outline: 2px solid var(--accent-green);
+            outline-offset: 2px;
         }
 
         .memory-item {
@@ -963,8 +983,9 @@
             </div>
             <div class="broca-input-container">
                 <input type="text" class="broca-input" id="broca-input"
-                    placeholder="Talk to the brain... (e.g. 'Why did you restart nginx?')">
-                <button class="broca-btn" onclick="sendBrocaMessage()">SEND</button>
+                    placeholder="Talk to the brain... (e.g. 'Why did you restart nginx?')"
+                    aria-label="Ask Broca's Area">
+                <button class="broca-btn" id="broca-btn" onclick="sendBrocaMessage()">SEND</button>
             </div>
         </div>
     </div>
@@ -1334,7 +1355,8 @@
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" ${info.enabled ? 'checked' : ''}
-                                   onchange="toggleSensor('${name}', this.checked)">
+                                   onchange="toggleSensor('${name}', this.checked)"
+                                   aria-label="Toggle ${info.label || name} sensor">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>`;
@@ -1573,6 +1595,7 @@
 
             input.value = '';
             input.disabled = true;
+            document.getElementById('broca-btn').disabled = true;
             addBrocaMessage(text, true);
 
             // Add typing indicator
@@ -1607,6 +1630,7 @@
                 addBrocaMessage(`Network Error: ${err.message}`, false);
             } finally {
                 input.disabled = false;
+                document.getElementById('broca-btn').disabled = false;
                 input.focus();
             }
         }

@@ -1,0 +1,3 @@
+## 2024-05-14 - Fix missing focus rings on inputs
+**Learning:** Found an `outline: none` accessibility anti-pattern on inputs (`.broca-input`) without a `:focus-visible` fallback, making it difficult for keyboard users to track focus.
+**Action:** When removing default outlines for aesthetics, always add a `:focus-visible` state using the app's accent colors (e.g., `var(--accent-purple)`) to maintain keyboard accessibility.
