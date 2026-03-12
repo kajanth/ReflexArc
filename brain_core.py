@@ -22,6 +22,7 @@ from predictive_cortex import PredictiveCortex
 from brocas_area import BrocasArea
 from utils.logging_config import get_logger
 from utils.embeddings import get_embedding_model, cleanup_embedding_model
+from utils.adk_wrapper import adk_registry
 
 logger = get_logger(__name__)
 
@@ -378,10 +379,15 @@ class NSAOrchestrator:
         if "COMPLEX" in decision:
             logger.info("cortex_reasoning", layer="cortex", message="Critical event")
             
-            # 1. Fetch available MCP tools
+            # 1. Fetch available MCP tools and ADK tools
             mcp_tools = []
             if hasattr(self, "mcp_manager") and self.mcp_manager:
-                mcp_tools = self.mcp_manager.get_all_tools()
+                mcp_tools.extend(self.mcp_manager.get_all_tools())
+                
+            # Inject ADK Tools
+            adk_tools = adk_registry.get_all_tools()
+            if adk_tools:
+                mcp_tools.extend(adk_tools)
                 
             messages = [
                 {"role": "system", "content": open("agent.md").read()},
@@ -439,12 +445,20 @@ class NSAOrchestrator:
                         args = {}
                     
                     try:
-                        logger.debug("mcp_tool_start", tool=tool_name)
-                        result_text = await asyncio.wait_for(
-                            self.mcp_manager.execute_tool(tool_name, args),
-                            timeout=self.mcp_tool_timeout
-                        )
-                        logger.info("mcp_tool_success",
+                        logger.debug("tool_start", tool=tool_name)
+                        if tool_name.startswith("adk_"):
+                            # This is an ADK tool
+                            result_text = await asyncio.wait_for(
+                                adk_registry.execute_tool(tool_name, args),
+                                timeout=self.mcp_tool_timeout
+                            )
+                        else:
+                            # Standard MCP tool
+                            result_text = await asyncio.wait_for(
+                                self.mcp_manager.execute_tool(tool_name, args),
+                                timeout=self.mcp_tool_timeout
+                            )
+                        logger.info("tool_success",
                                    tool=tool_name,
                                    result_length=len(result_text))
                         return (tc, result_text, None)

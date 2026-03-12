@@ -27,6 +27,18 @@ from providers.circuit_breaker import get_circuit_breaker_manager
 from utils.logging_config import get_logger
 from pybreaker import CircuitBreakerError
 
+# ADK telemetry initialization
+def _init_adk_telemetry():
+    try:
+        from google.adk.telemetry import init_telemetry
+        # For AgentOps/MLFlow etc, ADK handles the hooks natively
+        init_telemetry(project_name="ReflexArc")
+        return True
+    except ImportError:
+        return False
+        
+_adk_telemetry_active = _init_adk_telemetry()
+
 logger = get_logger(__name__)
 
 # ──────────────────────────────────────────────────
@@ -365,10 +377,24 @@ class ModelRouter:
                                   action="skipping")
                     continue
                 
-                # Wrap provider call with circuit breaker
+                # Wrap provider call with circuit breaker and optional ADK tracing
                 def _call_provider():
                     import inspect
                     sig = inspect.signature(prov.chat)
+                    
+                    if _adk_telemetry_active:
+                        try:
+                            from google.adk.telemetry import trace_call
+                            @trace_call(name=f"router_route_{provider_name}_{model}")
+                            def _traced():
+                                if "tools" in sig.parameters:
+                                    return prov.chat(messages, model, max_tokens, tools=tools)
+                                else:
+                                    return prov.chat(messages, model, max_tokens)
+                            return _traced()
+                        except ImportError:
+                           pass
+
                     if "tools" in sig.parameters:
                         return prov.chat(messages, model, max_tokens, tools=tools)
                     else:

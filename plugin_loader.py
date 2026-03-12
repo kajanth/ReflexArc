@@ -450,7 +450,7 @@ class BrainConfig:
         manager = MCPServerManager()
         
         if not mcp_configs:
-            return manager
+            return manager, None
             
         # We need to run the async start_all.
         # It's usually called from async main() so we can either wait or just return

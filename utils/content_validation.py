@@ -18,9 +18,20 @@ async def content_type_middleware(request: Request, handler):
     
     Only allows application/json for POST requests to prevent
     various injection attacks and ensure proper parsing.
+    
+    Endpoints listed in BODYLESS_POST_PATHS are exempt — they
+    accept POST with no body (e.g. trigger endpoints).
     """
-    # Only validate POST requests
-    if request.method == "POST":
+    # Endpoints that legitimately accept POST with no body
+    BODYLESS_POST_PATHS = {
+        "/dream/trigger",
+        "/heart/pulse",
+        "/sensors/refresh",
+        "/memory/defrag",
+    }
+
+    # Only validate POST requests that are NOT body-exempt
+    if request.method == "POST" and request.path not in BODYLESS_POST_PATHS:
         content_type = request.headers.get('Content-Type', '').lower()
         
         # Remove charset and other parameters
@@ -46,6 +57,7 @@ async def content_type_middleware(request: Request, handler):
     
     # Process request normally
     return await handler(request)
+
 
 
 @web.middleware 

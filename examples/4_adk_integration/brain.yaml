@@ -1,0 +1,22 @@
+# ═══════════════════════════════════════════════
+# ReflexArc Example — ADK Sequential Agent Pipeline
+# ═══════════════════════════════════════════════
+# Start this brain: 
+# NSA_BRAIN_CONFIG=examples/4_adk_integration/brain.yaml python main.py
+
+brain:
+  name: "ADK Investigator Brain"
+  description: "Triggers ADK workflows to autonomously investigate and process complex sensory data."
+  heartbeat_interval: 30
+  prediction_interval: 120
+  goal_eval_interval: 300
+
+sensors:
+  - name: test_webhook
+    module: sensors.webhook_receptor.WebhookReceptor
+    emoji: "🪝"
+    label: "Incident Receptor"
+    type: security
+
+predictions: []
+

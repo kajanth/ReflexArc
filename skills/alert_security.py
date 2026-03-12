@@ -1,5 +1,6 @@
 # This is a 'Muscle Memory' script. 
 # It runs locally and costs $0 in tokens.
+import time
 
 def run(data):
     """The Cerebellum executes this reflex."""
