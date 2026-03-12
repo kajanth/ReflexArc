@@ -166,5 +166,40 @@
     "process": "mdworker_shared",
     "action": "SUSPENDED",
     "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-03-12 17:42:51",
+    "pid": 58506,
+    "process": "mdworker_shared",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-03-12 17:44:19",
+    "pid": 59170,
+    "process": "mdworker_shared",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-03-12 17:44:49",
+    "pid": 59381,
+    "process": "mdworker_shared",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-03-12 17:46:19",
+    "pid": 61216,
+    "process": "mdworker_shared",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-03-12 17:48:05",
+    "pid": 65610,
+    "process": "Google Chrome Helper (Renderer)",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
   }
 ]

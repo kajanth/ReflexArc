@@ -14,6 +14,7 @@ import asyncio
 import time
 from typing import Dict, Any
 from utils.logging_config import get_logger
+import fcntl
 
 logger = get_logger(__name__)
 
@@ -116,9 +117,15 @@ class BasalGanglia:
 
     
     def _write_habits_sync(self, filepath: str):
-        """Synchronous write helper for executor."""
+        """Synchronous write helper for executor with file locking."""
         with open(filepath, "w") as f:
-            json.dump(self.habits, f, indent=2)
+            try:
+                fcntl.flock(f, fcntl.LOCK_EX)
+                json.dump(self.habits, f, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            finally:
+                fcntl.flock(f, fcntl.LOCK_UN)
     
     async def flush(self):
         """Force an immediate flush of pending changes."""
@@ -168,10 +175,14 @@ class BasalGanglia:
         self._dirty = True
 
     def _load_habits(self):
-        """Load habits from disk."""
+        """Load habits from disk with file locking."""
         if os.path.exists(HABITS_FILE):
             try:
                 with open(HABITS_FILE, "r") as f:
-                    self.habits = json.load(f)
+                    try:
+                        fcntl.flock(f, fcntl.LOCK_SH)
+                        self.habits = json.load(f)
+                    finally:
+                        fcntl.flock(f, fcntl.LOCK_UN)
             except (json.JSONDecodeError, IOError):
                 pass

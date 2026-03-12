@@ -1,240 +1,258 @@
 # 🚀 Self-Evolution Proposals (2026-03-12)
 
 #### CapabilityEnhancer Proposal
-Implement **Dynamic Process Baselinning with Contextual Trust Learning**: A module that observes parent process, user, execution frequency, and other metadata for all "new processes," automatically building a baseline of normal behavior and elevating the trust level for consistently benign processes (e.g., Google Chrome Helper, mdworker_shared) to reduce false positive `AMYGDALA` alerts and reliably persist these learned patterns.
+**Adaptive Contextual Process Baselines:** Develop a capability to dynamically learn and maintain user- and system-specific baselines for common, legitimate processes (e.g., `jamf`, `mdworker_shared`, `Google Chrome Helper`, `mlhostd`). The `AMYGDALA` system will then only issue `ALERT`/`CRITICAL` warnings for these processes when their behavior (e.g., resource usage, parent process, execution pattern) deviates significantly from their established baseline, thus reducing false positives and improving the signal-to-noise ratio.
 
 #### SecurityAuditor Proposal
-SecurityAuditor has reviewed the recent system logs and pending error tasks.
+SecurityAuditor analysis of recent system logs and error backlog:
 
-**Analysis:**
+**Overview:**
+The system is under significant stress, exhibiting high memory usage and critical failures in its core security and management functions. Simultaneously, there's a high volume of AMYGDALA alerts and critical detections for various processes, indicating active threats or severe misconfigurations. The presence of both root-level and user-level suspicious processes suggests a multi-faceted compromise or widespread malicious activity that the system is failing to mitigate.
 
-The logs reveal a critical security posture, characterized by:
+**Detailed Analysis:**
 
-1.  **Multiple Critical and Alert-level Threats:** The `AMYGDALA` system is actively detecting numerous new processes that trigger security alerts, including `CRITICAL` severity events.
-    *   **Highly Suspicious Root Process:** `frontlineService` (PID: 39815, User: `root`) is flagged as `CRITICAL` with 3 threats detected. This is a non-standard process running with the highest privileges, making it a prime candidate for malicious activity or a severe compromise.
-    *   **Compromised Standard Processes?** `Google Chrome Helper (Renderer)` (multiple alerts, including `CRITICAL` with 5 threats detected) and `mlhostd` (PID: 40639, User: `kajanthmayoorana`, `CRITICAL` with 5 threats detected) are legitimate processes that, when generating such high-severity alerts and multiple threats, suggest either a severe misconfiguration, exploitation, or injection of malicious code.
-    *   **User-level Suspicious Activity:** `mdworker_shared` (multiple alerts, including 2 threats detected) and `mlhostd` running under user `kajanthmayoorana` also indicate potential user account compromise or abuse of legitimate system functions.
-    *   **Legitimate Tool with Suspicious Activity:** `jamf` (PID: 39532, User: `root`) is a device management tool. An `ALERT` on its activity while running as `root` is unusual and warrants investigation, even if it's a known application.
+**1. Recent Logs Examination:**
 
-2.  **Failure of Internal Defense Mechanisms:** The `Pending Error Tasks` are highly alarming.
-    *   **`brain_core: reflex_execution_failed` (multiple errors):** Indicates that the system's core defense mechanisms are consistently failing to execute automated threat response actions.
-    *   **`basal_ganglia: habits_flush_failed` (multiple errors):** Suggests a failure in updating or maintaining security policies, learned behaviors, or threat intelligence, which could lead to degraded detection and prevention capabilities over time.
+*   **Proprioception Events:** `stats.json` and `sensor_state.json` modifications are routine but can indicate system activity, potentially related to the other alerts.
+*   **AMYGDALA Alerts (Threat Detections):**
+    *   **Root-Level Concerns:**
+        *   `jamf (PID: 39532, User: root) [ALERT]` and `jamf (PID: 62319, User: root) [CRITICAL]`: While Jamf is a legitimate device management tool, two instances being flagged, especially one as `CRITICAL` while running as `root`, is highly suspicious. This could indicate a compromised Jamf agent, a malicious script using Jamf, or a legitimate Jamf action triggering an unusual signature.
+        *   `CloudTelemetrySe (PID: 42829, User: root) [CRITICAL]`: This is a major red flag. A process explicitly named "CloudTelemetrySe" running as `root` and flagged `CRITICAL` points strongly to potential unauthorized data exfiltration, C2 communication, or a malicious implant masquerading as a telemetry service to maintain persistence and collect data with elevated privileges.
+        *   `backupd-helper (PID: 68365, User: root) [ALERT]`: This is a legitimate macOS backup process. An alert could indicate unusual backup activity (e.g., backing up unusual directories, sending data to a suspicious destination) or abnormal invocation, potentially for data staging or exfiltration.
+    *   **User-Level Concerns (User: `kajanthmayooranathan`):** This user account is associated with a disproportionate number of critical and alert detections.
+        *   `mlhostd (PID: 40639, User: kajanthmayoorana) [CRITICAL]`: A macOS process related to machine learning. A `CRITICAL` alert suggests it's being abused, possibly for resource exhaustion, unauthorized data processing, or execution of malicious ML models.
+        *   `replayd (PID: 60354, User: kajanthmayoorana) [CRITICAL]`: This is extremely concerning. `replayd` is a macOS process used for screen recording. A `CRITICAL` alert here strongly suggests unauthorized screen capture, potentially for espionage or data theft, originating from the `kajanthmayooranathan` user's session.
+        *   `mdworker_shared (PID: 61216, User: kajanthm) [CRITICAL]` and `mdworker_shared (PID: 66481, User: kajanthmayo) [ALERT]`: Spotlight indexing service. `CRITICAL` alerts point to potential abuse, such as indexing malicious files, unusual resource consumption, or attempts to access restricted data through the indexing process.
+        *   `ps (PID: 67576, User: kajanthmayooranathan) [ALERT]`: While `ps` is a standard command for process listing, an alert could indicate an attacker performing reconnaissance (listing processes to understand the environment) after gaining initial access.
+        *   `Google Chrome Helper (Renderer) (PID: 68690, U) [ALERT]` and `Google Chrome Helper (Renderer) (PID: 71728) [CRITICAL]`: Chrome renderer processes are usually sandboxed. A `CRITICAL` alert for a renderer process is very serious, indicating a strong likelihood of a successful browser exploit (e.g., drive-by download, zero-day in web content, malicious extension breaking out of the sandbox). This could be the initial access vector or a secondary stage of an attack.
+    *   **Safari Process:** `com.apple.Safari.SafeBrowsing.Service (PID: 43...) [ALERT]` is a legitimate service, but an alert indicates unusual behavior, potentially related to web-based threats or a false positive.
+*   **PHANTOM_SPIKE:** `Memory Usage predicted to breach 85.0% in ~11.3 min (currently 79.8%, rising at 0.75%)`: This indicates severe resource contention and impending system instability. This could be a symptom of the malicious processes consuming excessive resources or a separate performance issue that exacerbates the security situation.
 
-**Exposed Secrets, Unusual Payloads, Dangerous System Calls:**
+**2. Pending Error Tasks Examination:**
 
-While the logs do not explicitly show exposed secrets, unusual payloads, or specific dangerous system calls, the combination of `CRITICAL` alerts from the `AMYGDALA` (indicating active threats) and the simultaneous failure of `brain_core` reflexes and `basal_ganglia` habits strongly implies their presence or imminent risk.
-*   A `root`-level process like `frontlineService` with critical alerts would have full capability to access and exfiltrate any data (secrets), execute arbitrary code (unusual payloads), and perform highly dangerous system calls (e.g., privilege escalation, file system modification, network C2 communication, process injection, sandbox escapes).
-*   The `CRITICAL` alerts for `Google Chrome Helper (Renderer)` and `mlhostd` could point to web-based attacks, browser exploits, or malicious machine learning models/data leading to data exposure or code execution.
+*   **`brain_core: reflex_execution_failed` (Severity: error):** This is a critical functional failure. "Reflex execution" implies automated responses to detected threats or critical events are failing. If the system detects a threat (as seen with AMYGDALA alerts) but cannot execute a predefined response (e.g., quarantine, terminate, block), then the detection is rendered ineffective.
+*   **`basal_ganglia: habits_flush_failed` (Severity: error):** This error, occurring multiple times, points to a failure in routine system maintenance, state synchronization, or persistent logging. This can lead to incomplete data, inconsistent system state, and an inability for the security system to learn or adapt.
+
+**Identified Vulnerabilities:**
+
+1.  **Critical Failure of Automated Threat Response and System Health Management:** The most severe vulnerability is the recurrent `brain_core: reflex_execution_failed` and `basal_ganglia: habits_flush_failed` errors. This indicates the security system itself is failing to respond to threats and maintain its operational integrity. This is compounded by the `PHANTOM_SPIKE` predicting imminent memory exhaustion, which could be contributing to these failures or be a symptom of the active threats. An ineffective security system means detected threats persist and escalate.
+2.  **Root-Level Compromise/Abuse:** The `CloudTelemetrySe` process running as `root` with a `CRITICAL` alert is a strong indicator of a root-level compromise or a sophisticated malicious implant operating with maximum privileges, likely for data exfiltration or persistence. The `CRITICAL` Jamf alert as root also falls into this category.
+3.  **User Account Compromise/Malicious Activity:** The `kajanthmayooranathan` user account is highly suspicious due to `replayd` (screen recording) and `mlhostd` (machine learning abuse) both flagged as `CRITICAL`. This suggests either the user's account is compromised, a malicious application is running in their context, or the user themselves is engaged in malicious activity. The critical `Google Chrome Helper (Renderer)` also points to a likely browser-based exploit affecting this user.
 
 **Top Vulnerability:**
 
-The most critical vulnerability is **the complete degradation and failure of the system's autonomous defense and response mechanisms (`brain_core` and `basal_ganglia`), coupled with the active presence of highly suspicious and critical threats, particularly a root-level process (`frontlineService`) that is likely malicious.**
-
-This means the system is not only under attack but is also incapable of mounting an effective automated defense, allowing detected threats to persist and potentially escalate unchecked. The repeated `reflex_execution_failed` entries indicate a paralyzed security system unable to act on the threats it identifies.
+The **failure of automated threat response and system health management (evidenced by `brain_core: reflex_execution_failed`, `basal_ganglia: habits_flush_failed`, and `PHANTOM_SPIKE` memory pressure)** is the paramount vulnerability. While individual process alerts are serious, the inability of the security system to effectively respond, mitigate, or even maintain its operational state against these threats creates a systemic weakness that supersedes any single compromise. If the "brain" of the security system is failing, all other detections become alerts without action.
 
 **Proposed Mitigation:**
 
-Immediate and decisive action is required to contain and remediate this situation.
+1.  **Immediate Host Isolation and Core System Stabilization:**
+    *   **Isolate the affected host(s) immediately** from the network to prevent further data exfiltration, lateral movement, or command and control.
+    *   **Address `brain_core: reflex_execution_failed` and `basal_ganglia: habits_flush_failed`:** Prioritize diagnosing and resolving the root cause of these core security system failures. This may involve checking disk space, I/O performance, resource contention, security agent integrity, and configuration. Restore the security agent's full operational capability.
+    *   **Mitigate `PHANTOM_SPIKE`:** Identify the primary memory consumers. Terminate non-essential processes or malicious ones if definitively identified to stabilize the system. This is crucial for the security agent to function.
 
-1.  **Emergency Containment and Isolation (Immediate):**
-    *   **Isolate the System:** Immediately disconnect the affected system(s) from the network to prevent further compromise, lateral movement, or data exfiltration.
-    *   **Initiate Emergency Shutdown/Reboot into Safe Mode:** If immediate forensic imaging is not possible, a shutdown or reboot into a secure/recovery environment might be necessary to prevent further execution of the malicious `root` process.
+2.  **Forensic Acquisition and Threat Eradication:**
+    *   **Perform a full forensic capture** (memory dump, disk image) of the affected system *before* making any changes, for detailed post-incident analysis.
+    *   **Investigate `CloudTelemetrySe` (root, CRITICAL):** This process needs immediate and thorough investigation. Identify its origin, network connections, file system activity, and parent process. If malicious, terminate, remove, and investigate for persistence mechanisms and data exfiltration.
+    *   **Investigate `replayd` (user `kajanthmayooranathan`, CRITICAL):** This strongly indicates unauthorized screen recording. Identify what initiated it, where the data is being sent, and terminate it. Review the user's recent activity, installed applications, and browser extensions.
+    *   **Address `kajanthmayooranathan` User Account Compromise:** Force a password reset for `kajanthmayooranathan` and enforce/enable multi-factor authentication (MFA). Review recent login history and all processes running under this user for any unauthorized activity.
+    *   **Address `Google Chrome Helper (Renderer)` (CRITICAL):** Investigate the associated browser instance. Check for malicious browser extensions, recent downloads, or unusual browsing activity. Consider reinstalling Chrome or resetting browser settings for the user.
+    *   **Investigate other CRITICAL/ALERT processes:** Systematically address `mlhostd`, `mdworker_shared`, and `jamf` alerts by analyzing their behavior, file paths, and network connections to determine if they are malicious or misconfigured.
 
-2.  **Diagnose and Restore Core Defense Mechanisms (High Priority):**
-    *   **System Diagnostics:** Perform thorough diagnostics on the `brain_core` and `basal_ganglia` components to identify the root cause of the `reflex_execution_failed` and `habits_flush_failed` errors. This could involve checking system integrity, resource utilization, and reviewing security configuration files.
-    *   **Repair or Rebuild:** Prioritize repairing or, if necessary, reinstalling/restoring these core security frameworks from trusted backups or a clean system image. Without functioning defense reflexes, any other remediation is temporary.
-
-3.  **Threat Eradication and Forensic Analysis (High Priority):**
-    *   **Identify `frontlineService`:** Using forensic tools in an isolated environment, identify the full path, origin, and persistence mechanisms of `frontlineService` (PID 39815). Terminate it and remove all associated files and persistence entries.
-    *   **Investigate Other Critical Processes:** Thoroughly analyze the `CRITICAL` alerts for `Google Chrome Helper (Renderer)` and `mlhostd` to determine if they were exploited, misconfigured, or if malicious code was injected.
-    *   **User Account Review:** Review the activities and permissions of user `kajanthmayoorana` for any signs of compromise or misuse, especially given the `mdworker_shared` and `mlhostd` alerts under their context.
-    *   **Full Forensic Image:** Capture a full forensic image of the compromised system(s) for in-depth analysis to determine the initial compromise vector, extent of the breach, and any data exfiltration.
-
-4.  **Preventive Measures and Hardening (Long-Term):**
-    *   **Patch Management:** Ensure all operating systems, applications (e.g., Chrome, Jamf), and security software are fully patched and up-to-date.
-    *   **Enhanced EDR/AV:** Review and enhance Endpoint Detection and Response (EDR) rules and Antivirus signatures to specifically detect and prevent the observed malicious behaviors.
-    *   **Principle of Least Privilege:** Strictly enforce the principle of least privilege for all users and services, particularly for processes running as `root`.
-    *   **Network Segmentation:** Improve network segmentation to limit the blast radius of any future compromises.
-    *   **User Security Awareness Training:** Reinforce security awareness training, especially for users involved in triggering alerts.
+3.  **Proactive and Long-Term Mitigations:**
+    *   **Enhance Endpoint Detection and Response (EDR):** Improve EDR context gathering (command lines, network connections, parent processes) to provide richer data for alerts.
+    *   **Implement User Behavior Analytics (UBA):** Monitor user accounts like `kajanthmayooranathan` for anomalous behavior.
+    *   **Review Privilege Management:** Audit and restrict root-level privileges where possible, enforcing least privilege.
+    *   **Application Whitelisting:** Implement application whitelisting to prevent unauthorized executables, especially those at root level.
+    *   **Regular System Hardening and Patching:** Ensure all operating systems, applications (especially browsers), and security agents are fully patched and configured securely.
+    *   **Automated Response Playbook Review:** Test and refine automated response playbooks to ensure they can execute effectively even under system stress.
+    *   **User Security Awareness Training:** Conduct mandatory training for all users, emphasizing phishing detection, safe browsing, and reporting suspicious activity.
 
 #### CodeFixer Proposal
-Based on the system logs and pending error tasks, here's my analysis:
+The system logs reveal a critical situation marked by escalating memory usage and a cascade of internal system errors, all while the `AMYGDALA` threat detection system is generating an extremely high volume of alerts for seemingly common processes.
 
-## Root Cause Analysis
+**Analysis of Logs:**
 
-1.  **High Event Volume from AMYGDALA:** The logs show a continuous stream of `AMYGDALA [ALERT]` and `[CRITICAL]` messages, often detecting multiple new processes (`3 threat(s)`, `5 threat(s)`). Many of these processes are common (Chrome, mdworker_shared), suggesting a busy system environment rather than a critical breach. This indicates the AMYGDALA component is generating a significant volume of events.
-2.  **`brain_core: reflex_execution_failed`:** This error repeatedly appears. "Reflexes" typically imply immediate, reactive responses to events. The failure to execute these reflexes suggests that the `brain_core` component is either overwhelmed, blocked, or lacking sufficient resources (e.g., worker threads, CPU time) to process the high volume of incoming alerts from the AMYGDALA.
-3.  **`basal_ganglia: habits_flush_failed`:** This error also appears frequently. The "basal ganglia" often relates to habit formation, learning, or long-term state maintenance. A "flush" operation would likely involve writing accumulated data or learned patterns to persistent storage. Its failure, concurrently with `brain_core` failures, suggests a broader system overload or resource contention issue. If the `brain_core` is bottlenecked, it might be starving other critical components like `basal_ganglia` from executing their necessary periodic or event-driven tasks.
-4.  **Correlation:** The `brain_core` and `basal_ganglia` errors are directly correlated with the constant stream of `AMYGDALA` alerts. It's highly probable that the synchronous (or inadequately asynchronous) processing of each AMYGDALA alert is causing bottlenecks, leading to `reflex_execution_failed` errors due to resource exhaustion or blocking operations. This bottleneck then cascades, preventing `basal_ganglia` from performing its flushing operations.
+1.  **Memory Pressure:** The `PHANTOM_SPIKE` alert is the most concerning immediate threat: "Memory Usage predicted to breach 85.0% in ~11.3 min (currently 79.8%, rising at 0.75%". This indicates severe resource contention and is likely the direct cause of the `reflex_execution_failed` and `habits_flush_failed` errors. When memory is critically low, the system struggles to perform any resource-intensive operation, including writing to disk (flushing habits) or executing complex decision logic (reflexes).
 
-**Conclusion for Root Cause:** The system's core processing components (`brain_core` and `basal_ganglia`) are being overwhelmed by the high frequency and volume of events triggered by the `AMYGDALA` component. This suggests a **synchronous or insufficiently asynchronous event handling mechanism** that cannot keep pace with the event generation rate, leading to resource exhaustion and task failures.
+2.  **AMYGDALA Overload:** The continuous stream of `AMYGDALA [ALERT]` and `AMYGDALA [CRITICAL]` notifications for "New process" detections is excessive. Processes like `jamf`, `mlhostd`, `CloudTelemetrySe`, `com.apple.Safari.SafeBrowsing.Service`, `replayd`, `mdworker_shared`, `backupd-helper`, and `Google Chrome Helper (Renderer)` are typically legitimate system or user applications on a macOS-like environment. The `AMYGDALA` system is flagging these with high threat counts (5, 8, 6, 6, 7, 6 threats detected), suggesting either:
+    *   A misconfiguration leading to extreme sensitivity.
+    *   An overly resource-intensive threat evaluation process that is being triggered far too often.
+    *   A lack of a proper whitelist or baseline for normal system activity.
+This constant stream of "threats," even if benign, likely triggers numerous internal `brain_core` reflexes and `basal_ganglia` habit updates (e.g., learning/persisting new threat patterns, updating system state based on "threats"). Each such action consumes CPU and memory.
 
-## Proposed Architectural Fix / Python Refactor
+3.  **Error Backlog:** The repeated `brain_core: reflex_execution_failed` and `basal_ganglia: habits_flush_failed` errors are direct symptoms of the memory pressure and likely the overwhelming workload imposed by the `AMYGDALA` system. The `brain_core` cannot execute its immediate, automatic responses, and the `basal_ganglia` cannot persist or clear learned patterns/data, which can lead to stale or incorrect system behavior.
 
-The core architectural issue is a tight coupling and potentially synchronous execution path between event generation (AMYGDALA) and event processing (`brain_core` reflexes, `basal_ganglia` habits).
+**Root Cause:**
 
-The fix involves **decoupling event detection from event processing** by introducing an asynchronous task queue managed by a thread or process pool executor. This allows the AMYGDALA to continue detecting threats without being blocked by the execution of reflexes or habit flushes, and ensures these critical tasks are handled concurrently or in the background.
+The primary root cause is **systemic memory exhaustion**, directly exacerbated by an **overly sensitive and resource-intensive `AMYGDALA` threat detection system**. The `AMYGDALA` system is generating a flood of false-positive critical alerts for legitimate processes. This constant generation of alerts triggers an excessive number of `brain_core` reflex executions and `basal_ganglia` habit flushes, which collectively consume too much memory and CPU. This continuous high load pushes the system into critical memory levels, causing subsequent failures in core system components responsible for learning and action.
 
-### Architectural Change
+**Concrete Architectural Fix / Python Refactor:**
 
-Implement an **Event Dispatcher with a Concurrent Executor**. Instead of directly calling `brain_core.execute_reflex()` or `basal_ganglia.flush_habits()` in response to an AMYGDALA alert, the system should submit these tasks to a `concurrent.futures.ThreadPoolExecutor` (or `ProcessPoolExecutor` if tasks are CPU-bound and not thread-safe).
+The most effective fix is to reduce the workload on the `AMYGDALA` system by introducing a pre-filtering mechanism, specifically a **process whitelist**, to ignore known benign processes. This will significantly reduce the number of events requiring full threat evaluation, thereby reducing memory and CPU usage across the system and preventing the cascade of errors.
 
-### Python Refactor
+**Filename:** `amygdala_core.py` (Assuming this file contains the primary logic for processing new processes and evaluating threats.)
 
-We'll assume there's a central `system_dispatcher.py` (or similar module) responsible for routing events and triggering system actions.
+**Proposed Code Refactor:**
 
-**Filename:** `system_dispatcher.py`
-
-**Modified Code:**
+We will introduce a configurable whitelist and modify the `process_new_process` function to check this whitelist first.
 
 ```python
-import concurrent.futures
-import logging
-from functools import partial
+# File: amygdala_core.py
 
-# Assume these are properly initialized elsewhere
-# For example, they might be passed to the SystemDispatcher during setup
-# from .brain_core import BrainCore
-# from .basal_ganglia import BasalGanglia
+import logging
+import json
+import os
+from typing import Set
 
 logger = logging.getLogger(__name__)
 
-class SystemDispatcher:
+# --- Architectural change: Introduce a configurable process whitelist ---
+
+# Configuration for the whitelist file
+WHITELIST_FILE = os.environ.get('AMYGDALA_WHITELIST_FILE', 'config/amygdala_whitelist.json')
+
+# Global set to store whitelisted process names for efficient lookup
+_process_whitelist: Set[str] = set()
+
+def load_whitelist():
     """
-    Manages the dispatching of system events to core components using a concurrent executor.
-    This decouples event generation from event processing, preventing bottlenecks.
+    Loads whitelisted process names from a JSON file.
+    This should be called once during system initialization.
     """
-    _instance = None
-    _executor = None
+    global _process_whitelist
+    try:
+        with open(WHITELIST_FILE, 'r') as f:
+            data = json.load(f)
+            if 'whitelisted_processes' in data and isinstance(data['whitelisted_processes'], list):
+                _process_whitelist = set(item.strip().lower() for item in data['whitelisted_processes'])
+                logger.info(f"Loaded {len(_process_whitelist)} whitelisted processes from {WHITELIST_FILE}")
+            else:
+                logger.warning(f"Whitelist file {WHITELIST_FILE} is malformed or empty. Check 'whitelisted_processes' key.")
+                _process_whitelist = set() # Ensure it's empty if malformed
+    except FileNotFoundError:
+        logger.warning(f"Whitelist file {WHITELIST_FILE} not found. Starting with an empty whitelist. This may lead to false positives.")
+        _process_whitelist = set()
+    except json.JSONDecodeError:
+        logger.error(f"Error decoding JSON from {WHITELIST_FILE}. Check file integrity.")
+        _process_whitelist = set()
+    except Exception as e:
+        logger.error(f"Unexpected error loading whitelist from {WHITELIST_FILE}: {e}")
+        _process_whitelist = set()
 
-    def __new__(cls, *args, **kwargs):
-        """
-        Implements a simple singleton pattern to ensure a single executor instance.
-        """
-        if cls._instance is None:
-            cls._instance = super(SystemDispatcher, cls).__new__(cls)
-            # Initialize the executor only once.
-            # Using ThreadPoolExecutor as a common choice for mixed I/O and CPU-bound tasks.
-            # Adjust 'max_workers' based on system resources and expected load.
-            # It's crucial that methods called by the executor (e.g., execute_reflex, flush_habits)
-            # are thread-safe or re-entrant. If not, ProcessPoolExecutor might be needed.
-            cls._executor = concurrent.futures.ThreadPoolExecutor(max_workers=8) # Increased example workers
-            cls.brain_core = kwargs.get('brain_core_instance')
-            cls.basal_ganglia = kwargs.get('basal_ganglia_instance')
+def is_whitelisted(process_name: str) -> bool:
+    """
+    Checks if a given process name (case-insensitive, normalized) is in the whitelist.
+    """
+    # Normalize process name: convert to lowercase and remove common parenthetical descriptors
+    # e.g., "Google Chrome Helper (Renderer)" becomes "google chrome helper"
+    normalized_name = process_name.split('(')[0].strip().lower()
+    return normalized_name in _process_whitelist
 
-            if not cls.brain_core or not cls.basal_ganglia:
-                raise ValueError("BrainCore and BasalGanglia instances must be provided to SystemDispatcher.")
-        return cls._instance
+# --- Refactor the core process handling logic ---
 
-    def _log_future_exception(self, future: concurrent.futures.Future, task_name: str):
-        """
-        Callback to log exceptions from asynchronously executed tasks.
-        """
-        if future.exception():
-            logger.error(f"Task '{task_name}' failed asynchronously: {future.exception()}", exc_info=True)
-        elif future.done():
-            logger.debug(f"Task '{task_name}' completed successfully.")
+# Call load_whitelist at the module level or during system startup
+# This ensures the whitelist is loaded before any processes are handled.
+load_whitelist()
 
-    def handle_amygdala_alert(self, threat_data: dict):
-        """
-        Handles incoming AMYGDALA alerts by submitting reflex execution to the thread pool.
-        This call is non-blocking for the AMYGDALA.
-        """
-        if not self._executor:
-            logger.error("SystemDispatcher executor is not initialized. Cannot handle AMYGDALA alert.")
-            return
+# Assuming these are defined elsewhere or imported
+THRESHOLD_ALERT = 1
+THRESHOLD_CRITICAL = 5
 
-        future = self._executor.submit(self.brain_core.execute_reflex, threat_data)
-        future.add_done_callback(partial(self._log_future_exception, task_name=f"reflex for {threat_data.get('pid', 'N/A')}"))
-        logger.debug(f"Queued reflex execution for threat (PID: {threat_data.get('pid', 'N/A')}).")
-        # The AMYGDALA's detection loop can now continue without waiting for the reflex to complete.
+def process_new_process(pid: int, user: str, process_name: str):
+    """
+    Evaluates a newly detected process for threats.
+    Modified to include an early exit for whitelisted processes.
+    """
+    # Step 1: Check against the whitelist FIRST to short-circuit benign processes.
+    if is_whitelisted(process_name):
+        logger.debug(f"New process '{process_name}' (PID: {pid}, User: {user}) is whitelisted. Skipping threat evaluation.")
+        return # Exit early: no alert, no further resource-intensive processing.
 
-    def trigger_habits_flush(self):
-        """
-        Triggers the basal ganglia's habits flush operation asynchronously.
-        This can be called periodically or based on other system events.
-        """
-        if not self._executor:
-            logger.error("SystemDispatcher executor is not initialized. Cannot trigger habits flush.")
-            return
+    # Step 2: If not whitelisted, proceed with actual threat evaluation.
+    # This existing complex threat evaluation logic is assumed to be in _evaluate_process_for_threat
+    threat_score = _evaluate_process_for_threat(pid, user, process_name)
 
-        future = self._executor.submit(self.basal_ganglia.flush_habits)
-        future.add_done_callback(partial(self._log_future_exception, task_name="habits_flush"))
-        logger.debug("Queued habits flush operation.")
+    if threat_score >= THRESHOLD_CRITICAL:
+        logger.critical(f"AMYGDALA [CRITICAL]: {threat_score} threat(s) detected — New process: {process_name} (PID: {pid}, User: {user})")
+        _raise_critical_alert(threat_score, pid, user, process_name)
+    elif threat_score >= THRESHOLD_ALERT:
+        logger.warning(f"AMYGDALA [ALERT]: {threat_score} threat(s) detected — New process: {process_name} (PID: {pid}, User: {user})")
+        _raise_alert(threat_score, pid, user, process_name)
+    else:
+        logger.info(f"New process '{process_name}' (PID: {pid}, User: {user}) detected, no threat.")
 
-    def shutdown(self):
-        """
-        Gracefully shuts down the internal executor, waiting for pending tasks to complete.
-        Should be called during application shutdown.
-        """
-        if self._executor:
-            logger.info("Shutting down SystemDispatcher executor. Waiting for pending tasks...")
-            self._executor.shutdown(wait=True)
-            logger.info("SystemDispatcher executor shut down.")
-            self._executor = None # Clear executor reference
-        else:
-            logger.warning("SystemDispatcher executor already shut down or not initialized.")
+# --- Stub functions (assuming their actual implementation is elsewhere) ---
 
-# --- Example of how this might be used in the main application setup ---
+def _evaluate_process_for_threat(pid: int, user: str, process_name: str) -> int:
+    """
+    Placeholder for the existing complex threat evaluation logic.
+    This function would contain heuristics, behavioral analysis,
+    signature matching, etc., and can be CPU/memory intensive.
+    """
+    # Example logic (replace with actual implementation):
+    if "malicious_exploit" in process_name.lower():
+        return 10
+    if "jamf" in process_name.lower() or "mdworker_shared" in process_name.lower():
+        # Even if whitelisted, this might be called if whitelist fails, or for historical scores.
+        # This example just shows it could return scores for known 'noisy' processes if not whitelisted.
+        return 6
+    if "mlhostd" in process_name.lower() and user == "kajanthmayoorana":
+        return 5 # High score if not whitelisted
+    return 0 # Default no threat
 
-# if __name__ == "__main__":
-#     # Configure logging (for demonstration)
-#     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+def _raise_critical_alert(threat_score: int, pid: int, user: str, process_name: str):
+    """
+    Triggers critical alert actions, including interaction with brain_core and basal_ganglia.
+    This is where 'reflex_execution_failed' and 'habits_flush_failed' often originate.
+    Consider adding robust error handling (e.g., retries, circuit breakers) here
+    for resilience against temporary resource contention, even after the whitelist fix.
+    """
+    logger.debug(f"Critical alert triggered for PID {pid}")
+    # Example: brain_core.execute_reflex(threat_score, pid, user, process_name)
+    # Example: basal_ganglia.update_habits(threat_score, process_name)
+    pass
 
-#     # Dummy BrainCore and BasalGanglia classes for demonstration
-#     class BrainCore:
-#         def execute_reflex(self, threat_data):
-#             import time
-#             logger.info(f"BrainCore: Executing reflex for PID {threat_data.get('pid')}")
-#             time.sleep(0.5) # Simulate some work
-#             if threat_data.get("pid") == 39815: # Simulate a failure for a specific PID
-#                 raise RuntimeError("Simulated reflex failure for critical process!")
-#             logger.info(f"BrainCore: Reflex completed for PID {threat_data.get('pid')}")
+def _raise_alert(threat_score: int, pid: int, user: str, process_name: str):
+    """Triggers standard alert actions."""
+    logger.debug(f"Alert triggered for PID {pid}")
+    pass
 
-#     class BasalGanglia:
-#         def flush_habits(self):
-#             import time
-#             logger.info("BasalGanglia: Flushing habits...")
-#             time.sleep(1) # Simulate some I/O or heavy work
-#             logger.info("BasalGanglia: Habits flushed.")
-
-#     # Instantiate core components
-#     brain_core_instance = BrainCore()
-#     basal_ganglia_instance = BasalGanglia()
-
-#     # Initialize the dispatcher with core components
-#     dispatcher = SystemDispatcher(
-#         brain_core_instance=brain_core_instance,
-#         basal_ganglia_instance=basal_ganglia_instance
-#     )
-
-#     # Simulate incoming AMYGDALA alerts
-#     dispatcher.handle_amygdala_alert({"process": "Google Chrome Helper", "pid": 39296, "user": "U"})
-#     dispatcher.handle_amygdala_alert({"process": "jamf", "pid": 39532, "user": "root"})
-#     dispatcher.handle_amygdala_alert({"process": "frontlineService", "pid": 39815, "user": "root"}) # This one will fail
-#     dispatcher.handle_amygdala_alert({"process": "mdworker_shared", "pid": 40091, "user": "kajanthmayo"})
-
-#     # Simulate triggering habits flush
-#     dispatcher.trigger_habits_flush()
-
-#     # Allow some time for tasks to complete
-#     import time
-#     time.sleep(3)
-
-#     # Shutdown the dispatcher gracefully on application exit
-#     dispatcher.shutdown()
 ```
 
-### Explanation of Changes:
+**`config/amygdala_whitelist.json` (Example file content):**
 
-1.  **`concurrent.futures.ThreadPoolExecutor`**: A `ThreadPoolExecutor` is initialized once within the `SystemDispatcher` (using a simple singleton pattern). This pool manages a set of worker threads that can execute tasks concurrently.
-2.  **`submit()` for Non-Blocking Calls**: Instead of directly calling `self.brain_core.execute_reflex()` or `self.basal_ganglia.flush_habits()`, the `handle_amygdala_alert` and `trigger_habits_flush` methods now use `self._executor.submit()`. This queues the target function and its arguments for execution by a worker thread and immediately returns a `Future` object, allowing the calling code (e.g., AMYGDALA) to proceed without blocking.
-3.  **`add_done_callback()` for Error Handling**: A `_log_future_exception` callback is added to each submitted task's `Future`. This ensures that any exceptions raised within the `execute_reflex` or `flush_habits` methods in the background threads are caught and logged, preventing silent failures and providing clear visibility into why a "reflex\_execution\_failed" or "habits\_flush\_failed" might occur (e.g., an actual error in the `brain_core` logic, not just a processing bottleneck).
-4.  **`shutdown()` Method**: A `shutdown()` method is included to gracefully stop the executor. It's crucial to call this during application shutdown to ensure all pending tasks are completed and resources are released.
+```json
+{
+  "whitelisted_processes": [
+    "jamf",
+    "mlhostd",
+    "cloudtelemetryse",
+    "com.apple.safari.safebrowsing.service",
+    "replayd",
+    "mdworker_shared",
+    "ps",
+    "backupd-helper",
+    "google chrome helper",
+    "statsd",
+    "sensor_monitor",
+    "python",
+    "bash",
+    "zsh",
+    "terminal",
+    "vscode",
+    "code"
+    // Add other frequently observed legitimate processes here.
+    // Ensure names are lowercased and generalized if needed (e.g., "Google Chrome Helper" covers all renderer types)
+  ]
+}
+```
 
-This refactor transforms the event processing into an asynchronous, concurrent model, alleviating the bottleneck by allowing multiple reflexes and habit flushes to be processed in parallel or offloaded from the main event loop, significantly improving the system's responsiveness and stability under high event load.
+**Explanation of the Fix:**
 
-**Important Considerations:**
-*   **Thread Safety:** The methods `brain_core.execute_reflex` and `basal_ganglia.flush_habits` *must* be thread-safe if using `ThreadPoolExecutor`, especially if they access or modify shared state. If they are not, proper locking mechanisms should be implemented within those methods, or a `ProcessPoolExecutor` should be considered (which comes with higher overhead due to inter-process communication).
-*   **Backpressure:** While `ThreadPoolExecutor` alleviates blocking, its internal queue can still grow if tasks are submitted faster than they are processed. For extremely high, sustained load, a more robust message queuing system (e.g., RabbitMQ, Kafka) might be necessary to provide explicit backpressure and persistence. However, for the observed errors, the `ThreadPoolExecutor` is a solid first step to resolve the immediate blocking issue.
-*   **Error Reporting:** The `_log_future_exception` is a basic error handler. For production, more sophisticated error reporting (e.g., sending to a monitoring system, triggering alerts) might be integrated.
+1.  **Centralized Whitelist:** A `config/amygdala_whitelist.json` file is introduced to define known benign processes. This makes the whitelist easily modifiable without code changes and can be deployed via configuration management.
+2.  **Efficient Lookup:** The `_process_whitelist` is stored as a `set` for `O(1)` average-case lookup time, ensuring minimal performance overhead for the whitelist check. Process names are normalized (lowercased, parentheticals removed) to improve matching robustness.
+3.  **Early Exit:** The `process_new_process` function now performs an `is_whitelisted()` check as its *first* step. If the process is whitelisted, the function immediately `return`s.
+4.  **Reduced Workload:** This early exit means that the majority of legitimate processes (which are currently causing high critical alert volumes) will bypass the computationally expensive `_evaluate_process_for_threat` function and the subsequent trigger of `_raise_critical_alert` or `_raise_alert`.
+5.  **Memory and CPU Relief:** By drastically cutting down the number of full threat evaluations and subsequent internal system reactions (reflexes, habit flushes), the overall memory and CPU consumption of the system will decrease significantly. This directly addresses the `PHANTOM_SPIKE` memory warning and, by extension, should resolve the `reflex_execution_failed` and `habits_flush_failed` errors which are symptoms of resource exhaustion.
+
+This architectural change is a robust, proactive measure to prevent resource contention by intelligently filtering known good activities at the earliest possible stage in the threat detection pipeline.

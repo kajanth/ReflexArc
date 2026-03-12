@@ -105,10 +105,11 @@
         /* Grid Layout */
         .grid {
             display: grid;
-            grid-template-columns: 1fr 2fr 1fr;
-            grid-template-rows: auto auto auto;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-auto-rows: min-content;
             gap: 12px;
             padding: 12px;
+            overflow-y: auto;
             max-height: calc(100vh - 56px);
         }
 
@@ -167,17 +168,15 @@
 
         /* Video Panel */
         .video-panel {
-            grid-column: 1 / 2;
-            grid-row: 1 / 2;
-            max-height: 320px;
+            max-height: 240px;
         }
 
         .video-panel .card-body {
             padding: 0;
             position: relative;
             background: #000;
-            min-height: 200px;
-            max-height: 270px;
+            min-height: 120px;
+            max-height: 200px;
         }
 
         .video-panel img {
@@ -217,24 +216,18 @@
 
         /* Network Map */
         .network-panel {
-            grid-column: 2 / 3;
-            grid-row: 1 / 2;
-            max-height: 320px;
+            max-height: 240px;
         }
 
         #brain-network {
             width: 100%;
-            height: 260px;
-            max-height: 260px;
+            height: 200px;
+            max-height: 200px;
             background: #050810;
             cursor: move;
         }
 
         /* Spike Feed */
-        .spike-feed {
-            grid-column: 3;
-            grid-row: 1;
-        }
 
         .spike-item {
             padding: 8px 0;
@@ -392,10 +385,6 @@
         }
 
         /* Neural Cascade */
-        .cascade-panel {
-            grid-column: 3;
-            grid-row: 2;
-        }
 
         .layer-row {
             display: flex;
@@ -439,7 +428,7 @@
 
         /* Metrics Row */
         .metrics-panel {
-            grid-column: 1 / 4;
+            grid-column: 1 / -1;
         }
 
         .metrics-grid {
@@ -472,17 +461,6 @@
         }
 
         /* Provider + Memory Row */
-        .providers-panel {
-            grid-column: 1 / 2;
-        }
-
-        .memory-panel {
-            grid-column: 2 / 3;
-        }
-
-        .skills-panel {
-            grid-column: 3;
-        }
 
         .provider-row {
             display: flex;
@@ -1006,8 +984,8 @@
                 </div>
             </div>
 
-            <!-- Swarm Interaction Visualisation (full-width) -->
-            <div class="card" style="grid-column: 1 / -1;">
+            <!-- Swarm Interaction Visualisation -->
+            <div class="card">
                 <div class="card-header" style="border-bottom-color: var(--accent-yellow);">
                     ⚗️ Swarm Interaction Visualiser
                     <div style="display:flex;gap:8px;align-items:center">
@@ -1017,10 +995,10 @@
                             agent message flow during Dream Cycle</span>
                     </div>
                 </div>
-                <div class="card-body" style="padding:0;position:relative;height:200px">
+                <div class="card-body" style="padding:0;position:relative;height:180px">
                     <div id="swarm-network" style="width:100%;height:100%"></div>
                     <div id="swarm-log-overlay"
-                        style="position:absolute;right:12px;top:12px;width:260px;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">
+                        style="position:absolute;right:12px;top:12px;width:260px;max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">
                     </div>
                 </div>
             </div>
@@ -1213,17 +1191,17 @@
                 </div>
             </div>
         </div>
-        <!-- Swarm Viz (full width in this tab too) -->
+        <!-- Swarm Viz -->
         <div class="card">
             <div class="card-header" style="border-bottom-color:var(--accent-yellow)">
                 ⚗️ Swarm Interaction Visualiser
                 <span class="badge" id="a-swarm-badge"
                     style="background:var(--accent-yellow)20;color:var(--accent-yellow);border:1px solid var(--accent-yellow)40">IDLE</span>
             </div>
-            <div class="card-body" style="padding:0;position:relative;height:220px">
+            <div class="card-body" style="padding:0;position:relative;height:180px">
                 <div id="swarm-network-2" style="width:100%;height:100%"></div>
                 <div id="swarm-log-overlay-2"
-                    style="position:absolute;right:12px;top:12px;width:280px;max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">
+                    style="position:absolute;right:12px;top:12px;width:280px;max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">
                 </div>
             </div>
         </div>

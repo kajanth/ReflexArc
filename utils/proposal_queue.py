@@ -149,21 +149,22 @@ def attempt_implementation(proposal: Dict[str, Any], router) -> str:
         f"--- PROPOSAL ---\n{content[:3000]}\n--- END PROPOSAL ---\n\n"
         "Your task:\n"
         "1. Extract any concrete code change described (file path + code snippet).\n"
-        "2. If a clear, safe, single-file patch can be extracted, output ONLY:\n"
+        "2. If a clear, safe, single-file python patch can be extracted, output ONLY:\n"
         "   FILE: <relative_file_path>\n"
         "   ```python\n"
         "   <full modified function or class>\n"
         "   ```\n"
-        "3. If the proposal is architectural advice with no concrete code, output:\n"
+        "3. If the proposal is architectural advice with no concrete python code, output:\n"
         "   ADVISORY: <one sentence summary>\n"
         "4. If unsafe, speculative, or multi-file, output:\n"
         "   SKIP: <reason>\n"
-        "Output nothing else."
+        "CRITICAL INSTRUCTION: You MUST output exactly one of the three formats above (FILE, ADVISORY, or SKIP). NEVER output an empty string or conversational text."
     )
 
     try:
         response = router.route(
             tier="cortex",
+            model_override=["gpt-5-codex", "gpt-5", "gpt-4o", "gpt-4"],
             messages=[
                 {"role": "system", "content": "You are a precise code patch extractor. Output only the format requested."},
                 {"role": "user", "content": prompt},
@@ -174,14 +175,27 @@ def attempt_implementation(proposal: Dict[str, Any], router) -> str:
         return f"SKIP: Router error: {e}"
 
     # Parse the structured response
-    if output.startswith("FILE:"):
-        lines = output.split("\n", 1)
-        file_path = lines[0].replace("FILE:", "").strip()
-        code_block = lines[1].strip() if len(lines) > 1 else ""
-
-        # Strip markdown fences
-        if "```" in code_block:
-            code_block = re.sub(r"```\w*\n?", "", code_block).strip()
+    file_match = re.search(r'FILE:\s*([^\n]+)', output)
+    
+    if file_match:
+        file_path = file_match.group(1).strip()
+        
+        # Try to extract just the python code block
+        code_match = re.search(r'```(?:python)?\n?(.*?)\n?```', output, re.DOTALL)
+        if code_match:
+            code_block = code_match.group(1).strip()
+        else:
+            # Fallback: if no code block, just take everything after the FILE line
+            lines = output.split('\n')
+            code_lines = []
+            capture = False
+            for line in lines:
+                if 'FILE:' in line:
+                    capture = True
+                    continue
+                if capture:
+                    code_lines.append(line)
+            code_block = '\n'.join(code_lines).strip()
 
         if file_path and code_block and os.path.exists(file_path):
             # Safety: only write to files inside the project (no absolute paths)
@@ -216,10 +230,16 @@ def attempt_implementation(proposal: Dict[str, Any], router) -> str:
         else:
             return f"SKIP: File '{file_path}' not found or empty code block"
 
-    elif output.startswith("ADVISORY:"):
+    elif "ADVISORY:" in output:
+        advisory_match = re.search(r'ADVISORY:\s*(.*)', output)
+        if advisory_match:
+            return f"ADVISORY: {advisory_match.group(1)}"
         return output  # Just an advisory, mark as implemented with notes
 
-    elif output.startswith("SKIP:"):
+    elif "SKIP:" in output:
+        skip_match = re.search(r'SKIP:\s*(.*)', output)
+        if skip_match:
+            return f"SKIP: {skip_match.group(1)}"
         return output
 
     return f"SKIP: Unrecognized model output format: {output[:100]}"

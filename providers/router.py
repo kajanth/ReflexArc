@@ -303,9 +303,10 @@ class ModelRouter:
         return self._config.get("tiers", {}).get(tier, [])
 
     def route(self, tier: str, messages: List[Dict],
-              max_tokens: int = 200, tools: Optional[List[Dict]] = None) -> StandardResponse:
+              max_tokens: int = 200, tools: Optional[List[Dict]] = None,
+              model_override: Optional[List[str]] = None) -> StandardResponse:
         """
-        Route a request to the best available provider for the given tier.
+        Route a request to the best available provider.
 
         Args:
             tier: Model tier ("nano", "mini", "cortex").
@@ -316,7 +317,20 @@ class ModelRouter:
         Returns:
             StandardResponse from whichever provider handled it.
         """
-        tier_models = self.get_tier_config(tier)
+        if model_override:
+            tier_models = []
+            for m_name in model_override:
+                # Find which provider offers this model
+                for m_info in self._discovered_models:
+                    if m_info.model_id == m_name:
+                        tier_models.append({
+                            "provider": m_info.provider,
+                            "model": m_info.model_id,
+                            "weight": 1.0
+                        })
+                        break
+        else:
+            tier_models = self.get_tier_config(tier)
         if not tier_models:
             # Fallback: try any available tier
             for fallback_tier in ["nano", "mini", "cortex"]:

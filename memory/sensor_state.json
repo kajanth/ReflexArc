@@ -4,7 +4,7 @@
   "system_vitals": false,
   "filesystem": false,
   "network_probe": false,
-  "threat_detection": true,
+  "threat_detection": false,
   "circadian": true,
   "cognitive_load": true,
   "webhooks": true

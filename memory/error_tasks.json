@@ -672,5 +672,29 @@
     },
     "status": "pending",
     "severity": "error"
+  },
+  {
+    "id": "err_1773337701586",
+    "timestamp": 1773337701.586659,
+    "time_str": "2026-03-12 17:48:21",
+    "logger": "basal_ganglia",
+    "message": "habits_flush_failed",
+    "context": {
+      "error": "[Errno 2] No such file or directory: 'memory/habits.json.tmp' -> 'memory/habits.json'"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773337731938",
+    "timestamp": 1773337731.938621,
+    "time_str": "2026-03-12 17:48:51",
+    "logger": "basal_ganglia",
+    "message": "habits_flush_failed",
+    "context": {
+      "error": "[Errno 2] No such file or directory: 'memory/habits.json.tmp' -> 'memory/habits.json'"
+    },
+    "status": "pending",
+    "severity": "error"
   }
 ]

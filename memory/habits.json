@@ -1,7 +1,7 @@
 {
   "TEMPLATE:compose_alert": {
-    "count": 34,
-    "latency_multiplier": 0.18402591023557577,
+    "count": 36,
+    "latency_multiplier": 0.16608338398760714,
     "cost_multiplier": 0.1
   },
   "REFLEX:alert_notify": {
@@ -20,8 +20,8 @@
     "cost_multiplier": 0.34867844010000015
   },
   "REFLEX:quarantine_process": {
-    "count": 24,
-    "latency_multiplier": 0.30735686772502346,
+    "count": 29,
+    "latency_multiplier": 0.2378268852553321,
     "cost_multiplier": 0.1
   },
   "REFLEX:token_budget_enforcer": {
@@ -45,9 +45,9 @@
     "cost_multiplier": 0.1
   },
   "REFLEX:memory_cleanup": {
-    "count": 4,
-    "latency_multiplier": 0.8573749999999999,
-    "cost_multiplier": 0.7290000000000001
+    "count": 5,
+    "latency_multiplier": 0.8145062499999999,
+    "cost_multiplier": 0.6561000000000001
   },
   "REFLEX:auto_proprioception_modified": {
     "count": 531,
@@ -70,7 +70,7 @@
     "cost_multiplier": 0.9
   },
   "TEMPLATE:classify_threat": {
-    "count": 143,
+    "count": 149,
     "latency_multiplier": 0.1,
     "cost_multiplier": 0.1
   },
@@ -85,9 +85,9 @@
     "cost_multiplier": 1.0
   },
   "REFLEX:alert_security": {
-    "count": 12,
-    "latency_multiplier": 0.5688000922764596,
-    "cost_multiplier": 0.31381059609000017
+    "count": 15,
+    "latency_multiplier": 0.48767497911552943,
+    "cost_multiplier": 0.22876792454961012
   },
   "REFLEX:auto_usage_predicted_breach": {
     "count": 2,
