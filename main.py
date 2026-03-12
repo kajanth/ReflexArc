@@ -226,6 +226,11 @@ async def main():
     # 9. Start Basal Ganglia Periodic Flush (Write-Behind Caching)
     await brain.basal_ganglia.start_periodic_flush()
 
+    # 10. Start Daytime Evolution Loop (if configured)
+    evolve_task = None
+    if brain_cfg.get("enable_daytime_evolution", False):
+        evolve_task = asyncio.create_task(brain.dream_engine.daytime_evolution_loop(interval_seconds=1200)) # Default 20 mins
+
     adk_process = None
     # Check both brain.yaml config and env var (env var takes precedence)
     enable_adk_ui = brain_cfg.get("enable_adk_ui", False)
@@ -297,6 +302,8 @@ async def main():
         heart_task.cancel()
         pfc_task.cancel()
         pred_task.cancel()
+        if evolve_task:
+            evolve_task.cancel()
         sensor_mgr.release_all()
         await brain.memory.close()
         await mcp_manager.stop_all()

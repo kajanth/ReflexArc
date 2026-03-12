@@ -1,9 +1,9 @@
 {
   "vision": false,
   "auditory": false,
-  "system_vitals": true,
-  "filesystem": true,
-  "network_probe": true,
+  "system_vitals": false,
+  "filesystem": false,
+  "network_probe": false,
   "threat_detection": true,
   "circadian": true,
   "cognitive_load": true,

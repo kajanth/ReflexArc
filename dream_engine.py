@@ -164,6 +164,44 @@ class DreamEngine:
         finally:
             self.is_dreaming = False
 
+    async def evolve(self) -> str:
+        """Run just the self-evolution and proposal implementation phases (without full memory clustering/pruning)."""
+        if self.is_dreaming:
+            return "Skipped: Already dreaming/evolving."
+
+        self.is_dreaming = True
+        try:
+            event_bus.publish("dream_cycle", {"phase": "DAYTIME_EVOLUTION_START"})
+            
+            # Fetch recent memories directly, skipping the heavy semantic clustering
+            _, memories = self._phase_replay()
+            
+            evolution_report = await self._phase_self_evolution([], memories)
+            impl_report = await self._phase_implement_next_proposal()
+            self._check_and_flag_recurring_errors()
+            
+            event_bus.publish("dream_cycle", {"phase": "DAYTIME_EVOLUTION_COMPLETE"})
+            return f"{evolution_report}\n{impl_report}"
+        except Exception as e:
+            event_bus.publish("dream_cycle", {"phase": "ERROR", "error": str(e)})
+            print(f"🧬 [Evolution] ✗ Error during daytime evolution: {e}")
+            return f"Evolution cycle failed: {e}"
+        finally:
+            self.is_dreaming = False
+
+    async def daytime_evolution_loop(self, interval_seconds: int = 1800):
+        """Background loop for daytime evolution when enabled."""
+        import asyncio
+        print(f"🧬 [Evolution]: Daytime background loop started ({interval_seconds}s interval).")
+        while True:
+            await asyncio.sleep(interval_seconds)
+            if not self.is_dreaming:
+                print("\n🧬 [Evolution]: Waking up for daytime evolution cycle...")
+                try:
+                    await self.evolve()
+                except Exception as e:
+                    print(f"🧬 [Evolution] Failed: {e}")
+
     # ══════════════════════════════════════════════
     # Phase 1: REPLAY — Cluster memories by similarity
     # ══════════════════════════════════════════════

@@ -43,5 +43,5 @@ def run(data=None):
     for k in to_remove:
         del _last_seen[k]
 
-    logger.info("proprioception_more", event=event_desc, active_tracked=len(_last_seen))
+    logger.info("proprioception_more", evt=event_desc, active_tracked=len(_last_seen))
     return f"Filesystem burst event logged ({len(_last_seen)} active paths tracked)"

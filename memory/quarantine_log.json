@@ -103,5 +103,68 @@
     "process": "unknown",
     "action": "ACCESS_DENIED",
     "detail": "Insufficient permissions"
+  },
+  {
+    "timestamp": "2026-03-12 16:48:29",
+    "pid": 36993,
+    "process": "mdworker_shared",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-03-12 16:48:44",
+    "pid": 37323,
+    "process": "mdworker_shared",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-03-12 16:50:01",
+    "pid": 37869,
+    "process": "mdworker_shared",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-03-12 16:50:17",
+    "pid": 37969,
+    "process": "mdworker_shared",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-03-12 16:51:33",
+    "pid": 38461,
+    "process": "Google Chrome Helper (Renderer)",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-03-12 16:52:07",
+    "pid": 38888,
+    "process": "mdworker_shared",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-03-12 16:54:38",
+    "pid": 40037,
+    "process": "Google Chrome Helper (Renderer)",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-03-12 16:55:38",
+    "pid": 40441,
+    "process": "Google Chrome Helper (Renderer)",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
+  },
+  {
+    "timestamp": "2026-03-12 17:00:57",
+    "pid": 42207,
+    "process": "mdworker_shared",
+    "action": "SUSPENDED",
+    "detail": "User: kajanthmayooranathan"
   }
 ]

@@ -390,5 +390,287 @@
     },
     "status": "pending",
     "severity": "error"
+  },
+  {
+    "id": "err_1773334006537",
+    "timestamp": 1773334006.537073,
+    "time_str": "2026-03-12 16:46:46",
+    "logger": "brain_core",
+    "message": "reflex_execution_failed",
+    "context": {
+      "skill": "auto_proprioception_modified",
+      "error": "BoundLogger.info() got multiple values for argument 'event'",
+      "action": "escalating"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334013550",
+    "timestamp": 1773334013.550335,
+    "time_str": "2026-03-12 16:46:53",
+    "logger": "brain_core",
+    "message": "reflex_execution_failed",
+    "context": {
+      "skill": "auto_proprioception_modified",
+      "error": "BoundLogger.info() got multiple values for argument 'event'",
+      "action": "escalating"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334020931",
+    "timestamp": 1773334020.931454,
+    "time_str": "2026-03-12 16:47:00",
+    "logger": "brain_core",
+    "message": "reflex_execution_failed",
+    "context": {
+      "skill": "auto_proprioception_modified",
+      "error": "BoundLogger.info() got multiple values for argument 'event'",
+      "action": "escalating"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334024552",
+    "timestamp": 1773334024.552617,
+    "time_str": "2026-03-12 16:47:04",
+    "logger": "brain_core",
+    "message": "reflex_execution_failed",
+    "context": {
+      "skill": "auto_proprioception_modified",
+      "error": "BoundLogger.info() got multiple values for argument 'event'",
+      "action": "escalating"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334027244",
+    "timestamp": 1773334027.244172,
+    "time_str": "2026-03-12 16:47:07",
+    "logger": "brain_core",
+    "message": "reflex_execution_failed",
+    "context": {
+      "skill": "auto_proprioception_modified",
+      "error": "BoundLogger.info() got multiple values for argument 'event'",
+      "action": "escalating"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334035177",
+    "timestamp": 1773334035.177173,
+    "time_str": "2026-03-12 16:47:15",
+    "logger": "brain_core",
+    "message": "reflex_execution_failed",
+    "context": {
+      "skill": "auto_proprioception_modified",
+      "error": "BoundLogger.info() got multiple values for argument 'event'",
+      "action": "escalating"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334050937",
+    "timestamp": 1773334050.937394,
+    "time_str": "2026-03-12 16:47:30",
+    "logger": "brain_core",
+    "message": "reflex_execution_failed",
+    "context": {
+      "skill": "auto_proprioception_modified",
+      "error": "BoundLogger.info() got multiple values for argument 'event'",
+      "action": "escalating"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334054592",
+    "timestamp": 1773334054.59236,
+    "time_str": "2026-03-12 16:47:34",
+    "logger": "brain_core",
+    "message": "reflex_execution_failed",
+    "context": {
+      "skill": "auto_proprioception_created_modified",
+      "error": "BoundLogger.info() got multiple values for argument 'event'",
+      "action": "escalating"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334057831",
+    "timestamp": 1773334057.8310359,
+    "time_str": "2026-03-12 16:47:37",
+    "logger": "brain_core",
+    "message": "reflex_execution_failed",
+    "context": {
+      "skill": "auto_proprioception_modified",
+      "error": "BoundLogger.info() got multiple values for argument 'event'",
+      "action": "escalating"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334067039",
+    "timestamp": 1773334067.039476,
+    "time_str": "2026-03-12 16:47:47",
+    "logger": "brain_core",
+    "message": "reflex_execution_failed",
+    "context": {
+      "skill": "auto_proprioception_modified",
+      "error": "BoundLogger.info() got multiple values for argument 'event'",
+      "action": "escalating"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334087034",
+    "timestamp": 1773334087.034082,
+    "time_str": "2026-03-12 16:48:07",
+    "logger": "brain_core",
+    "message": "reflex_execution_failed",
+    "context": {
+      "skill": "auto_high_cpu_usage",
+      "error": "'<' not supported between instances of 'NoneType' and 'NoneType'",
+      "action": "escalating"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334098036",
+    "timestamp": 1773334098.036808,
+    "time_str": "2026-03-12 16:48:18",
+    "logger": "brain_core",
+    "message": "reflex_execution_failed",
+    "context": {
+      "skill": "auto_high_cpu_usage",
+      "error": "'<' not supported between instances of 'NoneType' and 'NoneType'",
+      "action": "escalating"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334183865",
+    "timestamp": 1773334183.865623,
+    "time_str": "2026-03-12 16:49:43",
+    "logger": "brain_core",
+    "message": "reflex_execution_failed",
+    "context": {
+      "skill": "auto_high_cpu_usage",
+      "error": "'<' not supported between instances of 'NoneType' and 'NoneType'",
+      "action": "escalating"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334210453",
+    "timestamp": 1773334210.4534662,
+    "time_str": "2026-03-12 16:50:10",
+    "logger": "brain_core",
+    "message": "reflex_execution_failed",
+    "context": {
+      "skill": "auto_high_cpu_usage",
+      "error": "'<' not supported between instances of 'NoneType' and 'NoneType'",
+      "action": "escalating"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334234442",
+    "timestamp": 1773334234.442813,
+    "time_str": "2026-03-12 16:50:34",
+    "logger": "basal_ganglia",
+    "message": "habits_flush_failed",
+    "context": {
+      "error": "[Errno 2] No such file or directory: 'memory/habits.json.tmp' -> 'memory/habits.json'"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334264936",
+    "timestamp": 1773334264.936065,
+    "time_str": "2026-03-12 16:51:04",
+    "logger": "basal_ganglia",
+    "message": "habits_flush_failed",
+    "context": {
+      "error": "[Errno 2] No such file or directory: 'memory/habits.json.tmp' -> 'memory/habits.json'"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334295158",
+    "timestamp": 1773334295.158941,
+    "time_str": "2026-03-12 16:51:35",
+    "logger": "basal_ganglia",
+    "message": "habits_flush_failed",
+    "context": {
+      "error": "[Errno 2] No such file or directory: 'memory/habits.json.tmp' -> 'memory/habits.json'"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334323572",
+    "timestamp": 1773334323.572694,
+    "time_str": "2026-03-12 16:52:03",
+    "logger": "brain_core",
+    "message": "reflex_execution_failed",
+    "context": {
+      "skill": "auto_high_cpu_usage",
+      "error": "'<' not supported between instances of 'NoneType' and 'NoneType'",
+      "action": "escalating"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334901866",
+    "timestamp": 1773334901.8661819,
+    "time_str": "2026-03-12 17:01:41",
+    "logger": "basal_ganglia",
+    "message": "habits_flush_failed",
+    "context": {
+      "error": "[Errno 2] No such file or directory: 'memory/habits.json.tmp' -> 'memory/habits.json'"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334931956",
+    "timestamp": 1773334931.95607,
+    "time_str": "2026-03-12 17:02:11",
+    "logger": "basal_ganglia",
+    "message": "habits_flush_failed",
+    "context": {
+      "error": "[Errno 2] No such file or directory: 'memory/habits.json.tmp' -> 'memory/habits.json'"
+    },
+    "status": "pending",
+    "severity": "error"
+  },
+  {
+    "id": "err_1773334992258",
+    "timestamp": 1773334992.258376,
+    "time_str": "2026-03-12 17:03:12",
+    "logger": "basal_ganglia",
+    "message": "habits_flush_failed",
+    "context": {
+      "error": "[Errno 2] No such file or directory: 'memory/habits.json.tmp' -> 'memory/habits.json'"
+    },
+    "status": "pending",
+    "severity": "error"
   }
 ]

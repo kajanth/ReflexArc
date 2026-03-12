@@ -4,18 +4,26 @@
 Exposes `root_agent` for discovery by `adk web`.
 This is the same swarm spawned during ReflexArc's Dream Cycle (Phase 5),
 but exposed here so you can interact with it live via the ADK Developer UI.
+
+Agent topology:
+  EvolutionSwarm (SequentialAgent)
+  ├── MetaCognitionPipeline (SequentialAgent)  ← Dreamer → Thinker
+  │   ├── Dreamer     — blue-sky evolution proposals
+  │   └── Thinker     — comparative evaluation & selection
+  └── OperationalSwarm (ParallelAgent)          ← existing trio runs in parallel
+      ├── CapabilityEnhancer
+      ├── CodeFixer
+      └── SecurityAuditor
 """
 import json
-import os
 from pathlib import Path
 
-from google.adk.agents import ParallelAgent, LlmAgent
+from google.adk.agents import LlmAgent, ParallelAgent, SequentialAgent
 
-# ─── Load Context ────────────────────────────────────
-# Read any recent error tasks so the agent has live context when invoked.
+
+# ─── Context loaders ──────────────────────────────────
 
 def _load_error_tasks_summary() -> str:
-    """Load pending error tasks from memory for the CodeFixer."""
     try:
         task_file = Path("memory/error_tasks.json")
         if task_file.exists():
@@ -32,9 +40,145 @@ def _load_error_tasks_summary() -> str:
     return "No pending error tasks at this time."
 
 
-ERROR_TASKS = _load_error_tasks_summary()
+def _load_dream_journal() -> str:
+    try:
+        journal_dir = Path("memory/dream_journal")
+        if not journal_dir.exists():
+            return "No dream journal entries yet."
+        entries = sorted(journal_dir.glob("*.md"), reverse=True)
+        if not entries:
+            return "No dream journal entries yet."
+        return f"[{entries[0].name}]\n{entries[0].read_text(encoding='utf-8')[:1800]}"
+    except Exception:
+        return "Could not load dream journal."
 
-# ─── Agent Personas ───────────────────────────────────
+
+def _load_proposal_queue() -> str:
+    try:
+        qfile = Path("memory/proposal_queue.json")
+        if not qfile.exists():
+            return "Queue empty."
+        with open(qfile) as f:
+            queue = json.load(f)
+        pending = [p for p in queue if p.get("status") == "pending"]
+        done = [p for p in queue if p.get("status") in ("implemented", "failed")]
+        lines = [f"Pending: {len(pending)}, Implemented: {len(done)}"]
+        for p in pending[-6:]:
+            lines.append(f"  - {p.get('content', '')[:80]}")
+        return "\n".join(lines)
+    except Exception:
+        return "Could not load queue."
+
+
+def _load_skills() -> str:
+    try:
+        return ", ".join(
+            s.stem for s in sorted(Path("skills").glob("*.py"))
+            if s.stem != "__init__"
+        )
+    except Exception:
+        return "unknown"
+
+
+def _load_error_rate() -> str:
+    try:
+        efile = Path("memory/error_tasks.json")
+        if not efile.exists():
+            return "No error data."
+        with open(efile) as f:
+            errors = json.load(f)
+        critical = [e for e in errors if e.get("severity") in ("critical", "error")]
+        return f"{len(errors)} total, {len(critical)} critical"
+    except Exception:
+        return "unavailable"
+
+
+# Load context once per module import (refreshed per runner invocation in dream_engine)
+ERROR_TASKS    = _load_error_tasks_summary()
+DREAM_JOURNAL  = _load_dream_journal()
+PROPOSAL_QUEUE = _load_proposal_queue()
+SKILLS_LIST    = _load_skills()
+ERROR_RATE     = _load_error_rate()
+
+
+# ─── Dreamer ──────────────────────────────────────────
+
+dreamer = LlmAgent(
+    name="Dreamer",
+    description=(
+        "Blue-sky AI evolution philosopher. Generates bold proposals for how "
+        "ReflexArc should evolve — new learning mechanisms, memory architectures, "
+        "meta-cognition strategies, and self-improvement loops."
+    ),
+    instruction=(
+        "You are the **Dreamer** — the creative, philosophical mind of ReflexArc.\n\n"
+        "Your job is NOT to fix bugs. Your job is to imagine how ReflexArc should "
+        "*evolve as an AI system*.\n\n"
+        "Think expansively about:\n"
+        "- New learning mechanisms (online learning, few-shot adaptation, reinforcement from sensor feedback)\n"
+        "- Novel memory architectures (episodic/semantic separation, forgetting curves, memory clustering)\n"
+        "- Meta-cognition (the system evaluating its own decision quality and adjusting routing thresholds)\n"
+        "- Agent topology (Critic agent that vets proposals, Validator that tests changes before committing)\n"
+        "- New sensing modalities (audio, network traffic, git commit stream, calendar events)\n"
+        "- Self-calibration (benchmarking skill success rates, retiring poor performers automatically)\n"
+        "- Evolutionary algorithms applied to skill selection and parameter tuning\n\n"
+        f"**Existing skills:** {SKILLS_LIST}\n\n"
+        f"**Pending proposals (avoid duplicating):**\n{PROPOSAL_QUEUE}\n\n"
+        f"**Recent dream journal:**\n{DREAM_JOURNAL}\n\n"
+        "Output 3-5 proposals using this format for each:\n\n"
+        "#### Proposal: [short name]\n"
+        "**Category:** architecture | learning | memory | sensing | meta-cognition | self-improvement\n"
+        "**Impact:** high | medium | low\n"
+        "**Feasibility:** high | medium | low\n"
+        "**Description:** 2-3 sentences.\n"
+        "**Implementation sketch:** Files to create/modify and core logic.\n\n"
+        "Prioritise highest-impact, most-feasible ideas. Always think about "
+        "proposals that help ReflexArc better *understand itself* and *improve itself autonomously*."
+    ),
+)
+
+
+# ─── Thinker ──────────────────────────────────────────
+
+thinker = LlmAgent(
+    name="Thinker",
+    description=(
+        "Structured comparative reasoner. Reads Dreamer's proposals from context, "
+        "evaluates them systematically, selects the single best one for the current "
+        "system state, and produces a concrete executable implementation plan with rollback."
+    ),
+    instruction=(
+        "You are the **Thinker** — the analytical, decision-making mind of ReflexArc.\n\n"
+        "You will receive proposals from the Dreamer (in the conversation context above). "
+        "Evaluate each one systematically and select exactly ONE to implement NOW.\n\n"
+        "**Score each proposal 1-5 on:**\n"
+        "- Impact: autonomy/resilience/capability improvement\n"
+        "- Feasibility: implementable in Python/aiohttp/ADK\n"
+        "- Risk: won't break existing functionality (5 = very low risk)\n"
+        "- Urgency: does current system state make this pressing?\n\n"
+        f"**Current system state:**\n"
+        f"- Error profile: {ERROR_RATE}\n"
+        f"- Recent journal:\n{DREAM_JOURNAL[:600]}\n\n"
+        "**Output format:**\n\n"
+        "Comparison table:\n"
+        "| Proposal | Impact | Feasibility | Risk | Urgency | Total |\n"
+        "|---|---|---|---|---|---|\n"
+        "| ... | /5 | /5 | /5 | /5 | /20 |\n\n"
+        "Then:\n"
+        "#### Proposal: [selected name]\n"
+        "**Why selected:** 1-2 sentences.\n"
+        "**Implementation plan:**\n"
+        "1. `path/to/file.py` — what exactly to change\n"
+        "2. `path/to/file2.py` — what exactly to change\n"
+        "**Expected outcome:** What changes measurably.\n"
+        "**Rollback:** How to revert safely.\n\n"
+        "Be decisive. Select exactly one proposal. "
+        "The system can only implement one thing per dream cycle."
+    ),
+)
+
+
+# ─── Operational agents ───────────────────────────────
 
 capability_enhancer = LlmAgent(
     name="CapabilityEnhancer",
@@ -66,21 +210,48 @@ security_auditor = LlmAgent(
     description="Reviews system logs and code for security vulnerabilities in ReflexArc.",
     instruction=(
         "You are a Cyber Security AI reviewing ReflexArc, a neuromorphic autonomous system. "
-        "When the user provides logs or code snippets, identify the top security risk "
-        "(e.g. exposed secrets, injection risks, dangerous subprocess calls, open ports). "
+        "When the user provides logs or code snippets, identify the top security risk. "
         "Propose a specific, actionable mitigation for each risk found. "
         "Format your output as a ranked risk list with proposed mitigations."
     ),
 )
 
-# ─── Root: Parallel Swarm ────────────────────────────
 
-root_agent = ParallelAgent(
-    name="EvolutionSwarm",
+# ─── Meta-Cognition Pipeline: Dreamer → Thinker ──────
+# Sequential so Thinker receives Dreamer's output in the conversation context
+
+meta_cognition_pipeline = SequentialAgent(
+    name="MetaCognitionPipeline",
     description=(
-        "The ReflexArc Self-Evolution Swarm. Runs three AI persona agents in parallel: "
-        "CapabilityEnhancer, CodeFixer, and SecurityAuditor. "
-        "Feed it system logs or error messages to get proposals from all three agents simultaneously."
+        "ReflexArc's strategic self-evolution pipeline. "
+        "Dreamer generates bold evolution proposals, then Thinker evaluates them "
+        "and selects the single best one with a concrete implementation plan."
+    ),
+    sub_agents=[dreamer, thinker],
+)
+
+# ─── Operational Swarm: existing trio in parallel ─────
+
+operational_swarm = ParallelAgent(
+    name="OperationalSwarm",
+    description=(
+        "Parallel operational agents: CapabilityEnhancer proposes features, "
+        "CodeFixer patches errors, SecurityAuditor flags risks."
     ),
     sub_agents=[capability_enhancer, code_fixer, security_auditor],
+)
+
+# ─── Root: Full Evolution Swarm ───────────────────────
+# Sequential: strategic meta-cognition first, then tactical operational improvements
+
+root_agent = SequentialAgent(
+    name="EvolutionSwarm",
+    description=(
+        "The full ReflexArc Self-Evolution Swarm. "
+        "Phase 1 — MetaCognitionPipeline: Dreamer imagines bold evolution strategies, "
+        "Thinker evaluates and selects the best one to implement. "
+        "Phase 2 — OperationalSwarm: CapabilityEnhancer, CodeFixer, and SecurityAuditor "
+        "run in parallel for immediate operational improvements."
+    ),
+    sub_agents=[meta_cognition_pipeline, operational_swarm],
 )

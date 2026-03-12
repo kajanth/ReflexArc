@@ -31,7 +31,7 @@ def run(data=None):
         Status message
     """
     event_desc = str(data)[:400] if data else "unknown"
-    logger.info("proprioception_deleted", event=event_desc)
+    logger.info("proprioception_deleted", evt=event_desc)
 
     # Try to extract the affected file path
     file_path = None

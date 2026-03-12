@@ -136,30 +136,30 @@
   },
   "new_process_pid": {
     "description": "AMYGDALA [ALERT]: 1 threat(s) detected \u2014 New process: parsec-fbf (PID: 65601, Us",
-    "occurrences": 729,
+    "occurrences": 838,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-03-12T16:25:44.878908",
+    "last_seen": "2026-03-12T17:00:20.177615",
     "resolved": true,
     "associated_skill": "auto_new_process_pid",
     "cluster_size": 6
   },
   "modified_proprioception": {
     "description": "Proprioception: MODIFIED: budget_enforcement.log; MODIFIED: long_term_memory.db;",
-    "occurrences": 328,
+    "occurrences": 365,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-03-12T16:25:44.878908",
+    "last_seen": "2026-03-12T17:00:20.177615",
     "resolved": true,
     "associated_skill": "auto_modified_proprioception",
-    "cluster_size": 9
+    "cluster_size": 7
   },
   "modified_proprioception_created": {
     "description": "Proprioception: MODIFIED: long_term_memory.db; CREATED: local_alerts.log; CREATE",
-    "occurrences": 220,
+    "occurrences": 300,
     "first_seen": "2026-02-23T14:24:46.163531",
-    "last_seen": "2026-03-12T16:25:44.878908",
+    "last_seen": "2026-03-12T17:00:20.177615",
     "resolved": true,
     "associated_skill": "auto_modified_proprioception_created",
-    "cluster_size": 6
+    "cluster_size": 31
   },
   "created_proprioception_modified": {
     "description": "Proprioception: CREATED: auto_cluster_4.py; MODIFIED: .DS_Store; CREATED: auto_c",
@@ -181,12 +181,12 @@
   },
   "pain_signal_warning": {
     "description": "PAIN SIGNAL [WARNING]: CPU at 99.1%",
-    "occurrences": 93,
+    "occurrences": 102,
     "first_seen": "2026-02-23T15:59:29.285070",
-    "last_seen": "2026-03-12T16:23:44.124464",
+    "last_seen": "2026-03-12T17:00:20.177615",
     "resolved": true,
     "associated_skill": "auto_pain_signal_warning",
-    "cluster_size": 5
+    "cluster_size": 9
   },
   "proprioception_modified_created": {
     "description": "Proprioception: MODIFIED: .DS_Store; CREATED: .DS_Store",
@@ -307,21 +307,21 @@
   },
   "usage_predicted_breach": {
     "description": "PHANTOM_SPIKE: CPU Usage predicted to breach 90.0% in ~9.0 min (currently 42.5%,",
-    "occurrences": 12,
+    "occurrences": 17,
     "first_seen": "2026-03-12T16:08:28.968292",
-    "last_seen": "2026-03-12T16:25:44.878908",
+    "last_seen": "2026-03-12T17:00:20.177615",
     "resolved": true,
     "associated_skill": "auto_usage_predicted_breach",
     "cluster_size": 2
   },
   "modified_proprioception_more": {
     "description": "Proprioception: MODIFIED: long_term_memory.db; MODIFIED: stats.json",
-    "occurrences": 15,
+    "occurrences": 30,
     "first_seen": "2026-03-12T16:18:56.919032",
-    "last_seen": "2026-03-12T16:25:44.878908",
+    "last_seen": "2026-03-12T17:00:20.177615",
     "resolved": true,
     "associated_skill": "auto_modified_proprioception_more",
-    "cluster_size": 6
+    "cluster_size": 2
   },
   "modified_proprioception_deleted": {
     "description": "Proprioception: CREATED: error_tasks.json; MODIFIED: error_tasks.json",

@@ -83,32 +83,37 @@ class BasalGanglia:
         """Asynchronously flush dirty habits to disk."""
         if not self._dirty:
             return
-        
+
+        temp_file = f"{HABITS_FILE}.tmp"
         try:
             os.makedirs(os.path.dirname(HABITS_FILE), exist_ok=True)
-            
+
             # Write to temp file first for atomicity
-            temp_file = f"{HABITS_FILE}.tmp"
-            
-            # Use asyncio to write without blocking
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(
                 None,
                 self._write_habits_sync,
-                temp_file
+                temp_file,
             )
-            
-            # Atomic rename
+
+            # Atomic rename — only reached if write succeeded
             os.replace(temp_file, HABITS_FILE)
-            
+
             self._dirty = False
             self._last_flush = time.time()
-            
+
             logger.debug("habits_flushed",
-                        habit_count=len(self.habits),
-                        file=HABITS_FILE)
+                         habit_count=len(self.habits),
+                         file=HABITS_FILE)
         except Exception as e:
             logger.error("habits_flush_failed", error=str(e))
+            # Clean up orphaned temp file so the next flush can retry cleanly
+            try:
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
+            except OSError:
+                pass
+
     
     def _write_habits_sync(self, filepath: str):
         """Synchronous write helper for executor."""

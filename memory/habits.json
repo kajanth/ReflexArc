@@ -1,7 +1,7 @@
 {
   "TEMPLATE:compose_alert": {
-    "count": 31,
-    "latency_multiplier": 0.2146387639429372,
+    "count": 34,
+    "latency_multiplier": 0.18402591023557577,
     "cost_multiplier": 0.1
   },
   "REFLEX:alert_notify": {
@@ -15,14 +15,14 @@
     "cost_multiplier": 1.0
   },
   "REFLEX:system_check": {
-    "count": 10,
-    "latency_multiplier": 0.6302494097246091,
-    "cost_multiplier": 0.38742048900000015
+    "count": 11,
+    "latency_multiplier": 0.5987369392383786,
+    "cost_multiplier": 0.34867844010000015
   },
   "REFLEX:quarantine_process": {
-    "count": 15,
-    "latency_multiplier": 0.48767497911552943,
-    "cost_multiplier": 0.22876792454961012
+    "count": 24,
+    "latency_multiplier": 0.30735686772502346,
+    "cost_multiplier": 0.1
   },
   "REFLEX:token_budget_enforcer": {
     "count": 14,
@@ -50,7 +50,7 @@
     "cost_multiplier": 0.7290000000000001
   },
   "REFLEX:auto_proprioception_modified": {
-    "count": 495,
+    "count": 531,
     "latency_multiplier": 0.1,
     "cost_multiplier": 0.1
   },
@@ -70,7 +70,7 @@
     "cost_multiplier": 0.9
   },
   "TEMPLATE:classify_threat": {
-    "count": 124,
+    "count": 143,
     "latency_multiplier": 0.1,
     "cost_multiplier": 0.1
   },
@@ -85,8 +85,33 @@
     "cost_multiplier": 1.0
   },
   "REFLEX:alert_security": {
-    "count": 10,
-    "latency_multiplier": 0.6302494097246091,
-    "cost_multiplier": 0.38742048900000015
+    "count": 12,
+    "latency_multiplier": 0.5688000922764596,
+    "cost_multiplier": 0.31381059609000017
+  },
+  "REFLEX:auto_usage_predicted_breach": {
+    "count": 2,
+    "latency_multiplier": 0.95,
+    "cost_multiplier": 0.9
+  },
+  "TEMPLATE:Multiple new processes detected, primarily `mdworker_shared` and `Google Chrome Helper (Renderer)`, potentially indicating a resource intensive task or malware activity. Need to investigate to determine legitimacy and impact.\n\nTEMPLATE": {
+    "count": 1,
+    "latency_multiplier": 1.0,
+    "cost_multiplier": 1.0
+  },
+  "REFLEX:auto_proprioception_created_modified": {
+    "count": 11,
+    "latency_multiplier": 0.5987369392383786,
+    "cost_multiplier": 0.34867844010000015
+  },
+  "REFLEX:auto_modified_proprioception_deleted": {
+    "count": 1,
+    "latency_multiplier": 1.0,
+    "cost_multiplier": 1.0
+  },
+  "REFLEX:forensic_snapshot": {
+    "count": 2,
+    "latency_multiplier": 0.95,
+    "cost_multiplier": 0.9
   }
 }

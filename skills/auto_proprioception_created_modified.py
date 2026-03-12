@@ -26,7 +26,7 @@ def run(data=None):
         Status message
     """
     event_desc = str(data)[:400] if data else "unknown"
-    logger.info("proprioception_created_modified", event=event_desc)
+    logger.info("proprioception_created_modified", evt=event_desc)
 
     # Try to extract the affected file path from the event description
     file_path = None
@@ -54,5 +54,5 @@ def run(data=None):
             logger.error("skill_syntax_error", file=file_path, error=str(e))
             return f"Syntax error in {file_path}: {e}"
 
-    logger.info("proprioception_created_modified_generic", event=event_desc)
+    logger.info("proprioception_created_modified_generic", evt=event_desc)
     return f"Filesystem create/modify event acknowledged: {event_desc[:120]}"

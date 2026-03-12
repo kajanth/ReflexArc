@@ -16,6 +16,7 @@ brain:
   health_check_timeout: 5.0  # seconds to wait for health checks (default: 5.0)
   quiet_web_logs: true      # set to true to suppress HTTP access logs from stdout
   enable_adk_ui: true       # set to true to launch the ADK developer UI (http://localhost:8000)
+  enable_daytime_evolution: true # set to true to allow self-evolution during normal/awake time
   
   # Database connection pooling configuration
   database:

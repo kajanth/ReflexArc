@@ -1,100 +1,5 @@
 [
   {
-    "timestamp": "2026-02-23T16:45:46.423938",
-    "memories_before": 40,
-    "memories_after": 39,
-    "duplicates_removed": 1,
-    "threshold": 0.92,
-    "merges": [
-      {
-        "kept": 2120,
-        "removed": 2095,
-        "similarity": 0.9644516706466675,
-        "kept_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon",
-        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
-      }
-    ]
-  },
-  {
-    "timestamp": "2026-02-23T16:49:13.627359",
-    "memories_before": 51,
-    "memories_after": 40,
-    "duplicates_removed": 11,
-    "threshold": 0.92,
-    "merges": [
-      {
-        "kept": 2123,
-        "removed": 2091,
-        "similarity": 1.0,
-        "kept_desc": "Proprioception: MODIFIED: .DS_Store",
-        "removed_desc": "Proprioception: MODIFIED: .DS_Store"
-      },
-      {
-        "kept": 2129,
-        "removed": 2096,
-        "similarity": 0.9349330067634583,
-        "kept_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon",
-        "removed_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon"
-      },
-      {
-        "kept": 2126,
-        "removed": 2102,
-        "similarity": 1.0000001192092896,
-        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD",
-        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
-      },
-      {
-        "kept": 2122,
-        "removed": 2107,
-        "similarity": 1.0,
-        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db",
-        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db"
-      },
-      {
-        "kept": 2125,
-        "removed": 2118,
-        "similarity": 0.942986011505127,
-        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%",
-        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 85.1%"
-      },
-      {
-        "kept": 2129,
-        "removed": 2119,
-        "similarity": 0.9303394556045532,
-        "kept_desc": "Proprioception: MODIFIED: .DS_Store; MODIFIED: lon",
-        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
-      },
-      {
-        "kept": 2124,
-        "removed": 2122,
-        "similarity": 1.0,
-        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db",
-        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db"
-      },
-      {
-        "kept": 2127,
-        "removed": 2124,
-        "similarity": 1.0,
-        "kept_desc": "Proprioception: MODIFIED: long_term_memory.db",
-        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db"
-      },
-      {
-        "kept": 2128,
-        "removed": 2125,
-        "similarity": 0.9786840677261353,
-        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 99.0%",
-        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%"
-      },
-      {
-        "kept": 2130,
-        "removed": 2128,
-        "similarity": 0.9786840677261353,
-        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 100.0%",
-        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 99.0%"
-      }
-    ]
-  },
-  {
     "timestamp": "2026-02-23T16:51:36.001758",
     "memories_before": 42,
     "memories_after": 42,
@@ -2267,6 +2172,164 @@
         "similarity": 1.0000001192092896,
         "kept_desc": "Proprioception: CREATED: habits.json.tmp; MODIFIED",
         "removed_desc": "Proprioception: CREATED: habits.json.tmp; MODIFIED"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T16:46:11.458244",
+    "memories_before": 173,
+    "memories_after": 115,
+    "duplicates_removed": 58,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 3227,
+        "removed": 764,
+        "similarity": 0.9331103563308716,
+        "kept_desc": "AMYGDALA [CRITICAL]: 21 threat(s) detected \u2014 New p",
+        "removed_desc": "AMYGDALA [CRITICAL]: 10 threat(s) detected \u2014 New p"
+      },
+      {
+        "kept": 3268,
+        "removed": 1911,
+        "similarity": 0.9917892813682556,
+        "kept_desc": "AMYGDALA [ALERT]: 1 threat(s) detected \u2014 New proce",
+        "removed_desc": "AMYGDALA [ALERT]: 1 threat(s) detected \u2014 New proce"
+      },
+      {
+        "kept": 3219,
+        "removed": 3006,
+        "similarity": 0.932992160320282,
+        "kept_desc": "Proprioception: MODIFIED: stats.json; MODIFIED: lo",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 3248,
+        "removed": 3072,
+        "similarity": 0.993110179901123,
+        "kept_desc": "PHANTOM_SPIKE: CPU Usage predicted to breach 90.0%",
+        "removed_desc": "PHANTOM_SPIKE: CPU Usage predicted to breach 90.0%"
+      },
+      {
+        "kept": 3219,
+        "removed": 3086,
+        "similarity": 0.9215993881225586,
+        "kept_desc": "Proprioception: MODIFIED: stats.json; MODIFIED: lo",
+        "removed_desc": "Proprioception: MODIFIED: long_term_memory.db; MOD"
+      },
+      {
+        "kept": 3252,
+        "removed": 3203,
+        "similarity": 0.9260063171386719,
+        "kept_desc": "Proprioception: MODIFIED: stats.json; CREATED: hab",
+        "removed_desc": "Proprioception: MODIFIED: error_tasks.json; MODIFI"
+      },
+      {
+        "kept": 3275,
+        "removed": 3213,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: quarantine_log.json; MOD",
+        "removed_desc": "Proprioception: MODIFIED: quarantine_log.json; MOD"
+      },
+      {
+        "kept": 3230,
+        "removed": 3215,
+        "similarity": 0.9297662973403931,
+        "kept_desc": "AMYGDALA [CRITICAL]: 12 threat(s) detected \u2014 New p",
+        "removed_desc": "AMYGDALA [ALERT]: 2 threat(s) detected \u2014 New proce"
+      },
+      {
+        "kept": 3220,
+        "removed": 3216,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: stats.json",
+        "removed_desc": "Proprioception: MODIFIED: stats.json"
+      },
+      {
+        "kept": 3225,
+        "removed": 3217,
+        "similarity": 1.0000001192092896,
+        "kept_desc": "Proprioception: CREATED: habits.json.tmp; MODIFIED",
+        "removed_desc": "Proprioception: CREATED: habits.json.tmp; MODIFIED"
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-03-12T17:00:20.265668",
+    "memories_before": 217,
+    "memories_after": 122,
+    "duplicates_removed": 95,
+    "threshold": 0.92,
+    "merges": [
+      {
+        "kept": 3309,
+        "removed": 2494,
+        "similarity": 0.9766829013824463,
+        "kept_desc": "Proprioception: MODIFIED: auto_proprioception_modi",
+        "removed_desc": "Proprioception: MODIFIED: auto_proprioception_modi"
+      },
+      {
+        "kept": 3297,
+        "removed": 2689,
+        "similarity": 0.9225034713745117,
+        "kept_desc": "AMYGDALA [CRITICAL]: 9 threat(s) detected \u2014 New pr",
+        "removed_desc": "AMYGDALA [CRITICAL]: 6 threat(s) detected \u2014 New pr"
+      },
+      {
+        "kept": 3369,
+        "removed": 2810,
+        "similarity": 0.9613116383552551,
+        "kept_desc": "AMYGDALA [CRITICAL]: 34 threat(s) detected \u2014 New p",
+        "removed_desc": "AMYGDALA [CRITICAL]: 28 threat(s) detected \u2014 New p"
+      },
+      {
+        "kept": 3321,
+        "removed": 2821,
+        "similarity": 0.965258002281189,
+        "kept_desc": "AMYGDALA [CRITICAL]: 8 threat(s) detected \u2014 New pr",
+        "removed_desc": "AMYGDALA [CRITICAL]: 3 threat(s) detected \u2014 New pr"
+      },
+      {
+        "kept": 3376,
+        "removed": 3088,
+        "similarity": 1.0,
+        "kept_desc": "Proprioception: MODIFIED: sensor_state.json",
+        "removed_desc": "Proprioception: MODIFIED: sensor_state.json"
+      },
+      {
+        "kept": 3295,
+        "removed": 3137,
+        "similarity": 0.9252405762672424,
+        "kept_desc": "AMYGDALA [CRITICAL]: 11 threat(s) detected \u2014 New p",
+        "removed_desc": "AMYGDALA [CRITICAL]: 31 threat(s) detected \u2014 New p"
+      },
+      {
+        "kept": 3321,
+        "removed": 3148,
+        "similarity": 0.9213520288467407,
+        "kept_desc": "AMYGDALA [CRITICAL]: 8 threat(s) detected \u2014 New pr",
+        "removed_desc": "AMYGDALA [CRITICAL]: 5 threat(s) detected \u2014 New pr"
+      },
+      {
+        "kept": 3378,
+        "removed": 3155,
+        "similarity": 0.9944535493850708,
+        "kept_desc": "AMYGDALA [ALERT]: 1 threat(s) detected \u2014 New proce",
+        "removed_desc": "AMYGDALA [ALERT]: 1 threat(s) detected \u2014 New proce"
+      },
+      {
+        "kept": 3302,
+        "removed": 3199,
+        "similarity": 0.9749919176101685,
+        "kept_desc": "PAIN SIGNAL [WARNING]: CPU at 93.3%",
+        "removed_desc": "PAIN SIGNAL [WARNING]: CPU at 96.3%"
+      },
+      {
+        "kept": 3304,
+        "removed": 3205,
+        "similarity": 0.9729160070419312,
+        "kept_desc": "AMYGDALA [CRITICAL]: 8 threat(s) detected \u2014 New pr",
+        "removed_desc": "AMYGDALA [CRITICAL]: 5 threat(s) detected \u2014 New pr"
       }
     ]
   }

@@ -52,6 +52,7 @@ class BrainConfigSchema(BaseModel):
     health_check_timeout: float = Field(5.0, ge=1.0, le=30.0, description="Timeout for health checks in seconds")
     quiet_web_logs: bool = Field(False, description="Suppress HTTP access logs from stdout when True")
     enable_adk_ui: bool = Field(False, description="Launch ADK Developer UI at http://localhost:8000 when True")
+    enable_daytime_evolution: bool = Field(False, description="Allow self-evolution to run continuously in the background during awake/normal time")
     database: Optional[DatabaseConfigSchema] = Field(default_factory=DatabaseConfigSchema, description="Database configuration")
     embedding_model: Optional[EmbeddingModelConfigSchema] = Field(default_factory=EmbeddingModelConfigSchema, description="Embedding model configuration")
     
