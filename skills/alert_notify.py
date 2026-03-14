@@ -15,6 +15,7 @@ import json
 import time
 import urllib.request
 import urllib.error
+from utils.ssrf_protection import is_safe_url
 
 
 CONFIG_FILE = "memory/notify_config.json"
@@ -38,7 +39,12 @@ def run(data=None):
         channel_type = channel.get("type", "webhook")
         url = channel.get("url")
 
+
         if not url:
+            continue
+
+        if not is_safe_url(url):
+            results.append(f"{channel.get('name', channel_type)}: BLOCKED (SSRF protection)")
             continue
 
         try:
