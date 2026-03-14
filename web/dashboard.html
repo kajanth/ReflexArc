@@ -42,6 +42,12 @@
             overflow-x: hidden;
         }
 
+        /* Focus Styles for Accessibility */
+        :focus-visible {
+            outline: 2px solid var(--accent-blue);
+            outline-offset: 2px;
+        }
+
         /* Header */
         .header {
             background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
@@ -731,7 +737,8 @@
             </div>
             <span id="uptime">—</span>
             <span id="dream-state" style="cursor:pointer;font-size:13px" onclick="triggerDream()"
-                title="Click to trigger dream cycle">☀️ AWAKE</span>
+                onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); triggerDream(); }"
+                role="button" tabindex="0" title="Click to trigger dream cycle">☀️ AWAKE</span>
             <span id="clock"></span>
         </div>
     </div>
@@ -1238,7 +1245,7 @@
                 <div class="card-header"
                     style="border-bottom-color:var(--accent-blue);position:sticky;top:0;z-index:10;background:var(--bg-card)">
                     ⚡ Endpoints
-                    <input id="api-search" type="text" placeholder="Filter…"
+                    <input id="api-search" type="text" placeholder="Filter…" aria-label="Filter API endpoints"
                         style="background:#111827;border:1px solid var(--border);color:var(--text-primary);border-radius:5px;padding:3px 8px;font-size:11px;font-family:'JetBrains Mono',monospace;width:90px"
                         oninput="filterApiEndpoints(this.value)">
                 </div>
@@ -1270,7 +1277,7 @@
                                 <div
                                     style="font-size:10px;color:var(--text-muted);margin-bottom:6px;font-family:'JetBrains Mono',monospace">
                                     REQUEST BODY (JSON)</div>
-                                <textarea id="api-body-editor"
+                                <textarea id="api-body-editor" aria-label="API request body in JSON format"
                                     style="width:100%;min-height:140px;background:#0d1117;border:1px solid var(--border);color:#e5e7eb;border-radius:6px;padding:10px;font-size:12px;font-family:'JetBrains Mono',monospace;resize:vertical;outline:none"
                                     placeholder="{}"></textarea>
                                 <div style="margin-top:8px;font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace"
@@ -1280,13 +1287,13 @@
                                 <div
                                     style="font-size:10px;color:var(--text-muted);margin-bottom:6px;font-family:'JetBrains Mono',monospace">
                                     QUERY PARAMS</div>
-                                <textarea id="api-params-editor"
+                                <textarea id="api-params-editor" aria-label="API query parameters in JSON format"
                                     style="width:100%;min-height:80px;background:#0d1117;border:1px solid var(--border);color:#e5e7eb;border-radius:6px;padding:10px;font-size:12px;font-family:'JetBrains Mono',monospace;resize:vertical;outline:none"
                                     placeholder='{"limit": 20}'></textarea>
                                 <div
                                     style="font-size:10px;color:var(--text-muted);margin-top:8px;font-family:'JetBrains Mono',monospace">
                                     HEADERS</div>
-                                <textarea id="api-headers-editor"
+                                <textarea id="api-headers-editor" aria-label="API request headers in JSON format"
                                     style="width:100%;min-height:50px;background:#0d1117;border:1px solid var(--border);color:#e5e7eb;border-radius:6px;padding:10px;font-size:12px;font-family:'JetBrains Mono',monospace;resize:vertical;outline:none"
                                     placeholder='{"Content-Type": "application/json"}'></textarea>
                             </div>
@@ -2514,7 +2521,7 @@
                             </div>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" ${info.enabled ? 'checked' : ''}
+                            <input type="checkbox" aria-label="Toggle ${info.label || name} sensor" ${info.enabled ? 'checked' : ''}
                                    onchange="toggleSensor('${name}', this.checked)">
                             <span class="toggle-slider"></span>
                         </label>
