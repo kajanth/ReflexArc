@@ -159,6 +159,10 @@ def _add_endpoint(data):
         return "Invalid format. Use: add:<name>:<url>[:<method>]"
 
     _, name, url = parts[0], parts[1], parts[2]
+
+    if not is_safe_url(url):
+        return f"BLOCKED: URL '{url}' is not safe (SSRF protection)"
+
     method = parts[3] if len(parts) > 3 else "GET"
 
     endpoints = _load_endpoints()
