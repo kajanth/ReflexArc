@@ -7,32 +7,39 @@ class CuriositySensor:
         self.cost_limit = cost_limit
         self.latency_threshold = latency_threshold
         self.stats_file = "memory/stats.json"
+        self.stats = {"total_spent": 0.0, "avg_latency": 0.0, "calls": 0}
         self._init_stats()
 
     def _init_stats(self):
+        os.makedirs(os.path.dirname(self.stats_file), exist_ok=True)
         if not os.path.exists(self.stats_file):
             with open(self.stats_file, "w") as f:
-                json.dump({"total_spent": 0.0, "avg_latency": 0.0, "calls": 0}, f)
+                json.dump(self.stats, f)
+        else:
+            try:
+                with open(self.stats_file, "r") as f:
+                    self.stats = json.load(f)
+            except Exception:
+                pass
 
     def get_internal_state(self):
-        with open(self.stats_file, "r") as f:
-            stats = json.load(f)
-        
+        # ⚡ Bolt: Use in-memory stats to avoid synchronous file read
+        # Impact: Prevents stalling the event loop on frequent reads
         # Logic: Is the AI becoming "bloated" or "expensive"?
-        if stats["total_spent"] > self.cost_limit:
+        if self.stats["total_spent"] > self.cost_limit:
             return "FINANCIAL_PAIN"
-        if stats["avg_latency"] > self.latency_threshold:
+        if self.stats["avg_latency"] > self.latency_threshold:
             return "COGNITIVE_LUGGISHNESS"
         
         return "STABLE"
 
     def log_event(self, cost, latency):
-        with open(self.stats_file, "r+") as f:
-            stats = json.load(f)
-            stats["total_spent"] += cost
-            stats["calls"] += 1
-            # Rolling average for latency
-            stats["avg_latency"] = ((stats["avg_latency"] * (stats["calls"]-1)) + latency) / stats["calls"]
-            f.seek(0)
-            json.dump(stats, f)
-            f.truncate()
+        # ⚡ Bolt: Update in-memory stats and write without reading
+        # Impact: Halves the synchronous file I/O operations per event
+        self.stats["total_spent"] += cost
+        self.stats["calls"] += 1
+        # Rolling average for latency
+        self.stats["avg_latency"] = ((self.stats["avg_latency"] * (self.stats["calls"]-1)) + latency) / self.stats["calls"]
+
+        with open(self.stats_file, "w") as f:
+            json.dump(self.stats, f)
