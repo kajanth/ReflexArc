@@ -595,6 +595,11 @@
             background: #fff;
         }
 
+        .toggle-switch input:focus-visible+.toggle-slider {
+            outline: 2px solid var(--accent-blue);
+            outline-offset: 2px;
+        }
+
         .memory-item {
             padding: 6px 0;
             border-bottom: 1px solid var(--border);
@@ -1382,6 +1387,10 @@
         .api-ep-item {
             display: flex;
             align-items: center;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
             gap: 7px;
             padding: 6px 8px;
             border-radius: 5px;
@@ -1735,11 +1744,11 @@
             container.innerHTML = Object.entries(groups).map(([grp, eps]) => `
                 <div class="api-group-label">${grp}</div>
                 ${eps.map((ep, i) => `
-                    <div class="api-ep-item ${selectedEndpoint === ep ? 'selected' : ''}"
+                    <button type="button" class="api-ep-item ${selectedEndpoint === ep ? 'selected' : ''}"
                          onclick="selectEndpoint(API_ENDPOINTS[${API_ENDPOINTS.indexOf(ep)}])">
                         <span class="api-method method-${ep.method.toLowerCase()}">${ep.method}</span>
                         <span class="api-ep-label" title="${ep.path}">${ep.path}</span>
-                    </div>`).join('')}
+                    </button>`).join('')}
             `).join('');
         }
 
