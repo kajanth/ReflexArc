@@ -83,8 +83,12 @@ def _attempt_block(ip, port=None):
             # Note: Requires root. Will gracefully fail without it.
             rule = f"block drop from any to {ip}\n"
             rule_file = "/tmp/nsa_pf_rules.conf"
-            with open(rule_file, "a") as f:
+
+            # Secure file creation with restrictive permissions (0o600)
+            fd = os.open(rule_file, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+            with os.fdopen(fd, "a") as f:
                 f.write(rule)
+
             # Attempting to load the rule (requires sudo)
             result = subprocess.run(
                 ["pfctl", "-f", rule_file],
