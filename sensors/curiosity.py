@@ -11,28 +11,29 @@ class CuriositySensor:
 
     def _init_stats(self):
         if not os.path.exists(self.stats_file):
+            self.stats = {"total_spent": 0.0, "avg_latency": 0.0, "calls": 0}
             with open(self.stats_file, "w") as f:
-                json.dump({"total_spent": 0.0, "avg_latency": 0.0, "calls": 0}, f)
+                json.dump(self.stats, f)
+        else:
+            with open(self.stats_file, "r") as f:
+                self.stats = json.load(f)
 
     def get_internal_state(self):
-        with open(self.stats_file, "r") as f:
-            stats = json.load(f)
-        
+        # ⚡ Bolt: Cache internal state in memory to prevent synchronous file I/O bottleneck
         # Logic: Is the AI becoming "bloated" or "expensive"?
-        if stats["total_spent"] > self.cost_limit:
+        if self.stats["total_spent"] > self.cost_limit:
             return "FINANCIAL_PAIN"
-        if stats["avg_latency"] > self.latency_threshold:
+        if self.stats["avg_latency"] > self.latency_threshold:
             return "COGNITIVE_LUGGISHNESS"
         
         return "STABLE"
 
     def log_event(self, cost, latency):
-        with open(self.stats_file, "r+") as f:
-            stats = json.load(f)
-            stats["total_spent"] += cost
-            stats["calls"] += 1
-            # Rolling average for latency
-            stats["avg_latency"] = ((stats["avg_latency"] * (stats["calls"]-1)) + latency) / stats["calls"]
-            f.seek(0)
-            json.dump(stats, f)
-            f.truncate()
+        # ⚡ Bolt: Update cached state directly, avoid reading from disk on every event
+        self.stats["total_spent"] += cost
+        self.stats["calls"] += 1
+        # Rolling average for latency
+        self.stats["avg_latency"] = ((self.stats["avg_latency"] * (self.stats["calls"]-1)) + latency) / self.stats["calls"]
+
+        with open(self.stats_file, "w") as f:
+            json.dump(self.stats, f)
