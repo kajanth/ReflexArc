@@ -595,6 +595,11 @@
             background: #fff;
         }
 
+        .toggle-switch input:focus-visible+.toggle-slider {
+            outline: 2px solid var(--accent-blue);
+            outline-offset: 2px;
+        }
+
         .memory-item {
             padding: 6px 0;
             border-bottom: 1px solid var(--border);
@@ -1391,6 +1396,10 @@
             color: var(--text-secondary);
             transition: background .12s, color .12s;
             user-select: none;
+            background: none;
+            border: none;
+            text-align: left;
+            width: 100%;
         }
 
         .api-ep-item:hover {
@@ -1735,11 +1744,11 @@
             container.innerHTML = Object.entries(groups).map(([grp, eps]) => `
                 <div class="api-group-label">${grp}</div>
                 ${eps.map((ep, i) => `
-                    <div class="api-ep-item ${selectedEndpoint === ep ? 'selected' : ''}"
+                    <button type="button" class="api-ep-item ${selectedEndpoint === ep ? 'selected' : ''}"
                          onclick="selectEndpoint(API_ENDPOINTS[${API_ENDPOINTS.indexOf(ep)}])">
                         <span class="api-method method-${ep.method.toLowerCase()}">${ep.method}</span>
                         <span class="api-ep-label" title="${ep.path}">${ep.path}</span>
-                    </div>`).join('')}
+                    </button>`).join('')}
             `).join('');
         }
 
@@ -1818,14 +1827,14 @@
             if (!el) return;
             const statusColor = s => s < 300 ? 'var(--accent-green)' : s < 400 ? 'var(--accent-yellow)' : 'var(--accent-red)';
             el.innerHTML = apiHistory.map((h, i) => `
-                <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border);cursor:pointer"
+                <button type="button" style="display:flex;align-items:center;gap:8px;padding:4px 0;border:none;border-bottom:1px solid var(--border);background:none;width:100%;text-align:left;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px"
                      onclick="replayHistory(${i})">
                     <span class="api-method method-${h.method.toLowerCase()}">${h.method}</span>
                     <span style="flex:1;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.path}</span>
                     <span style="color:${statusColor(h.status)}">${h.status}</span>
                     <span style="color:var(--text-muted)">${h.elapsed}ms</span>
                     <span style="color:var(--text-muted);font-size:10px">${h.ts}</span>
-                </div>`).join('');
+                </button>`).join('');
         }
 
         function replayHistory(i) {
