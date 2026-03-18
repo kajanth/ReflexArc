@@ -10,13 +10,19 @@ class CuriositySensor:
         self._init_stats()
 
     def _init_stats(self):
+        # ⚡ Bolt: Cache state in memory to prevent synchronous file I/O bottlenecks
+        # Impact: Removes blocking disk reads during get_internal_state
         if not os.path.exists(self.stats_file):
+            self.stats = {"total_spent": 0.0, "avg_latency": 0.0, "calls": 0}
             with open(self.stats_file, "w") as f:
-                json.dump({"total_spent": 0.0, "avg_latency": 0.0, "calls": 0}, f)
+                json.dump(self.stats, f)
+        else:
+            with open(self.stats_file, "r") as f:
+                self.stats = json.load(f)
 
     def get_internal_state(self):
-        with open(self.stats_file, "r") as f:
-            stats = json.load(f)
+        # Read from in-memory dictionary rather than reading from disk
+        stats = self.stats
         
         # Logic: Is the AI becoming "bloated" or "expensive"?
         if stats["total_spent"] > self.cost_limit:
@@ -27,12 +33,12 @@ class CuriositySensor:
         return "STABLE"
 
     def log_event(self, cost, latency):
-        with open(self.stats_file, "r+") as f:
-            stats = json.load(f)
-            stats["total_spent"] += cost
-            stats["calls"] += 1
-            # Rolling average for latency
-            stats["avg_latency"] = ((stats["avg_latency"] * (stats["calls"]-1)) + latency) / stats["calls"]
-            f.seek(0)
-            json.dump(stats, f)
-            f.truncate()
+        # Update in-memory dictionary first
+        self.stats["total_spent"] += cost
+        self.stats["calls"] += 1
+        # Rolling average for latency
+        self.stats["avg_latency"] = ((self.stats["avg_latency"] * (self.stats["calls"]-1)) + latency) / self.stats["calls"]
+
+        # Write the updated stats to disk
+        with open(self.stats_file, "w") as f:
+            json.dump(self.stats, f)
