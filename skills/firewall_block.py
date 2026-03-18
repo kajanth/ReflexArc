@@ -82,14 +82,25 @@ def _attempt_block(ip, port=None):
             # macOS: Add to pf block table
             # Note: Requires root. Will gracefully fail without it.
             rule = f"block drop from any to {ip}\n"
-            rule_file = "/tmp/nsa_pf_rules.conf"
-            with open(rule_file, "a") as f:
+            import tempfile
+
+            # 🛡️ Sentinel: Securely create a temporary file for firewall rules to prevent symlink attacks
+            fd, rule_file = tempfile.mkstemp(prefix="nsa_pf_", suffix=".conf")
+            with os.fdopen(fd, "w") as f:
                 f.write(rule)
+
             # Attempting to load the rule (requires sudo)
             result = subprocess.run(
                 ["pfctl", "-f", rule_file],
                 capture_output=True, timeout=5,
             )
+
+            # Clean up the temporary file securely
+            try:
+                os.remove(rule_file)
+            except OSError:
+                pass
+
             return result.returncode == 0
 
         elif system == "linux":
