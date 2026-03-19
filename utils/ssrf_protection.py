@@ -1,5 +1,7 @@
 import ipaddress
 import socket
+import urllib.request
+import urllib.error
 from urllib.parse import urlparse
 
 
@@ -40,3 +42,25 @@ def is_safe_url(url: str) -> bool:
     except Exception:
         # Fail securely
         return False
+
+
+class SSRFProtectRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """
+    A custom redirect handler that verifies the safety of the target URL
+    before allowing the redirect to proceed. This prevents SSRF attacks
+    where an attacker provides a safe URL that redirects to a malicious
+    internal IP address.
+    """
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not is_safe_url(newurl):
+            raise urllib.error.URLError(f"Blocked redirect to unsafe URL (SSRF protection): {newurl}")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def safe_urlopen(url, *args, **kwargs):
+    """
+    A wrapper around urllib.request.urlopen that uses a custom opener
+    with SSRF protection for redirects.
+    """
+    opener = urllib.request.build_opener(SSRFProtectRedirectHandler())
+    return opener.open(url, *args, **kwargs)
