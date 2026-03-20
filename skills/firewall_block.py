@@ -82,9 +82,18 @@ def _attempt_block(ip, port=None):
             # macOS: Add to pf block table
             # Note: Requires root. Will gracefully fail without it.
             rule = f"block drop from any to {ip}\n"
-            rule_file = "/tmp/nsa_pf_rules.conf"
-            with open(rule_file, "a") as f:
+
+            # Sentinel: Create or append securely in a persistent directory
+            rule_file = "memory/nsa_pf_rules.conf"
+            os.makedirs("memory", exist_ok=True)
+
+            # Use os.open with O_CREAT and O_APPEND to ensure permissions are restricted
+            fd = os.open(rule_file, os.O_CREAT | os.O_WRONLY | os.O_APPEND, 0o600)
+
+            # Use fdopen to write to the specific file descriptor securely
+            with os.fdopen(fd, 'a') as f:
                 f.write(rule)
+
             # Attempting to load the rule (requires sudo)
             result = subprocess.run(
                 ["pfctl", "-f", rule_file],
