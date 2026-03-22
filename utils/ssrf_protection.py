@@ -40,3 +40,24 @@ def is_safe_url(url: str) -> bool:
     except Exception:
         # Fail securely
         return False
+
+import urllib.request
+import urllib.error
+
+class SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not is_safe_url(newurl):
+            raise urllib.error.URLError(f"Blocked unsafe redirect to {newurl}")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+def safe_urlopen(url, *args, **kwargs):
+    """
+    Drop-in replacement for urllib.request.urlopen that enforces SSRF
+    protections on both the initial URL and any subsequent redirects.
+    """
+    req_url = url.full_url if isinstance(url, urllib.request.Request) else url
+    if not is_safe_url(req_url):
+        raise urllib.error.URLError(f"Blocked unsafe URL: {req_url}")
+
+    opener = urllib.request.build_opener(SafeRedirectHandler())
+    return opener.open(url, *args, **kwargs)

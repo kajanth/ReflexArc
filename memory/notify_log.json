@@ -23,5 +23,10 @@
     "timestamp": "2026-03-06 16:21:57",
     "event": "Significant motion detected (Intensity: 189571, Threshold: 20000)",
     "results": []
+  },
+  {
+    "timestamp": "2026-03-22 01:30:31",
+    "event": "This is a test alert!",
+    "results": []
   }
 ]
