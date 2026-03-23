@@ -208,7 +208,7 @@ class SecretsManager:
                 secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
                 region = os.getenv('AWS_DEFAULT_REGION')
                 
-                if not re.match(r'^AKIA[0-9A-Z]{16}$', access_key):
+                if not re.match(r'^[A-Z0-9]{20}$', access_key):
                     errors.append("Invalid AWS Access Key ID format")
                 
                 if len(secret_key) != 40:

@@ -15,6 +15,7 @@ import os
 import time
 import urllib.request
 import urllib.error
+from utils.ssrf_protection import is_safe_url, safe_urlopen
 
 
 ENDPOINTS_FILE = "memory/api_endpoints.json"
@@ -87,8 +88,13 @@ def _call_endpoint(name):
         available = ", ".join(sorted(endpoints.keys()))
         return f"Unknown endpoint '{name}'. Available: {available}"
 
+
     endpoint = endpoints[name]
     url = endpoint["url"]
+
+    if not is_safe_url(url):
+        return f"BLOCKED: URL '{url}' is not safe (SSRF protection)"
+
     method = endpoint.get("method", "GET").upper()
     headers = endpoint.get("headers", {})
     body = endpoint.get("body")
@@ -104,7 +110,7 @@ def _call_endpoint(name):
             req.add_header(key, val)
 
         start = time.time()
-        resp = urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT)
+        resp = safe_urlopen(req, timeout=DEFAULT_TIMEOUT)
         latency = time.time() - start
 
         response_body = resp.read().decode("utf-8", errors="replace")

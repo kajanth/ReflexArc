@@ -309,5 +309,30 @@ class TestRateLimiter:
         assert self.rate_limiter._get_endpoint_key("/status") is None
 
 
+
+def test_ssrf_protection():
+    """Test that SSRF protection correctly identifies safe and unsafe URLs."""
+    from utils.ssrf_protection import is_safe_url
+
+    # Test safe URLs
+    assert is_safe_url("https://example.com") is True
+    assert is_safe_url("http://google.com") is True
+
+    # Test unsafe IP addresses
+    assert is_safe_url("http://127.0.0.1") is False
+    assert is_safe_url("https://10.0.0.5") is False
+    assert is_safe_url("http://192.168.1.100") is False
+    assert is_safe_url("http://169.254.169.254/latest/meta-data/") is False
+    assert is_safe_url("http://0.0.0.0") is False
+
+    # Test unsafe hostnames that resolve to local/internal IP
+    assert is_safe_url("http://localhost") is False
+
+    # Test invalid/malformed URLs
+    assert is_safe_url("ftp://example.com") is False
+    assert is_safe_url("file:///etc/passwd") is False
+    assert is_safe_url("not_a_url") is False
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

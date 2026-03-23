@@ -17,7 +17,7 @@ os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 
 logger = get_logger(__name__)
 
-async def shutdown(sig, loop, sensor_mgr, brain=None, heart=None, mcp_manager=None):
+async def shutdown(sig, loop, sensor_mgr, brain=None, heart=None, mcp_manager=None, adk_process=None):
     """Cleanup all sensory hardware and sub-processes on exit."""
     logger.info("shutdown_initiated", signal=sig.name)
     
@@ -47,6 +47,13 @@ async def shutdown(sig, loop, sensor_mgr, brain=None, heart=None, mcp_manager=No
     cleanup_dream_model()
     logger.info("embedding_models_cleaned_up")
     
+    if adk_process:
+        try:
+            adk_process.terminate()
+            logger.info("adk_ui_terminated")
+        except Exception as e:
+            logger.warning("adk_ui_terminate_failed", error=str(e))
+            
     sensor_mgr.release_all()
     logger.info("sensors_released")
     
@@ -179,6 +186,15 @@ async def main():
     # 3. Start API Server (External Stimulus Receptor + Dashboard)
     api_port = int(os.environ.get("NSA_API_PORT", "8080"))
     vision_sensor = sensor_mgr.get_sensor("vision")
+    
+    # Suppress noisy aiohttp access logs if quiet_web_logs is enabled
+    brain_cfg = config.config.get("brain", {})
+    quiet_web_logs = brain_cfg.get("quiet_web_logs", False)
+    if quiet_web_logs:
+        import logging
+        logging.getLogger("aiohttp.access").setLevel(logging.WARNING)
+        logger.info("quiet_web_logs_enabled", message="HTTP access log suppressed")
+
     api = NSAApiServer(brain=brain, port=api_port,
                        vision_sensor=vision_sensor, sensor_mgr=sensor_mgr)
     await api.start()
@@ -210,12 +226,37 @@ async def main():
     # 9. Start Basal Ganglia Periodic Flush (Write-Behind Caching)
     await brain.basal_ganglia.start_periodic_flush()
 
+    adk_process = None
+    # Check both brain.yaml config and env var (env var takes precedence)
+    enable_adk_ui = brain_cfg.get("enable_adk_ui", False)
+    enable_adk_ui = enable_adk_ui or os.environ.get("NSA_ENABLE_ADK_UI", "").lower() == "true"
+    if enable_adk_ui:
+        logger.info("starting_adk_ui", message="Attempting to start local ADK Developer Server via 'adk web'")
+        import subprocess
+        try:
+            adk_agents_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "adk_agents")
+            adk_session_db = os.path.join(os.path.dirname(os.path.abspath(__file__)), "memory", ".adk", "session.db")
+            adk_session_uri = f"sqlite:///{adk_session_db}"
+            adk_process = subprocess.Popen(
+                [
+                    "adk", "web", adk_agents_dir,
+                    "--session_service_uri", adk_session_uri,
+                    "--reload_agents",
+                ], 
+                stdout=subprocess.DEVNULL, 
+                stderr=subprocess.DEVNULL
+            )
+            logger.info("adk_ui_started", url="http://localhost:8000",
+                        agents_dir=adk_agents_dir, session_db=adk_session_db)
+        except Exception as e:
+            logger.warning("adk_ui_startup_failed", error=str(e), message="Is google-adk installed and 'adk' in PATH?")
+
     # Handle graceful shutdowns (Ctrl+C)
     loop = asyncio.get_running_loop()
     for sig_type in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(
             sig_type, lambda s=sig_type: asyncio.create_task(
-                shutdown(s, loop, sensor_mgr, brain, heart, mcp_manager)
+                shutdown(s, loop, sensor_mgr, brain, heart, mcp_manager, adk_process)
             )
         )
 

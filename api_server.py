@@ -109,6 +109,17 @@ class NSAApiServer:
         self.app.router.add_get("/patterns", self._handle_patterns)
         self.app.router.add_post("/dream/trigger", self._handle_dream_trigger)
 
+        # Proposal Queue & Error Whitelist
+        self.app.router.add_get("/proposals/queue", self._handle_proposal_queue)
+        self.app.router.add_post("/errors/whitelist", self._handle_whitelist_error)
+        self.app.router.add_post("/errors/dismiss", self._handle_dismiss_error)
+        self.app.router.add_get("/errors/whitelist", self._handle_get_whitelist)
+
+        # Agent Log Readers (dashboard)
+        self.app.router.add_get("/agent_logs/changes", self._handle_changes_log)
+        self.app.router.add_get("/agent_logs/activity", self._handle_activity_log)
+
+
         # Goal System (Prefrontal Cortex)
         self.app.router.add_get("/goals", self._handle_goals)
         self.app.router.add_post("/goal", self._handle_create_goal)
@@ -274,6 +285,8 @@ class NSAApiServer:
                 return json.load(f)
 
         try:
+            # ⚡ Bolt: Offload synchronous file I/O to a background thread
+            # Impact: Prevents blocking the asyncio event loop during disk reads
             stats = await asyncio.to_thread(_read_stats)
             return web.json_response(stats)
         except Exception:
@@ -432,15 +445,14 @@ class NSAApiServer:
 
     async def _handle_skills(self, request):
         """GET /skills — List all available skills and templates."""
-        def _get_skills():
-            skills = []
-            if os.path.exists("skills"):
-                for f in sorted(os.listdir("skills")):
-                    if f.endswith(".py") and f != "__init__.py":
-                        skills.append(f.replace(".py", ""))
-            return skills
+        skills = []
+        # ⚡ Bolt: Offload synchronous os.listdir to a background thread
+        # Impact: Reduces blocking on disk I/O when reading the directory contents
+        skill_files = await asyncio.to_thread(os.listdir, "skills")
+        for f in sorted(skill_files):
+            if f.endswith(".py") and f != "__init__.py":
+                skills.append(f.replace(".py", ""))
 
-        skills = await asyncio.to_thread(_get_skills)
         templates = self.brain.template_engine.get_available_templates()
 
         return web.json_response({
@@ -454,23 +466,27 @@ class NSAApiServer:
         limit = int(request.query.get("limit", "10"))
         limit = min(limit, 50)
 
-        def _fetch_memories():
+        def _fetch_memories(limit_val):
             import sqlite3
             db_path = "memory/long_term_memory.db"
             if not os.path.exists(db_path):
                 return []
 
             conn = sqlite3.connect(db_path)
-            try:
-                cursor = conn.cursor()
-                cursor.execute(
-                    "SELECT timestamp, sense_type, description "
-                    "FROM memories ORDER BY timestamp DESC LIMIT ?",
-                    (limit,)
-                )
-                return cursor.fetchall()
-            finally:
-                conn.close()
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT timestamp, sense_type, description "
+                "FROM memories ORDER BY timestamp DESC LIMIT ?",
+                (limit_val,)
+            )
+            rows = cursor.fetchall()
+            conn.close()
+            return rows
+
+        try:
+            # ⚡ Bolt: Offload synchronous SQLite operations to a background thread
+            # Impact: Prevents database query latencies from stalling the asyncio event loop
+            rows = await asyncio.to_thread(_fetch_memories, limit)
 
         try:
             rows = await asyncio.to_thread(_fetch_memories)
@@ -863,6 +879,128 @@ class NSAApiServer:
         except Exception as e:
             print(f"[ApiServer] Error processing webhook from '{source}': {e}")
             return web.json_response({"error": f"Invalid payload: {e}"}, status=400)
+
+    async def _handle_proposal_queue(self, request):
+        """GET /proposals/queue — View the proposal backlog with optional ?status= filter."""
+        def _get_queue_data(status_filter):
+            from utils.proposal_queue import load_queue, queue_stats
+            queue = load_queue()
+            if status_filter:
+                queue = [p for p in queue if p.get("status") == status_filter]
+            return {
+                "stats": queue_stats(),
+                "proposals": queue[-50:],
+            }
+
+        status_filter = request.rel_url.query.get("status")
+        # ⚡ Bolt: Offload synchronous file operations to a background thread
+        data = await asyncio.to_thread(_get_queue_data, status_filter)
+        return web.json_response(data)
+
+    async def _handle_whitelist_error(self, request):
+        """POST /errors/whitelist — Suppress future alerts for a recurring error."""
+        try:
+            data = await request.json()
+        except Exception:
+            data = {}
+        error_key = data.get("error_key", "")
+        if not error_key:
+            return web.json_response({"error": "error_key is required"}, status=400)
+
+        def _whitelist_and_review(key):
+            from utils.error_whitelist import whitelist_error, mark_errors_reviewed
+            whitelist_error(key, reason="user_whitelisted_via_dashboard")
+            mark_errors_reviewed(key)
+
+        # ⚡ Bolt: Offload synchronous file operations to a background thread
+        await asyncio.to_thread(_whitelist_and_review, error_key)
+        return web.json_response({
+            "status": "whitelisted",
+            "error_key": error_key,
+            "message": f"This error will no longer generate alerts.",
+        })
+
+    async def _handle_dismiss_error(self, request):
+        """POST /errors/dismiss — Mark errors reviewed without whitelisting."""
+        try:
+            data = await request.json()
+        except Exception:
+            data = {}
+        error_key = data.get("error_key", "")
+        if not error_key:
+            return web.json_response({"error": "error_key is required"}, status=400)
+
+        def _mark_reviewed(key):
+            from utils.error_whitelist import mark_errors_reviewed
+            mark_errors_reviewed(key)
+
+        # ⚡ Bolt: Offload synchronous file operations to a background thread
+        await asyncio.to_thread(_mark_reviewed, error_key)
+        return web.json_response({
+            "status": "dismissed",
+            "error_key": error_key,
+            "message": "Errors marked as reviewed — will re-alert if they recur.",
+        })
+
+    async def _handle_get_whitelist(self, request):
+        """GET /errors/whitelist — View the current error whitelist."""
+        def _get_whitelist_data():
+            from utils.error_whitelist import load_whitelist
+            return load_whitelist()
+
+        # ⚡ Bolt: Offload synchronous file operations to a background thread
+        data = await asyncio.to_thread(_get_whitelist_data)
+        return web.json_response(data)
+
+    async def _handle_changes_log(self, request):
+        """GET /agent_logs/changes — Return recent changes log entries as JSON."""
+        def _read_changes_log(limit_val):
+            import json as _json
+            from pathlib import Path
+            log_path = Path("memory/agent_logs/changes_log.jsonl")
+            entries = []
+            if log_path.exists():
+                try:
+                    with open(log_path, "r") as f:
+                        for line in f:
+                            try:
+                                entries.append(_json.loads(line.strip()))
+                            except _json.JSONDecodeError:
+                                pass
+                except IOError:
+                    pass
+            return entries[-limit_val:], len(entries)
+
+        limit = int(request.rel_url.query.get("limit", 50))
+        # ⚡ Bolt: Offload synchronous file operations to a background thread
+        recent_entries, total_count = await asyncio.to_thread(_read_changes_log, limit)
+        return web.json_response({"entries": recent_entries, "total": total_count})
+
+    async def _handle_activity_log(self, request):
+        """GET /agent_logs/activity — Return recent agent activity log entries as JSON."""
+        def _read_activity_log(limit_val):
+            import json as _json
+            from pathlib import Path
+            log_path = Path("memory/agent_logs/agent_activity.jsonl")
+            entries = []
+            if log_path.exists():
+                try:
+                    with open(log_path, "r") as f:
+                        for line in f:
+                            try:
+                                entries.append(_json.loads(line.strip()))
+                            except _json.JSONDecodeError:
+                                pass
+                except IOError:
+                    pass
+            return entries[-limit_val:], len(entries)
+
+        limit = int(request.rel_url.query.get("limit", 30))
+        # ⚡ Bolt: Offload synchronous file operations to a background thread
+        recent_entries, total_count = await asyncio.to_thread(_read_activity_log, limit)
+        return web.json_response({"entries": recent_entries, "total": total_count})
+
+
 
 
 
