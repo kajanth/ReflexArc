@@ -488,6 +488,8 @@ class NSAApiServer:
             # Impact: Prevents database query latencies from stalling the asyncio event loop
             rows = await asyncio.to_thread(_fetch_memories, limit)
 
+        try:
+            rows = await asyncio.to_thread(_fetch_memories)
             memories = [
                 {"timestamp": r[0], "sense_type": r[1], "description": r[2]}
                 for r in rows
