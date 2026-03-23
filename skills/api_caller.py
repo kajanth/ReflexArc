@@ -15,7 +15,7 @@ import os
 import time
 import urllib.request
 import urllib.error
-from utils.ssrf_protection import is_safe_url
+from utils.ssrf_protection import is_safe_url, safe_urlopen
 
 
 ENDPOINTS_FILE = "memory/api_endpoints.json"
@@ -110,7 +110,7 @@ def _call_endpoint(name):
             req.add_header(key, val)
 
         start = time.time()
-        resp = urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT)
+        resp = safe_urlopen(req, timeout=DEFAULT_TIMEOUT)
         latency = time.time() - start
 
         response_body = resp.read().decode("utf-8", errors="replace")
