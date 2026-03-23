@@ -1,0 +1,19 @@
+{
+  "endpoints": {
+    "github_status": {
+      "url": "https://www.githubstatus.com/api/v2/status.json",
+      "method": "GET",
+      "description": "GitHub service status"
+    },
+    "openai_status": {
+      "url": "https://status.openai.com/api/v2/status.json",
+      "method": "GET",
+      "description": "OpenAI service status"
+    },
+    "ip_check": {
+      "url": "https://api.ipify.org?format=json",
+      "method": "GET",
+      "description": "Check external IP address"
+    }
+  }
+}
