@@ -82,8 +82,14 @@ def _attempt_block(ip, port=None):
             # macOS: Add to pf block table
             # Note: Requires root. Will gracefully fail without it.
             rule = f"block drop from any to {ip}\n"
-            rule_file = "/tmp/nsa_pf_rules.conf"
-            with open(rule_file, "a") as f:
+
+            # Ensure memory directory exists
+            os.makedirs("memory", exist_ok=True)
+            rule_file = os.path.join("memory", "nsa_pf_rules.conf")
+
+            # Securely open/create the file with mode 0600
+            fd = os.open(rule_file, os.O_CREAT | os.O_WRONLY | os.O_APPEND, 0o600)
+            with os.fdopen(fd, "a") as f:
                 f.write(rule)
             # Attempting to load the rule (requires sudo)
             result = subprocess.run(
