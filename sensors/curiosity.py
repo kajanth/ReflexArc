@@ -20,7 +20,22 @@ class CuriositySensor:
             with open(self.stats_file, "w") as f:
                 json.dump({"total_spent": 0.0, "avg_latency": 0.0, "calls": 0}, f)
 
+    def _get_stats(self):
+        try:
+            current_mtime = os.path.getmtime(self.stats_file)
+        except OSError:
+            current_mtime = 0
+
+        if self._cached_stats is None or current_mtime != self._last_mtime:
+            with open(self.stats_file, "r") as f:
+                self._cached_stats = json.load(f)
+            self._last_mtime = current_mtime
+
+        return self._cached_stats
+
     def get_internal_state(self):
+        # ⚡ Bolt: Cache stats to prevent sync file I/O bottleneck
+        stats = self._get_stats()
         # ⚡ Bolt: Only read from disk if the file has been modified (supports cross-process concurrency)
         try:
             current_mtime = os.path.getmtime(self.stats_file)
