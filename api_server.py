@@ -269,9 +269,12 @@ class NSAApiServer:
 
     async def _handle_stats(self, request):
         """GET /stats — Token spend and latency stats."""
-        try:
+        def _read_stats():
             with open("memory/stats.json", "r") as f:
-                stats = json.load(f)
+                return json.load(f)
+
+        try:
+            stats = await asyncio.to_thread(_read_stats)
             return web.json_response(stats)
         except Exception:
             return web.json_response({"total_spent": 0, "calls": 0, "avg_latency": 0})
@@ -429,11 +432,15 @@ class NSAApiServer:
 
     async def _handle_skills(self, request):
         """GET /skills — List all available skills and templates."""
-        skills = []
-        for f in sorted(os.listdir("skills")):
-            if f.endswith(".py") and f != "__init__.py":
-                skills.append(f.replace(".py", ""))
+        def _get_skills():
+            skills = []
+            if os.path.exists("skills"):
+                for f in sorted(os.listdir("skills")):
+                    if f.endswith(".py") and f != "__init__.py":
+                        skills.append(f.replace(".py", ""))
+            return skills
 
+        skills = await asyncio.to_thread(_get_skills)
         templates = self.brain.template_engine.get_available_templates()
 
         return web.json_response({
@@ -447,22 +454,26 @@ class NSAApiServer:
         limit = int(request.query.get("limit", "10"))
         limit = min(limit, 50)
 
-        try:
+        def _fetch_memories():
             import sqlite3
             db_path = "memory/long_term_memory.db"
             if not os.path.exists(db_path):
-                return web.json_response({"memories": [], "count": 0})
+                return []
 
             conn = sqlite3.connect(db_path)
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT timestamp, sense_type, description "
-                "FROM memories ORDER BY timestamp DESC LIMIT ?",
-                (limit,)
-            )
-            rows = cursor.fetchall()
-            conn.close()
+            try:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT timestamp, sense_type, description "
+                    "FROM memories ORDER BY timestamp DESC LIMIT ?",
+                    (limit,)
+                )
+                return cursor.fetchall()
+            finally:
+                conn.close()
 
+        try:
+            rows = await asyncio.to_thread(_fetch_memories)
             memories = [
                 {"timestamp": r[0], "sense_type": r[1], "description": r[2]}
                 for r in rows
