@@ -9,3 +9,7 @@
 ## 2024-03-14 - Template Literal Interpolation Bug
 **Learning:** When generating HTML strings within template literals (like in JavaScript mapping functions), escaping the `$` character (e.g., `\${var}`) prevents evaluation and renders the literal string for users (e.g., `aria-label="Toggle ${info.label} sensor"`). This is especially detrimental for screen readers.
 **Action:** Ensure template variables inside `aria-` attributes are correctly evaluated without escape characters to provide the intended programmatic name.
+
+## 2024-05-14 - Semantic Interactive Lists
+**Learning:** The dashboard used generic `<div>` elements with `onclick` handlers for interactive sidebar lists (API endpoints, request history) instead of native `<button>` tags. This made the lists completely inaccessible via keyboard navigation.
+**Action:** Always convert generic interactive block elements that function as triggers into semantic `<button type="button">` tags. Apply CSS resets (`border: none; background: transparent; text-align: left; width: 100%;`) to maintain the original layout while automatically gaining built-in keyboard accessibility and focus management.
