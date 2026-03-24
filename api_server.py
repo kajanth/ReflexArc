@@ -463,7 +463,10 @@ class NSAApiServer:
 
     async def _handle_memories(self, request):
         """GET /memories/recent?limit=10 — Recent memories."""
-        limit = int(request.query.get("limit", "10"))
+        try:
+            limit = int(request.query.get("limit", "10"))
+        except ValueError:
+            return web.json_response({"error": "Invalid limit parameter"}, status=400)
         limit = min(limit, 50)
 
         def _fetch_memories(limit_val):
@@ -488,8 +491,6 @@ class NSAApiServer:
             # Impact: Prevents database query latencies from stalling the asyncio event loop
             rows = await asyncio.to_thread(_fetch_memories, limit)
 
-        try:
-            rows = await asyncio.to_thread(_fetch_memories)
             memories = [
                 {"timestamp": r[0], "sense_type": r[1], "description": r[2]}
                 for r in rows
@@ -650,7 +651,10 @@ class NSAApiServer:
 
     async def _handle_dreams(self, request):
         """GET /dreams/recent — Return recent dream journal entries."""
-        limit = int(request.query.get("limit", "7"))
+        try:
+            limit = int(request.query.get("limit", "7"))
+        except ValueError:
+            return web.json_response({"error": "Invalid limit parameter"}, status=400)
         journals = self.brain.dream_engine.get_recent_journals(limit)
         return web.json_response({
             "journals": journals,
@@ -774,7 +778,10 @@ class NSAApiServer:
 
     async def _handle_prediction_history(self, request):
         """GET /predictions/history — Recent phantom spike history."""
-        limit = int(request.query.get("limit", "20"))
+        try:
+            limit = int(request.query.get("limit", "20"))
+        except ValueError:
+            return web.json_response({"error": "Invalid limit parameter"}, status=400)
         pred = self.brain.predictive_cortex
         return web.json_response({
             "phantoms": pred.get_phantom_history(limit),
@@ -971,7 +978,10 @@ class NSAApiServer:
                     pass
             return entries[-limit_val:], len(entries)
 
-        limit = int(request.rel_url.query.get("limit", 50))
+        try:
+            limit = int(request.rel_url.query.get("limit", 50))
+        except ValueError:
+            return web.json_response({"error": "Invalid limit parameter"}, status=400)
         # ⚡ Bolt: Offload synchronous file operations to a background thread
         recent_entries, total_count = await asyncio.to_thread(_read_changes_log, limit)
         return web.json_response({"entries": recent_entries, "total": total_count})
@@ -995,7 +1005,10 @@ class NSAApiServer:
                     pass
             return entries[-limit_val:], len(entries)
 
-        limit = int(request.rel_url.query.get("limit", 30))
+        try:
+            limit = int(request.rel_url.query.get("limit", 30))
+        except ValueError:
+            return web.json_response({"error": "Invalid limit parameter"}, status=400)
         # ⚡ Bolt: Offload synchronous file operations to a background thread
         recent_entries, total_count = await asyncio.to_thread(_read_activity_log, limit)
         return web.json_response({"entries": recent_entries, "total": total_count})
