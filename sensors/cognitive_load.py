@@ -36,6 +36,10 @@ class CognitiveLoadSensor:
         self.stats_file = stats_file
         self.db_path = db_path
 
+        # ⚡ Bolt: Cache state to prevent synchronous file I/O bottlenecks in _get_financial_state
+        self._cache = None
+        self._cache_mtime = 0.0
+
         # Internal tracking (augments stats.json)
         self._cortex_calls = 0
         self._reflex_calls = 0
@@ -86,11 +90,21 @@ class CognitiveLoadSensor:
     def _get_financial_state(self):
         """Read current spending from the curiosity stats file."""
         try:
-            with open(self.stats_file, "r") as f:
-                stats = json.load(f)
-            return stats.get("total_spent", 0.0), stats.get("calls", 0)
-        except (FileNotFoundError, json.JSONDecodeError):
-            return 0.0, 0
+            current_mtime = os.path.getmtime(self.stats_file)
+        except OSError:
+            current_mtime = 0.0
+
+        if self._cache is None or current_mtime != self._cache_mtime:
+            try:
+                with open(self.stats_file, "r") as f:
+                    self._cache = json.load(f)
+                self._cache_mtime = current_mtime
+            except (FileNotFoundError, json.JSONDecodeError):
+                self._cache = {}
+                self._cache_mtime = current_mtime
+
+        stats = self._cache or {}
+        return stats.get("total_spent", 0.0), stats.get("calls", 0)
 
     def _get_recent_complex_patterns(self):
         """Query hippocampus for recent COMPLEX-type events to identify patterns."""
