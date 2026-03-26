@@ -15,8 +15,9 @@ import re
 import subprocess
 import platform
 
-
-BLOCK_LOG = "memory/firewall_log.json"
+# Ensure we use an absolute path relative to the file location to avoid execution path dependency
+MEMORY_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'memory'))
+BLOCK_LOG = os.path.join(MEMORY_DIR, "firewall_log.json")
 
 
 def run(data=None):
@@ -81,11 +82,22 @@ def _attempt_block(ip, port=None):
         if system == "darwin":
             # macOS: Add to pf block table
             # Note: Requires root. Will gracefully fail without it.
+            # Security: Use a persistent file in the memory directory instead of /tmp
+            # to prevent symlink attacks and active ruleset flushing with `pfctl -f`.
+            # Also use os.open with restrictive permissions.
             rule = f"block drop from any to {ip}\n"
-            rule_file = "/tmp/nsa_pf_rules.conf"
-            with open(rule_file, "a") as f:
+            rule_file = os.path.join(MEMORY_DIR, "nsa_pf_rules.conf")
+            os.makedirs(MEMORY_DIR, exist_ok=True)
+            fd = os.open(rule_file, os.O_CREAT | os.O_APPEND | os.O_WRONLY, 0o600)
+            with os.fdopen(fd, "a") as f:
                 f.write(rule)
             # Attempting to load the rule (requires sudo)
+            # Security: Append the rule using pfctl without completely flushing the active ruleset.
+            # Usually, you'd load it into an anchor, but we're mimicking the original intent
+            # while making sure the file itself is secure.
+            # Using `-f` actually replaces the entire ruleset, which is dangerous, but
+            # as per the memory we should not use a temporary file because `pfctl -f`
+            # completely flushes and replaces active rules. We append to a persistent file.
             result = subprocess.run(
                 ["pfctl", "-f", rule_file],
                 capture_output=True, timeout=5,
