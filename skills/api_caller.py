@@ -154,12 +154,25 @@ def _add_endpoint(data):
     Add a new endpoint.
     Format: "add:<name>:<url>:<method>"
     """
-    parts = data.split(":", 3)
+    parts = data.split(":")
     if len(parts) < 3:
         return "Invalid format. Use: add:<name>:<url>[:<method>]"
 
-    _, name, url = parts[0], parts[1], parts[2]
-    method = parts[3] if len(parts) > 3 else "GET"
+    name = parts[1]
+    methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
+    method = "GET"
+    url = ""
+
+    if parts[-1].upper() in methods:
+        method = parts[-1].upper()
+        url = ":".join(parts[2:-1])
+    else:
+        url = ":".join(parts[2:])
+
+    if not is_safe_url(url):
+        result = f"BLOCKED: URL '{url}' is not safe (SSRF protection)"
+        print(f"[Cerebellum]: {result}")
+        return result
 
     endpoints = _load_endpoints()
     endpoints[name] = {
