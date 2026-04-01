@@ -2,8 +2,90 @@ import ipaddress
 import socket
 import urllib.request
 import urllib.error
+import http.client
 from urllib.parse import urlparse
 
+def _check_ip(ip_str):
+    ip = ipaddress.ip_address(ip_str)
+    if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_unspecified:
+        raise urllib.error.URLError(f"SSRF Protection: Blocked IP {ip_str}")
+
+class SafeHTTPConnection(http.client.HTTPConnection):
+    def connect(self):
+        err = None
+        for res in socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM):
+            af, socktype, proto, canonname, sa = res
+            try:
+                ip_str = sa[0]
+                _check_ip(ip_str)
+            except Exception as e:
+                err = e
+                continue
+            try:
+                self.sock = socket.socket(af, socktype, proto)
+                if self.timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
+                    self.sock.settimeout(self.timeout)
+                if self.source_address:
+                    self.sock.bind(self.source_address)
+                self.sock.connect(sa)
+
+                if self._tunnel_host:
+                    self._tunnel()
+                return
+            except OSError as e:
+                err = e
+                if self.sock is not None:
+                    self.sock.close()
+                    self.sock = None
+
+        if err is not None:
+            raise urllib.error.URLError(f"Failed to connect to {self.host}: {err}")
+        else:
+            raise urllib.error.URLError(f"Failed to resolve {self.host}")
+
+class SafeHTTPSConnection(http.client.HTTPSConnection):
+    def connect(self):
+        err = None
+        for res in socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM):
+            af, socktype, proto, canonname, sa = res
+            try:
+                ip_str = sa[0]
+                _check_ip(ip_str)
+            except Exception as e:
+                err = e
+                continue
+            try:
+                sock = socket.socket(af, socktype, proto)
+                if self.timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
+                    sock.settimeout(self.timeout)
+                if self.source_address:
+                    sock.bind(self.source_address)
+                sock.connect(sa)
+
+                self.sock = sock
+                if self._tunnel_host:
+                    self._tunnel()
+
+                server_hostname = self.host if not self._tunnel_host else self._tunnel_host
+                self.sock = self._context.wrap_socket(self.sock, server_hostname=server_hostname)
+                return
+            except OSError as e:
+                err = e
+                if sock is not None:
+                    sock.close()
+
+        if err is not None:
+            raise urllib.error.URLError(f"Failed to connect to {self.host}: {err}")
+        else:
+            raise urllib.error.URLError(f"Failed to resolve {self.host}")
+
+class SafeHTTPHandler(urllib.request.HTTPHandler):
+    def http_open(self, req):
+        return self.do_open(SafeHTTPConnection, req)
+
+class SafeHTTPSHandler(urllib.request.HTTPSHandler):
+    def https_open(self, req):
+        return self.do_open(SafeHTTPSConnection, req, context=self._context)
 
 class SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
     """
@@ -15,26 +97,6 @@ class SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
         if not is_safe_url(newurl):
             raise urllib.error.URLError(f"SSRF Protection: Redirect to unsafe URL blocked: {newurl}")
         return super().redirect_request(req, fp, code, msg, headers, newurl)
-
-
-def safe_urlopen(url_or_request, timeout=10):
-    """
-    Safely opens a URL or Request object, preventing SSRF by checking both the initial URL
-    and any subsequent HTTP redirects against internal/private IP addresses.
-    """
-    # Get the initial URL to check
-    if isinstance(url_or_request, urllib.request.Request):
-        initial_url = url_or_request.full_url
-    else:
-        initial_url = url_or_request
-
-    # Check the initial URL
-    if not is_safe_url(initial_url):
-        raise urllib.error.URLError(f"SSRF Protection: Initial URL is unsafe: {initial_url}")
-
-    # Build an opener that uses our custom redirect handler
-    opener = urllib.request.build_opener(SafeRedirectHandler())
-    return opener.open(url_or_request, timeout=timeout)
 
 
 def is_safe_url(url: str) -> bool:
@@ -75,23 +137,23 @@ def is_safe_url(url: str) -> bool:
         # Fail securely
         return False
 
-import urllib.request
-import urllib.error
-
-class SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        if not is_safe_url(newurl):
-            raise urllib.error.URLError(f"Blocked unsafe redirect to {newurl}")
-        return super().redirect_request(req, fp, code, msg, headers, newurl)
-
-def safe_urlopen(url, *args, **kwargs):
+def safe_urlopen(url_or_request, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, *, cafile=None, capath=None, cadefault=False, context=None):
     """
-    Drop-in replacement for urllib.request.urlopen that enforces SSRF
-    protections on both the initial URL and any subsequent redirects.
+    Safely opens a URL or Request object, preventing SSRF by checking both the initial URL
+    and any subsequent HTTP redirects against internal/private IP addresses.
+    It protects against DNS rebinding (TOCTOU) by resolving IP at connection time.
     """
-    req_url = url.full_url if isinstance(url, urllib.request.Request) else url
-    if not is_safe_url(req_url):
-        raise urllib.error.URLError(f"Blocked unsafe URL: {req_url}")
+    # Get the initial URL to check
+    if isinstance(url_or_request, urllib.request.Request):
+        initial_url = url_or_request.full_url
+    else:
+        initial_url = url_or_request
 
-    opener = urllib.request.build_opener(SafeRedirectHandler())
-    return opener.open(url, *args, **kwargs)
+    # Check the initial URL
+    if not is_safe_url(initial_url):
+        raise urllib.error.URLError(f"SSRF Protection: Initial URL is unsafe: {initial_url}")
+
+    # Build an opener that uses our custom redirect and connection handlers
+    opener = urllib.request.build_opener(SafeHTTPHandler(), SafeHTTPSHandler(), SafeRedirectHandler())
+
+    return opener.open(url_or_request, data=data, timeout=timeout)
