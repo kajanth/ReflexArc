@@ -5,3 +5,7 @@
 ## 2024-03-13 - High-throughput sensor bottlenecks
 **Learning:** High-throughput components (like `sensors/curiosity.py` calling `get_internal_state`) become severe bottlenecks when performing synchronous file I/O on every call.
 **Action:** Always cache state in-memory and use `os.path.getmtime(filepath)` to detect cross-process file modifications, avoiding constant disk reads while keeping the cache up to date.
+
+## 2024-03-14 - Concurrent I/O in Asyncio
+**Learning:** Performing multiple independent synchronous blocking operations (like socket connections in `sensors/network_probe.py`) sequentially inside a loop in an `async def` method causes severe performance degradation, blocking the main event loop for `O(N)` time.
+**Action:** When performing multiple independent blocking I/O calls, wrap each in `asyncio.to_thread()` and execute them concurrently with `asyncio.gather()` to reduce total latency from `O(N)` to `O(1)`.
