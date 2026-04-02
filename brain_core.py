@@ -96,6 +96,10 @@ class NSAOrchestrator:
         # MCP Manager (attached later by main.py)
         self.mcp_manager: Optional[Any] = None
 
+        # ⚡ Bolt: Cache available skills to prevent sync os.listdir bottleneck
+        self._skills_cache: Optional[List[str]] = None
+        self._skills_mtime: float = 0.0
+
     def _handle_reinforce_spike(self, event_data: Dict[str, Any]) -> None:
         """Synaptic Plasticity: Lower the baseline threshold (increase sensitivity) for useful vectors."""
         desc = event_data.get('description', '')[:50]
@@ -239,7 +243,17 @@ class NSAOrchestrator:
         # ──────────────────────────────────────────────
         # LAYER 2: THALAMUS (Triage/Decision)
         # ──────────────────────────────────────────────
-        skills_available = [f.replace(".py", "") for f in os.listdir('skills') if f.endswith('.py')]
+        # ⚡ Bolt: Cache available skills to prevent sync os.listdir bottleneck
+        try:
+            skills_dir_mtime = os.path.getmtime('skills')
+        except OSError:
+            skills_dir_mtime = 0.0
+
+        if self._skills_cache is None or skills_dir_mtime != self._skills_mtime:
+            self._skills_cache = [f.replace(".py", "") for f in os.listdir('skills') if f.endswith('.py')]
+            self._skills_mtime = skills_dir_mtime
+
+        skills_available = self._skills_cache
         
         templates_available = self.template_engine.get_available_templates()
         template_desc = {k: v['description'] for k, v in templates_available.items()}

@@ -5,3 +5,7 @@
 ## 2024-03-13 - High-throughput sensor bottlenecks
 **Learning:** High-throughput components (like `sensors/curiosity.py` calling `get_internal_state`) become severe bottlenecks when performing synchronous file I/O on every call.
 **Action:** Always cache state in-memory and use `os.path.getmtime(filepath)` to detect cross-process file modifications, avoiding constant disk reads while keeping the cache up to date.
+
+## 2024-03-14 - Redundant Directory Listings in High-Frequency Loops
+**Learning:** Found `os.listdir('skills')` being executed synchronously on every single spike in the Thalamus (`brain_core.py`). This is an O(N) operation that blocks the event loop on every incoming event.
+**Action:** Always cache directory contents using `os.path.getmtime(dirpath)` when the listing is required on high-frequency paths. This reduces the disk operation to a fast O(1) `stat` call while keeping the list up to date if files are added or removed.
