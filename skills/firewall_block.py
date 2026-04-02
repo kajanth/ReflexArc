@@ -82,7 +82,14 @@ def _attempt_block(ip, port=None):
             # macOS: Add to pf block table
             # Note: Requires root. Will gracefully fail without it.
             rule = f"block drop from any to {ip}\n"
-            rule_file = "/tmp/nsa_pf_rules.conf"
+
+            # Use a persistent configuration file in the memory directory instead of a predictable temporary file in /tmp
+            # to prevent symlink attacks and ensure the active ruleset is not completely flushed by `pfctl -f`.
+            rule_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'memory', 'nsa_pf_rules.conf'))
+
+            if os.path.dirname(rule_file):
+                os.makedirs(os.path.dirname(rule_file), exist_ok=True)
+
             with open(rule_file, "a") as f:
                 f.write(rule)
             # Attempting to load the rule (requires sudo)
