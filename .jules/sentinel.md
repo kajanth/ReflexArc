@@ -11,3 +11,8 @@
 **Vulnerability:** Initial SSRF protections were bypassed because `urllib.request.urlopen` automatically follows HTTP redirects without validating the target URL of the redirect. An attacker could provide a safe URL that redirects to a restricted internal IP.
 **Learning:** Standard URL validation prior to the request is insufficient when the HTTP client auto-follows redirects.
 **Prevention:** Implement a custom `urllib.request.HTTPRedirectHandler` to intercept and validate the `newurl` against internal IP restrictions on every redirect before following it. Always use `safe_urlopen` which uses this custom handler instead of directly using `urllib.request.urlopen`.
+
+## 2024-03-24 - SSRF Bypass via DNS Rebinding (TOCTOU)
+**Vulnerability:** Initial SSRF protections via `is_safe_url` and custom redirect handlers were susceptible to Time-of-Check to Time-of-Use (TOCTOU) DNS Rebinding attacks. By using a custom DNS server, an attacker could return a safe IP during validation, but a malicious internal IP (e.g. `127.0.0.1` or AWS metadata service) when `urllib` actually connects to the server.
+**Learning:** Validating a hostname's IP address prior to a request is insufficient if the HTTP client re-resolves the hostname during connection. The resolution and validation must be tightly coupled to the socket creation.
+**Prevention:** Override `http.client.HTTPConnection` and `HTTPSConnection`'s `connect` method to resolve the hostname, validate the resolved IP address, and immediately establish the socket connection to that specifically validated IP.
