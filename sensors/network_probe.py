@@ -61,8 +61,15 @@ class NetworkProbeSensor:
         alerts = []
         all_down = True
 
-        for host, port in self.endpoints:
-            reachable, latency = self._probe_endpoint(host, port)
+        # ⚡ Bolt: Offload synchronous blocking socket connections to thread pool
+        # and execute concurrently to prevent O(N) event loop blocking
+        probe_tasks = [
+            asyncio.to_thread(self._probe_endpoint, host, port)
+            for host, port in self.endpoints
+        ]
+        results = await asyncio.gather(*probe_tasks)
+
+        for (host, port), (reachable, latency) in zip(self.endpoints, results):
             endpoint_key = f"{host}:{port}"
             was_reachable = self._last_status.get(endpoint_key, True)
 
