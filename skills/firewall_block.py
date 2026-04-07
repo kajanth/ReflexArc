@@ -81,8 +81,10 @@ def _attempt_block(ip, port=None):
         if system == "darwin":
             # macOS: Add to pf block table
             # Note: Requires root. Will gracefully fail without it.
+            # Security fix: Use persistent configuration to prevent active rule flush
             rule = f"block drop from any to {ip}\n"
-            rule_file = "/tmp/nsa_pf_rules.conf"
+            rule_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'memory', 'nsa_pf_rules.conf'))
+            os.makedirs(os.path.dirname(rule_file), exist_ok=True)
             with open(rule_file, "a") as f:
                 f.write(rule)
             # Attempting to load the rule (requires sudo)
