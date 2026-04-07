@@ -42,7 +42,8 @@ class SystemVitalsSensor:
         alerts = []
 
         # --- CPU ---
-        cpu = psutil.cpu_percent(interval=0.1)
+        # ⚡ Bolt: Non-blocking CPU measurement since interval=0.1 stalls async loop
+        cpu = psutil.cpu_percent(interval=None)
         if cpu > self.cpu_threshold:
             alerts.append(f"CPU at {cpu:.1f}%")
 
