@@ -2,7 +2,57 @@ import ipaddress
 import socket
 import urllib.request
 import urllib.error
+import http.client
 from urllib.parse import urlparse
+
+def is_safe_ip(ip_str: str) -> bool:
+    try:
+        ip = ipaddress.ip_address(ip_str)
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast:
+            return False
+        if ip.is_unspecified:
+            return False
+        return True
+    except ValueError:
+        return False
+
+class SafeHTTPConnection(http.client.HTTPConnection):
+    def connect(self):
+        try:
+            ip_str = socket.gethostbyname(self.host)
+        except socket.gaierror:
+            raise urllib.error.URLError(f"DNS Rebinding / SSRF blocked: could not resolve {self.host}")
+
+        if not is_safe_ip(ip_str):
+            raise urllib.error.URLError(f"DNS Rebinding / SSRF blocked: IP {ip_str} is unsafe")
+
+        self.sock = socket.create_connection(
+            (ip_str, self.port), getattr(self, 'timeout', socket._GLOBAL_DEFAULT_TIMEOUT), getattr(self, 'source_address', None)
+        )
+
+class SafeHTTPSConnection(http.client.HTTPSConnection):
+    def connect(self):
+        try:
+            ip_str = socket.gethostbyname(self.host)
+        except socket.gaierror:
+            raise urllib.error.URLError(f"DNS Rebinding / SSRF blocked: could not resolve {self.host}")
+
+        if not is_safe_ip(ip_str):
+            raise urllib.error.URLError(f"DNS Rebinding / SSRF blocked: IP {ip_str} is unsafe")
+
+        self.sock = socket.create_connection(
+            (ip_str, self.port), getattr(self, 'timeout', socket._GLOBAL_DEFAULT_TIMEOUT), getattr(self, 'source_address', None)
+        )
+        if hasattr(self, '_context'):
+            self.sock = self._context.wrap_socket(self.sock, server_hostname=self.host)
+
+class SafeHTTPHandler(urllib.request.HTTPHandler):
+    def http_open(self, req):
+        return self.do_open(SafeHTTPConnection, req)
+
+class SafeHTTPSHandler(urllib.request.HTTPSHandler):
+    def https_open(self, req):
+        return self.do_open(SafeHTTPSConnection, req)
 
 
 class SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
@@ -33,7 +83,7 @@ def safe_urlopen(url_or_request, timeout=10):
         raise urllib.error.URLError(f"SSRF Protection: Initial URL is unsafe: {initial_url}")
 
     # Build an opener that uses our custom redirect handler
-    opener = urllib.request.build_opener(SafeRedirectHandler())
+    opener = urllib.request.build_opener(SafeRedirectHandler(), SafeHTTPHandler(), SafeHTTPSHandler())
     return opener.open(url_or_request, timeout=timeout)
 
 
@@ -60,38 +110,7 @@ def is_safe_url(url: str) -> bool:
             # If we can't resolve the host, it's not safe to connect
             return False
 
-        ip = ipaddress.ip_address(ip_str)
-
-        # Check if the IP address is in a restricted range
-        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast:
-            return False
-
-        # specifically check 0.0.0.0 (unspecified)
-        if ip.is_unspecified:
-            return False
-
-        return True
+        return is_safe_ip(ip_str)
     except Exception:
         # Fail securely
         return False
-
-import urllib.request
-import urllib.error
-
-class SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        if not is_safe_url(newurl):
-            raise urllib.error.URLError(f"Blocked unsafe redirect to {newurl}")
-        return super().redirect_request(req, fp, code, msg, headers, newurl)
-
-def safe_urlopen(url, *args, **kwargs):
-    """
-    Drop-in replacement for urllib.request.urlopen that enforces SSRF
-    protections on both the initial URL and any subsequent redirects.
-    """
-    req_url = url.full_url if isinstance(url, urllib.request.Request) else url
-    if not is_safe_url(req_url):
-        raise urllib.error.URLError(f"Blocked unsafe URL: {req_url}")
-
-    opener = urllib.request.build_opener(SafeRedirectHandler())
-    return opener.open(url, *args, **kwargs)
