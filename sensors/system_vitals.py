@@ -42,7 +42,7 @@ class SystemVitalsSensor:
         alerts = []
 
         # --- CPU ---
-        cpu = psutil.cpu_percent(interval=0.1)
+        cpu = psutil.cpu_percent(interval=None)
         if cpu > self.cpu_threshold:
             alerts.append(f"CPU at {cpu:.1f}%")
 
