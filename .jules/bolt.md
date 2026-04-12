@@ -5,3 +5,7 @@
 ## 2024-03-13 - High-throughput sensor bottlenecks
 **Learning:** High-throughput components (like `sensors/curiosity.py` calling `get_internal_state`) become severe bottlenecks when performing synchronous file I/O on every call.
 **Action:** Always cache state in-memory and use `os.path.getmtime(filepath)` to detect cross-process file modifications, avoiding constant disk reads while keeping the cache up to date.
+
+## 2025-02-12 - Caching Directory Listings
+**Learning:** Checking directory contents (`os.listdir`) synchronously inside high-throughput event loops causes micro-stalls under load.
+**Action:** Always cache the results of directory listings, and use `os.path.getmtime(dir_path)` with strict inequality (`!=`) to validate and refresh the cache without incurring full disk I/O on every iteration.
