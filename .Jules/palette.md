@@ -9,3 +9,7 @@
 ## 2024-03-14 - Template Literal Interpolation Bug
 **Learning:** When generating HTML strings within template literals (like in JavaScript mapping functions), escaping the `$` character (e.g., `\${var}`) prevents evaluation and renders the literal string for users (e.g., `aria-label="Toggle ${info.label} sensor"`). This is especially detrimental for screen readers.
 **Action:** Ensure template variables inside `aria-` attributes are correctly evaluated without escape characters to provide the intended programmatic name.
+
+## 2024-04-12 - Use Semantic Native Buttons
+**Learning:** Using pseudo-buttons (`<div>` or `<span>` with click handlers) requires manually managing ARIA roles, tabindex, and keyboard events, which is error-prone.
+**Action:** Always prefer native semantic `<button type="button">` elements with CSS resets to provide resilient, built-in keyboard accessibility and screen reader support without breaking visual layouts.
