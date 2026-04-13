@@ -5,3 +5,7 @@
 ## 2024-03-13 - High-throughput sensor bottlenecks
 **Learning:** High-throughput components (like `sensors/curiosity.py` calling `get_internal_state`) become severe bottlenecks when performing synchronous file I/O on every call.
 **Action:** Always cache state in-memory and use `os.path.getmtime(filepath)` to detect cross-process file modifications, avoiding constant disk reads while keeping the cache up to date.
+
+## 2024-04-13 - Python Set vs List Literal Membership Optimization
+**Learning:** Python 3.12 compiles constant set literals used in membership checks into `frozenset` constants (O(1) lookup), whereas constant list literals are compiled into tuple constants (O(N) lookup).
+**Action:** Use set literals (e.g., `in {'cpu', 'cuda', 'mps'}`) instead of list literals (e.g., `in ['cpu', 'cuda', 'mps']`) in validators like `config/schema.py` for faster constant string lookups.
