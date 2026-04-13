@@ -21,3 +21,7 @@
 ## 2025-01-08 - O(N) JSON Parsing in Large Logs
 **Learning:** Found that `_read_changes_log` and `_read_activity_log` in `api_server.py` were parsing every line of large JSONL files using `json.loads` in order to return only the most recent N entries. This is an O(N) operation on potentially massive log files, acting as a CPU bottleneck for the event loop.
 **Action:** When parsing large JSONL files for the most recent entries, use `f.readlines()`, iterate in reverse using `reversed(lines)`, and break once N valid entries are parsed to achieve O(N) performance where N is just the limit.
+
+## 2024-04-13 - Python Set vs List Literal Membership Optimization
+**Learning:** Python 3.12 compiles constant set literals used in membership checks into `frozenset` constants (O(1) lookup), whereas constant list literals are compiled into tuple constants (O(N) lookup).
+**Action:** Use set literals (e.g., `in {'cpu', 'cuda', 'mps'}`) instead of list literals (e.g., `in ['cpu', 'cuda', 'mps']`) in validators like `config/schema.py` for faster constant string lookups.
