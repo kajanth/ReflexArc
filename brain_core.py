@@ -86,6 +86,10 @@ class NSAOrchestrator:
         self.prefrontal_cortex: PrefrontalCortex = PrefrontalCortex(router=self.router)
         self.prefrontal_cortex.set_orchestrator(self)
 
+        # ⚡ Bolt: Cache skills directory to prevent blocking os.listdir on every spike
+        self._skills_cache_mtime: float = 0.0
+        self._skills_cache: List[str] = []
+
         # 8. Predictive Cortex (Anticipatory Sensing)
         self.predictive_cortex: PredictiveCortex = PredictiveCortex()
         self.predictive_cortex.set_orchestrator(self)
@@ -239,7 +243,14 @@ class NSAOrchestrator:
         # ──────────────────────────────────────────────
         # LAYER 2: THALAMUS (Triage/Decision)
         # ──────────────────────────────────────────────
-        skills_available = [f.replace(".py", "") for f in os.listdir('skills') if f.endswith('.py')]
+        # ⚡ Bolt: Cache skills_available using os.path.getmtime
+        # Impact: Reduces blocking disk I/O on every spike, avoiding main thread stalls
+        # Measurement: Compare API server latency under high spike load before/after
+        current_skills_mtime = os.path.getmtime('skills')
+        if current_skills_mtime != self._skills_cache_mtime:
+            self._skills_cache_mtime = current_skills_mtime
+            self._skills_cache = [f.replace(".py", "") for f in os.listdir('skills') if f.endswith('.py')]
+        skills_available = self._skills_cache
         
         templates_available = self.template_engine.get_available_templates()
         template_desc = {k: v['description'] for k, v in templates_available.items()}
