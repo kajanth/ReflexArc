@@ -42,7 +42,9 @@ class SystemVitalsSensor:
         alerts = []
 
         # --- CPU ---
-        cpu = psutil.cpu_percent(interval=0.1)
+        # ⚡ Bolt: Use interval=None to avoid blocking the event loop for 100ms
+        # Since we poll at intervals anyway, this instantly returns avg since last call
+        cpu = psutil.cpu_percent(interval=None)
         if cpu > self.cpu_threshold:
             alerts.append(f"CPU at {cpu:.1f}%")
 
