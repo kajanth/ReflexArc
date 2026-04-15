@@ -2,8 +2,86 @@ import ipaddress
 import socket
 import urllib.request
 import urllib.error
+import http.client
+import ssl
 from urllib.parse import urlparse
 
+class SafeHTTPConnection(http.client.HTTPConnection):
+    def connect(self):
+        try:
+            # use getaddrinfo to support ipv4 and ipv6
+            addrinfo = socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM)
+        except socket.gaierror:
+            raise urllib.error.URLError(f"SSRF Protection: Cannot resolve host: {self.host}")
+
+        err = None
+        for res in addrinfo:
+            af, socktype, proto, canonname, sa = res
+            ip_str = sa[0]
+            ip = ipaddress.ip_address(ip_str)
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_unspecified:
+                raise urllib.error.URLError(f"SSRF Protection: DNS Rebinding to unsafe IP blocked: {ip_str}")
+
+            try:
+                self.sock = socket.create_connection(sa, self.timeout, self.source_address)
+                break
+            except OSError as _:
+                err = _
+                if self.sock is not None:
+                    self.sock.close()
+                    self.sock = None
+                continue
+
+        if self.sock is None:
+            if err is not None:
+                raise err
+            else:
+                raise urllib.error.URLError("getaddrinfo returns an empty list")
+
+class SafeHTTPSConnection(http.client.HTTPSConnection):
+    def connect(self):
+        try:
+            addrinfo = socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM)
+        except socket.gaierror:
+            raise urllib.error.URLError(f"SSRF Protection: Cannot resolve host: {self.host}")
+
+        err = None
+        for res in addrinfo:
+            af, socktype, proto, canonname, sa = res
+            ip_str = sa[0]
+            ip = ipaddress.ip_address(ip_str)
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_unspecified:
+                raise urllib.error.URLError(f"SSRF Protection: DNS Rebinding to unsafe IP blocked: {ip_str}")
+
+            try:
+                self.sock = socket.create_connection(sa, self.timeout, self.source_address)
+                break
+            except OSError as _:
+                err = _
+                if self.sock is not None:
+                    self.sock.close()
+                    self.sock = None
+                continue
+
+        if self.sock is None:
+            if err is not None:
+                raise err
+            else:
+                raise urllib.error.URLError("getaddrinfo returns an empty list")
+
+        if self._tunnel_host:
+            self._tunnel()
+
+        server_hostname = self._tunnel_host or self.host
+        self.sock = self._context.wrap_socket(self.sock, server_hostname=server_hostname)
+
+class SafeHTTPHandler(urllib.request.HTTPHandler):
+    def http_open(self, req):
+        return self.do_open(SafeHTTPConnection, req)
+
+class SafeHTTPSHandler(urllib.request.HTTPSHandler):
+    def https_open(self, req):
+        return self.do_open(SafeHTTPSConnection, req, context=self._context)
 
 class SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
     """
@@ -32,8 +110,8 @@ def safe_urlopen(url_or_request, timeout=10):
     if not is_safe_url(initial_url):
         raise urllib.error.URLError(f"SSRF Protection: Initial URL is unsafe: {initial_url}")
 
-    # Build an opener that uses our custom redirect handler
-    opener = urllib.request.build_opener(SafeRedirectHandler())
+    # Build an opener that uses our custom handlers for DNS rebinding & redirects
+    opener = urllib.request.build_opener(SafeHTTPHandler(), SafeHTTPSHandler(), SafeRedirectHandler())
     return opener.open(url_or_request, timeout=timeout)
 
 
@@ -75,23 +153,3 @@ def is_safe_url(url: str) -> bool:
         # Fail securely
         return False
 
-import urllib.request
-import urllib.error
-
-class SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        if not is_safe_url(newurl):
-            raise urllib.error.URLError(f"Blocked unsafe redirect to {newurl}")
-        return super().redirect_request(req, fp, code, msg, headers, newurl)
-
-def safe_urlopen(url, *args, **kwargs):
-    """
-    Drop-in replacement for urllib.request.urlopen that enforces SSRF
-    protections on both the initial URL and any subsequent redirects.
-    """
-    req_url = url.full_url if isinstance(url, urllib.request.Request) else url
-    if not is_safe_url(req_url):
-        raise urllib.error.URLError(f"Blocked unsafe URL: {req_url}")
-
-    opener = urllib.request.build_opener(SafeRedirectHandler())
-    return opener.open(url, *args, **kwargs)
