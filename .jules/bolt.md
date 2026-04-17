@@ -5,3 +5,7 @@
 ## 2024-03-13 - High-throughput sensor bottlenecks
 **Learning:** High-throughput components (like `sensors/curiosity.py` calling `get_internal_state`) become severe bottlenecks when performing synchronous file I/O on every call.
 **Action:** Always cache state in-memory and use `os.path.getmtime(filepath)` to detect cross-process file modifications, avoiding constant disk reads while keeping the cache up to date.
+
+## 2024-04-17 - Non-blocking psutil.cpu_percent
+**Learning:** Using `psutil.cpu_percent(interval=X)` blocks the current thread for X seconds. In an asyncio context, this blocks the entire event loop. However, replacing it with `interval=None` breaks accuracy because it shares a single global state across all callers.
+**Action:** Always offload blocking `psutil.cpu_percent(interval=X)` calls to a separate thread using `await asyncio.to_thread()` when inside an asyncio event loop to preserve metric accuracy without blocking concurrency.
