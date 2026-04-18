@@ -5,3 +5,7 @@
 ## 2024-03-13 - High-throughput sensor bottlenecks
 **Learning:** High-throughput components (like `sensors/curiosity.py` calling `get_internal_state`) become severe bottlenecks when performing synchronous file I/O on every call.
 **Action:** Always cache state in-memory and use `os.path.getmtime(filepath)` to detect cross-process file modifications, avoiding constant disk reads while keeping the cache up to date.
+
+## 2024-03-14 - Large JSONL Log Parsing Bottleneck
+**Learning:** Parsing massive JSONL files line-by-line using `json.loads()` on every line, just to take the last few `limit` lines, causes a severe performance bottleneck with lots of overhead due to JSON parsing everything just to throw it away.
+**Action:** Always read the file lines into a `collections.deque(maxlen=limit)` of raw strings to get only the recent lines, and *then* run `json.loads` only on those final strings. This turns a slow linear scaling operation with an expensive constant factor into a fast log-tail style operation.
