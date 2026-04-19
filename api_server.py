@@ -487,9 +487,6 @@ class NSAApiServer:
             # ⚡ Bolt: Offload synchronous SQLite operations to a background thread
             # Impact: Prevents database query latencies from stalling the asyncio event loop
             rows = await asyncio.to_thread(_fetch_memories, limit)
-
-        try:
-            rows = await asyncio.to_thread(_fetch_memories)
             memories = [
                 {"timestamp": r[0], "sense_type": r[1], "description": r[2]}
                 for r in rows
@@ -957,19 +954,30 @@ class NSAApiServer:
         def _read_changes_log(limit_val):
             import json as _json
             from pathlib import Path
+            import collections
             log_path = Path("memory/agent_logs/changes_log.jsonl")
-            entries = []
+            total_count = 0
+            # ⚡ Bolt: Use deque to collect raw lines instead of parsing all lines to avoid CPU bottleneck
+            recent_lines = collections.deque(maxlen=limit_val)
             if log_path.exists():
                 try:
                     with open(log_path, "r") as f:
                         for line in f:
-                            try:
-                                entries.append(_json.loads(line.strip()))
-                            except _json.JSONDecodeError:
-                                pass
+                            line = line.strip()
+                            if not line:
+                                continue
+                            total_count += 1
+                            recent_lines.append(line)
                 except IOError:
                     pass
-            return entries[-limit_val:], len(entries)
+
+            entries = []
+            for line in recent_lines:
+                try:
+                    entries.append(_json.loads(line))
+                except _json.JSONDecodeError:
+                    pass
+            return entries, total_count
 
         limit = int(request.rel_url.query.get("limit", 50))
         # ⚡ Bolt: Offload synchronous file operations to a background thread
@@ -981,19 +989,30 @@ class NSAApiServer:
         def _read_activity_log(limit_val):
             import json as _json
             from pathlib import Path
+            import collections
             log_path = Path("memory/agent_logs/agent_activity.jsonl")
-            entries = []
+            total_count = 0
+            # ⚡ Bolt: Use deque to collect raw lines instead of parsing all lines to avoid CPU bottleneck
+            recent_lines = collections.deque(maxlen=limit_val)
             if log_path.exists():
                 try:
                     with open(log_path, "r") as f:
                         for line in f:
-                            try:
-                                entries.append(_json.loads(line.strip()))
-                            except _json.JSONDecodeError:
-                                pass
+                            line = line.strip()
+                            if not line:
+                                continue
+                            total_count += 1
+                            recent_lines.append(line)
                 except IOError:
                     pass
-            return entries[-limit_val:], len(entries)
+
+            entries = []
+            for line in recent_lines:
+                try:
+                    entries.append(_json.loads(line))
+                except _json.JSONDecodeError:
+                    pass
+            return entries, total_count
 
         limit = int(request.rel_url.query.get("limit", 30))
         # ⚡ Bolt: Offload synchronous file operations to a background thread
