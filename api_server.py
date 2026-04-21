@@ -487,9 +487,6 @@ class NSAApiServer:
             # ⚡ Bolt: Offload synchronous SQLite operations to a background thread
             # Impact: Prevents database query latencies from stalling the asyncio event loop
             rows = await asyncio.to_thread(_fetch_memories, limit)
-
-        try:
-            rows = await asyncio.to_thread(_fetch_memories)
             memories = [
                 {"timestamp": r[0], "sense_type": r[1], "description": r[2]}
                 for r in rows
@@ -957,19 +954,26 @@ class NSAApiServer:
         def _read_changes_log(limit_val):
             import json as _json
             from pathlib import Path
+            import collections
             log_path = Path("memory/agent_logs/changes_log.jsonl")
             entries = []
+            total_count = 0
             if log_path.exists():
                 try:
+                    raw_lines = collections.deque(maxlen=limit_val)
                     with open(log_path, "r") as f:
                         for line in f:
-                            try:
-                                entries.append(_json.loads(line.strip()))
-                            except _json.JSONDecodeError:
-                                pass
+                            if line.strip():
+                                raw_lines.append(line.strip())
+                                total_count += 1
+                    for line in raw_lines:
+                        try:
+                            entries.append(_json.loads(line))
+                        except _json.JSONDecodeError:
+                            pass
                 except IOError:
                     pass
-            return entries[-limit_val:], len(entries)
+            return entries, total_count
 
         limit = int(request.rel_url.query.get("limit", 50))
         # ⚡ Bolt: Offload synchronous file operations to a background thread
@@ -981,19 +985,26 @@ class NSAApiServer:
         def _read_activity_log(limit_val):
             import json as _json
             from pathlib import Path
+            import collections
             log_path = Path("memory/agent_logs/agent_activity.jsonl")
             entries = []
+            total_count = 0
             if log_path.exists():
                 try:
+                    raw_lines = collections.deque(maxlen=limit_val)
                     with open(log_path, "r") as f:
                         for line in f:
-                            try:
-                                entries.append(_json.loads(line.strip()))
-                            except _json.JSONDecodeError:
-                                pass
+                            if line.strip():
+                                raw_lines.append(line.strip())
+                                total_count += 1
+                    for line in raw_lines:
+                        try:
+                            entries.append(_json.loads(line))
+                        except _json.JSONDecodeError:
+                            pass
                 except IOError:
                     pass
-            return entries[-limit_val:], len(entries)
+            return entries, total_count
 
         limit = int(request.rel_url.query.get("limit", 30))
         # ⚡ Bolt: Offload synchronous file operations to a background thread
