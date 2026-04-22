@@ -239,7 +239,18 @@ class NSAOrchestrator:
         # ──────────────────────────────────────────────
         # LAYER 2: THALAMUS (Triage/Decision)
         # ──────────────────────────────────────────────
-        skills_available = [f.replace(".py", "") for f in os.listdir('skills') if f.endswith('.py')]
+        # ⚡ Bolt: Cache skills directory listing to prevent synchronous os.listdir
+        # from blocking the event loop on every incoming spike. We use os.path.getmtime
+        # to detect when the folder contents change without needing a full listdir.
+        try:
+            current_mtime = os.path.getmtime('skills')
+            if current_mtime != getattr(self, '_skills_mtime', 0) or getattr(self, '_skills_cache', None) is None:
+                self._skills_cache = [f.replace(".py", "") for f in os.listdir('skills') if f.endswith('.py')]
+                self._skills_mtime = current_mtime
+            skills_available = self._skills_cache
+        except Exception:
+            # Fallback to direct synchronous call if anything fails
+            skills_available = [f.replace(".py", "") for f in os.listdir('skills') if f.endswith('.py')]
         
         templates_available = self.template_engine.get_available_templates()
         template_desc = {k: v['description'] for k, v in templates_available.items()}
