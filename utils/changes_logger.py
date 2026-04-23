@@ -21,6 +21,7 @@ Change types:
   - config_changed  : A config file was updated
 """
 
+import collections
 import json
 import time
 from datetime import datetime
@@ -81,15 +82,25 @@ def read_changes(limit: int = 50, change_type: Optional[str] = None) -> list:
     try:
         if not CHANGES_LOG_PATH.exists():
             return []
-        entries = []
+
         with open(CHANGES_LOG_PATH, "r") as f:
-            for line in f:
-                try:
-                    entry = json.loads(line.strip())
-                    if change_type is None or entry.get("type") == change_type:
-                        entries.append(entry)
-                except json.JSONDecodeError:
-                    continue
-        return entries[-limit:]
+            raw_lines = f.readlines()
+
+        entries = collections.deque()
+        type_str = f'"{change_type}"' if change_type else None
+
+        for line in reversed(raw_lines):
+            if type_str and type_str not in line:
+                continue
+            try:
+                entry = json.loads(line.strip())
+                if change_type is None or entry.get("type") == change_type:
+                    entries.appendleft(entry)
+                    if len(entries) == limit:
+                        break
+            except json.JSONDecodeError:
+                continue
+
+        return list(entries)
     except Exception:
         return []
