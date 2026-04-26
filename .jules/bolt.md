@@ -5,3 +5,6 @@
 ## 2024-03-13 - High-throughput sensor bottlenecks
 **Learning:** High-throughput components (like `sensors/curiosity.py` calling `get_internal_state`) become severe bottlenecks when performing synchronous file I/O on every call.
 **Action:** Always cache state in-memory and use `os.path.getmtime(filepath)` to detect cross-process file modifications, avoiding constant disk reads while keeping the cache up to date.
+## 2024-05-15 - Fast JSONL Tail Parsing
+**Learning:** Parsing the entirety of large JSONL logs sequentially just to extract the `N` most recent entries introduces significant overhead. A reverse reading approach using `readlines()` followed by `reversed()` to parse only until the required `N` entries are found cuts parsing time substantially while remaining O(N) in memory.
+**Action:** When tailing JSONL files for the most recent log entries, avoid iterating from the top and applying `json.loads` to every line. Instead, read the lines, iterate them in reverse, and stop parsing once the desired limit is reached.

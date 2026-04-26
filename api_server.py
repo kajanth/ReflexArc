@@ -487,9 +487,6 @@ class NSAApiServer:
             # ⚡ Bolt: Offload synchronous SQLite operations to a background thread
             # Impact: Prevents database query latencies from stalling the asyncio event loop
             rows = await asyncio.to_thread(_fetch_memories, limit)
-
-        try:
-            rows = await asyncio.to_thread(_fetch_memories)
             memories = [
                 {"timestamp": r[0], "sense_type": r[1], "description": r[2]}
                 for r in rows
@@ -959,17 +956,27 @@ class NSAApiServer:
             from pathlib import Path
             log_path = Path("memory/agent_logs/changes_log.jsonl")
             entries = []
+            total_count = 0
             if log_path.exists():
                 try:
                     with open(log_path, "r") as f:
-                        for line in f:
+                        lines = f.readlines()
+                        total_count = len(lines)
+                        # ⚡ Bolt Optimization: Read from bottom up and break when limit is reached
+                        # Avoids O(N) json parsing of entire large log files
+                        for line in reversed(lines):
+                            if not line.strip():
+                                continue
                             try:
                                 entries.append(_json.loads(line.strip()))
+                                if len(entries) >= limit_val:
+                                    break
                             except _json.JSONDecodeError:
                                 pass
                 except IOError:
                     pass
-            return entries[-limit_val:], len(entries)
+            entries.reverse() # Restore chronological order
+            return entries, total_count
 
         limit = int(request.rel_url.query.get("limit", 50))
         # ⚡ Bolt: Offload synchronous file operations to a background thread
@@ -983,17 +990,27 @@ class NSAApiServer:
             from pathlib import Path
             log_path = Path("memory/agent_logs/agent_activity.jsonl")
             entries = []
+            total_count = 0
             if log_path.exists():
                 try:
                     with open(log_path, "r") as f:
-                        for line in f:
+                        lines = f.readlines()
+                        total_count = len(lines)
+                        # ⚡ Bolt Optimization: Read from bottom up and break when limit is reached
+                        # Avoids O(N) json parsing of entire large log files
+                        for line in reversed(lines):
+                            if not line.strip():
+                                continue
                             try:
                                 entries.append(_json.loads(line.strip()))
+                                if len(entries) >= limit_val:
+                                    break
                             except _json.JSONDecodeError:
                                 pass
                 except IOError:
                     pass
-            return entries[-limit_val:], len(entries)
+            entries.reverse() # Restore chronological order
+            return entries, total_count
 
         limit = int(request.rel_url.query.get("limit", 30))
         # ⚡ Bolt: Offload synchronous file operations to a background thread
