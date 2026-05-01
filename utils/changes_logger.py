@@ -83,13 +83,29 @@ def read_changes(limit: int = 50, change_type: Optional[str] = None) -> list:
             return []
         entries = []
         with open(CHANGES_LOG_PATH, "r") as f:
-            for line in f:
-                try:
-                    entry = json.loads(line.strip())
-                    if change_type is None or entry.get("type") == change_type:
-                        entries.append(entry)
-                except json.JSONDecodeError:
+            lines = f.readlines()
+
+        for line in reversed(lines):
+            line = line.strip()
+            if not line:
+                continue
+
+            if change_type is not None:
+                # Fast substring pre-filter to avoid unnecessary json.loads
+                if f'"{change_type}"' not in line:
                     continue
-        return entries[-limit:]
+
+            try:
+                entry = json.loads(line)
+                if change_type is None or entry.get("type") == change_type:
+                    entries.append(entry)
+                    if len(entries) >= limit:
+                        break
+            except json.JSONDecodeError:
+                continue
+
+        # Reverse to get chronological order (oldest to newest within the limit)
+        entries.reverse()
+        return entries
     except Exception:
         return []
