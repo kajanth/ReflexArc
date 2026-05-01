@@ -496,11 +496,9 @@ class DreamEngine:
                 import ast
                 ast.parse(code)
 
-                # Save the skill
+                # Write as .pending — requires operator approval before it can run
                 skill_name = f"auto_{name}"
-                skill_path = f"skills/{skill_name}.py"
-                with open(skill_path, "w") as f:
-                    f.write(code)
+                self._write_pending_skill(skill_name, code)
 
                 # Mark the pattern as resolved
                 info["associated_skill"] = skill_name
@@ -510,17 +508,19 @@ class DreamEngine:
                     "skill_name": skill_name,
                     "pattern": name,
                     "occurrences": info["occurrences"],
+                    "pending_approval": True,
                 })
 
                 # Log to memory/agent_logs/changes_log.jsonl
                 try:
                     from pathlib import Path
+                    pending_path = f"skills/{skill_name}.pending"
                     changes_log = Path("memory/agent_logs/changes_log.jsonl")
                     changes_log.parent.mkdir(parents=True, exist_ok=True)
                     change_entry = {
                         "timestamp": datetime.now().isoformat(),
-                        "type": "skill_added",
-                        "file": skill_path,
+                        "type": "skill_pending_approval",
+                        "file": pending_path,
                         "skill_name": skill_name,
                         "trigger": f"Recurring pattern '{name}' ({info['occurrences']} occurrences)",
                         "author": "dream_engine"
@@ -531,10 +531,10 @@ class DreamEngine:
                     pass
 
                 report_lines.append(
-                    f"- 🧬 **{skill_name}.py** generated for pattern `{name}` "
-                    f"({info['occurrences']} occurrences)"
+                    f"- 🧬 **{skill_name}.pending** generated for pattern `{name}` "
+                    f"({info['occurrences']} occurrences) — awaiting operator approval via POST /skill/approve"
                 )
-                print(f"    ✓ New skill written: {skill_path}")
+                print(f"    ✓ Pending skill written: skills/{skill_name}.pending")
 
             except SyntaxError:
                 report_lines.append(f"- ⚠️ Skill for `{name}` failed validation (bad syntax)")
@@ -544,6 +544,14 @@ class DreamEngine:
                 print(f"    ✗ Error generating skill for {name}: {e}")
 
         return "\n".join(report_lines) if report_lines else "- No new skills generated."
+
+    def _write_pending_skill(self, name: str, code: str) -> None:
+        """Write LLM-generated skill as a .pending file (not importable until approved)."""
+        skills_dir = os.path.join(os.getcwd(), "skills")
+        os.makedirs(skills_dir, exist_ok=True)
+        path = os.path.join(skills_dir, f"{name}.pending")
+        with open(path, "w") as f:
+            f.write(code)
 
     # ══════════════════════════════════════════════
     # Phase 4: PRUNE — Cleanup stale memories

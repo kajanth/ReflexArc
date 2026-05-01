@@ -228,6 +228,14 @@ class SecretsManager:
                 "OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_API_KEY, or AWS credentials"
             )
         
+        # Validate NSA_API_KEY (required for API authentication)
+        nsa_key = os.getenv("NSA_API_KEY")
+        if not nsa_key or len(nsa_key) < 16:
+            errors.append(
+                "NSA_API_KEY must be set to a string of at least 16 characters. "
+                "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
+            )
+
         # Log validation results
         if errors:
             logger.error("API key validation failed", errors=errors)
@@ -236,7 +244,7 @@ class SecretsManager:
         else:
             logger.info("All API keys validated successfully")
             self._log_key_usage("VALIDATION", "all_keys_valid")
-        
+
         return len(errors) == 0, errors
     
     def check_key_rotation_needed(self) -> Dict[str, bool]:

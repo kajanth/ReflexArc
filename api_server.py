@@ -32,6 +32,7 @@ from pydantic import ValidationError
 from event_bus import event_bus
 from utils.rate_limiter import rate_limit_middleware
 from utils.content_validation import content_type_middleware, cors_middleware
+from utils.auth_middleware import auth_middleware
 from api.models import (
     SpikeRequest, 
     GoalRequest, 
@@ -70,8 +71,9 @@ class NSAApiServer:
             
         self.app = web.Application(middlewares=[
             cors_middleware,
-            content_type_middleware, 
-            rate_limit_middleware
+            content_type_middleware,
+            rate_limit_middleware,
+            auth_middleware,
         ])
         self._setup_routes()
         self._spike_count = 0
@@ -96,6 +98,7 @@ class NSAApiServer:
         self.app.router.add_get("/skills", self._handle_skills)
         self.app.router.add_get("/memories/recent", self._handle_memories)
         self.app.router.add_post("/skill/run", self._handle_run_skill)
+        self.app.router.add_post("/skill/approve", self._handle_approve_skill)
         self.app.router.add_get("/health", self._handle_health)
         self.app.router.add_get("/ready", self._handle_ready)
         self.app.router.add_get("/live", self._handle_live)
@@ -484,12 +487,7 @@ class NSAApiServer:
             return rows
 
         try:
-            # ⚡ Bolt: Offload synchronous SQLite operations to a background thread
-            # Impact: Prevents database query latencies from stalling the asyncio event loop
             rows = await asyncio.to_thread(_fetch_memories, limit)
-
-        try:
-            rows = await asyncio.to_thread(_fetch_memories)
             memories = [
                 {"timestamp": r[0], "sense_type": r[1], "description": r[2]}
                 for r in rows
@@ -535,6 +533,31 @@ class NSAApiServer:
             return web.json_response({"error": f"Skill '{skill_req.skill}' not found"}, status=404)
         except Exception as e:
             return web.json_response({"error": f"Skill execution failed: {e}"}, status=500)
+
+    async def _handle_approve_skill(self, request):
+        """POST /skill/approve — Promote a .pending skill to an executable .py file."""
+        import re
+        try:
+            data = await request.json()
+        except Exception:
+            return web.json_response({"error": "Invalid JSON"}, status=400)
+
+        skill_name = data.get("skill", "")
+        if not re.match(r'^[a-zA-Z0-9_-]+$', skill_name):
+            return web.json_response({"error": "Invalid skill name"}, status=400)
+
+        skills_dir = os.path.join(os.path.dirname(__file__), "skills")
+        pending = os.path.join(skills_dir, f"{skill_name}.pending")
+        approved = os.path.join(skills_dir, f"{skill_name}.py")
+
+        if not os.path.exists(pending):
+            return web.json_response(
+                {"error": f"No pending skill named '{skill_name}'"}, status=404
+            )
+
+        os.rename(pending, approved)
+        event_bus.publish("skill_approved", {"skill": skill_name})
+        return web.json_response({"status": "approved", "skill": skill_name})
 
     async def _handle_health(self, request):
         """GET /health — Comprehensive health check with detailed component status."""

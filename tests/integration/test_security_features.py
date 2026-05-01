@@ -8,7 +8,8 @@ import pytest
 import json
 import time
 from aiohttp import web
-from aiohttp.test import AioHTTPTestCase, unittest_mock
+from aiohttp.test_utils import AioHTTPTestCase
+from unittest import mock as unittest_mock
 
 from api_server import NSAApiServer
 from utils.rate_limiter import RateLimiter
@@ -16,141 +17,148 @@ from utils.secrets_manager import SecretsManager
 from utils.health_checker import HealthChecker, HealthStatus
 
 
+_TEST_API_KEY = "integration-test-key-abc123"
+
+
 class TestSecurityFeatures(AioHTTPTestCase):
     """Test security and reliability features."""
-    
+
+    def setUp(self):
+        import os
+        os.environ["NSA_API_KEY"] = _TEST_API_KEY
+        super().setUp()
+
+    def tearDown(self):
+        import os
+        os.environ.pop("NSA_API_KEY", None)
+        super().tearDown()
+
     async def get_application(self):
         """Create test application with security middleware."""
-        # Mock brain and sensor manager
         mock_brain = unittest_mock.MagicMock()
         mock_sensor_mgr = unittest_mock.MagicMock()
-        
-        # Create API server
         api_server = NSAApiServer(
             brain=mock_brain,
             host="127.0.0.1",
             port=8080,
-            sensor_mgr=mock_sensor_mgr
+            sensor_mgr=mock_sensor_mgr,
         )
-        
         return api_server.app
-    
+
+    def _auth_headers(self, extra=None):
+        h = {"X-Api-Key": _TEST_API_KEY}
+        if extra:
+            h.update(extra)
+        return h
+
     async def test_rate_limiting(self):
         """Test rate limiting middleware."""
-        # Test spike endpoint rate limiting (100 req/min)
         spike_data = {
             "description": "Test spike",
             "sense_type": "api",
-            "priority": "normal"
+            "priority": "normal",
         }
-        
-        # Send requests rapidly to trigger rate limit
+
         responses = []
         for i in range(5):
             resp = await self.client.request(
-                "POST", 
+                "POST",
                 "/spike",
                 json=spike_data,
-                headers={"Content-Type": "application/json"}
+                headers=self._auth_headers({"Content-Type": "application/json"}),
             )
             responses.append(resp.status)
-        
-        # Should get some successful responses initially
+
         assert 200 in responses or 500 in responses  # 500 is OK for mock brain
-        
-        # Test rate limit headers are present
+
         resp = await self.client.request(
             "POST",
-            "/spike", 
+            "/spike",
             json=spike_data,
-            headers={"Content-Type": "application/json"}
+            headers=self._auth_headers({"Content-Type": "application/json"}),
         )
-        
-        # Check for rate limit headers
         assert "X-RateLimit-Limit" in resp.headers or resp.status == 429
-    
+
     async def test_content_type_validation(self):
         """Test content-type validation middleware."""
-        # Test POST request without proper content-type
         resp = await self.client.request(
             "POST",
             "/spike",
             data="invalid data",
-            headers={"Content-Type": "text/plain"}
+            headers=self._auth_headers({"Content-Type": "text/plain"}),
         )
-        
-        assert resp.status == 415  # Unsupported Media Type
-        
+        assert resp.status == 415
         data = await resp.json()
         assert "Invalid Content-Type" in data["error"]
-    
+
     async def test_cors_headers(self):
-        """Test CORS headers are properly set."""
+        """Test CORS headers are properly set (public endpoint, no auth needed)."""
         resp = await self.client.request("GET", "/health")
-        
-        # Check security headers
         assert "X-Content-Type-Options" in resp.headers
         assert resp.headers["X-Content-Type-Options"] == "nosniff"
         assert "X-Frame-Options" in resp.headers
         assert resp.headers["X-Frame-Options"] == "DENY"
-    
+
     async def test_input_validation(self):
         """Test input validation for API endpoints."""
-        # Test spike with invalid data
         invalid_spike = {
-            "description": "",  # Empty description should fail
-            "sense_type": "invalid@type",  # Invalid characters
-            "priority": "invalid_priority"  # Invalid priority
+            "description": "",
+            "sense_type": "invalid@type",
+            "priority": "invalid_priority",
         }
-        
         resp = await self.client.request(
             "POST",
             "/spike",
             json=invalid_spike,
-            headers={"Content-Type": "application/json"}
+            headers=self._auth_headers({"Content-Type": "application/json"}),
         )
-        
-        assert resp.status == 422  # Validation error
-        
-        # Test goal with dangerous metric name
+        assert resp.status == 422
+
         dangerous_goal = {
             "objective": "Test goal",
-            "metric": "cpu_percent; rm -rf /",  # Injection attempt
+            "metric": "cpu_percent; rm -rf /",
             "operator": "<",
-            "value": 80.0
+            "value": 80.0,
         }
-        
         resp = await self.client.request(
             "POST",
             "/goal",
             json=dangerous_goal,
-            headers={"Content-Type": "application/json"}
+            headers=self._auth_headers({"Content-Type": "application/json"}),
         )
-        
-        assert resp.status == 422  # Should be rejected
-    
+        assert resp.status == 422
+
+    async def test_protected_route_requires_auth(self):
+        """Protected routes must return 401 without X-Api-Key."""
+        resp = await self.client.request("GET", "/stats")
+        assert resp.status == 401
+
+        resp = await self.client.request(
+            "GET", "/stats", headers={"X-Api-Key": "wrong-key"}
+        )
+        assert resp.status == 401
+
+        resp = await self.client.request(
+            "GET", "/stats", headers={"X-Api-Key": _TEST_API_KEY}
+        )
+        assert resp.status != 401
+
     async def test_health_endpoints(self):
-        """Test health check endpoints."""
-        # Test main health endpoint
+        """Test health check endpoints (public, no auth required)."""
         resp = await self.client.request("GET", "/health")
-        assert resp.status in [200, 503]  # Healthy or unhealthy
-        
+        assert resp.status in [200, 503]
         data = await resp.json()
         assert "status" in data
         assert "components" in data
         assert "uptime" in data
-        
-        # Test readiness endpoint
+
         resp = await self.client.request("GET", "/ready")
         assert resp.status in [200, 503]
-        
         data = await resp.json()
         assert "ready" in data
-        
-        # Test liveness endpoint
+
         resp = await self.client.request("GET", "/live")
         assert resp.status in [200, 503]
-        
         data = await resp.json()
         assert "alive" in data
 
@@ -164,25 +172,22 @@ class TestSecretsManager:
     
     def test_api_key_validation(self):
         """Test API key format validation."""
-        # Mock environment variables
         import os
         original_env = os.environ.copy()
-        
+
         try:
-            # Test with valid OpenAI key format
             os.environ["OPENAI_API_KEY"] = "sk-" + "a" * 48
+            os.environ["NSA_API_KEY"] = "test-nsa-key-16chars"
             valid, errors = self.secrets_manager.validate_api_keys_on_startup()
             assert valid
             assert len(errors) == 0
-            
-            # Test with invalid key format
+
             os.environ["OPENAI_API_KEY"] = "invalid-key"
             valid, errors = self.secrets_manager.validate_api_keys_on_startup()
             assert not valid
             assert len(errors) > 0
-            
+
         finally:
-            # Restore original environment
             os.environ.clear()
             os.environ.update(original_env)
     
