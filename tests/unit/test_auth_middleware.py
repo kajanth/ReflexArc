@@ -60,8 +60,9 @@ async def test_public_routes_skip_auth(aiohttp_client):
 
 
 @pytest.mark.asyncio
-async def test_no_env_key_blocks_all(aiohttp_client, monkeypatch):
-    monkeypatch.delenv("NSA_API_KEY", raising=False)
+async def test_no_configured_key_blocks_all(aiohttp_client, monkeypatch):
+    import utils.auth_middleware as _am
+    monkeypatch.setattr(_am, "_CONFIGURED_KEY", "")
     client = await aiohttp_client(_make_app_with_auth())
     resp = await client.get("/protected")
     assert resp.status == 401

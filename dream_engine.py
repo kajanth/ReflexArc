@@ -545,9 +545,10 @@ class DreamEngine:
 
         return "\n".join(report_lines) if report_lines else "- No new skills generated."
 
-    def _write_pending_skill(self, name: str, code: str) -> None:
+    def _write_pending_skill(self, name: str, code: str, _skills_root: str = None) -> None:
         """Write LLM-generated skill as a .pending file (not importable until approved)."""
-        skills_dir = os.path.join(os.getcwd(), "skills")
+        root = _skills_root or os.path.dirname(os.path.abspath(__file__))
+        skills_dir = os.path.join(root, "skills")
         os.makedirs(skills_dir, exist_ok=True)
         path = os.path.join(skills_dir, f"{name}.pending")
         with open(path, "w") as f:

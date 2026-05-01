@@ -24,9 +24,13 @@ Endpoints:
 import asyncio
 import json
 import os
+import re
 import time
 from aiohttp import web
 from pydantic import ValidationError
+
+_SKILL_NAME_RE = re.compile(r'^[a-zA-Z0-9_-]+$')
+_SKILLS_DIR = os.path.realpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "skills"))
 
 # Local Imports
 from event_bus import event_bus
@@ -543,19 +547,23 @@ class NSAApiServer:
             return web.json_response({"error": "Invalid JSON"}, status=400)
 
         skill_name = data.get("skill", "")
-        if not re.match(r'^[a-zA-Z0-9_-]+$', skill_name):
+        if not _SKILL_NAME_RE.match(skill_name):
             return web.json_response({"error": "Invalid skill name"}, status=400)
 
-        skills_dir = os.path.join(os.path.dirname(__file__), "skills")
-        pending = os.path.join(skills_dir, f"{skill_name}.pending")
-        approved = os.path.join(skills_dir, f"{skill_name}.py")
+        pending = os.path.realpath(os.path.join(_SKILLS_DIR, f"{skill_name}.pending"))
+        approved = os.path.realpath(os.path.join(_SKILLS_DIR, f"{skill_name}.py"))
 
-        if not os.path.exists(pending):
+        # Belt-and-suspenders: confirm resolved path is inside skills dir
+        if not pending.startswith(_SKILLS_DIR + os.sep):
+            return web.json_response({"error": "Invalid skill name"}, status=400)
+
+        try:
+            os.rename(pending, approved)
+        except FileNotFoundError:
             return web.json_response(
                 {"error": f"No pending skill named '{skill_name}'"}, status=404
             )
 
-        os.rename(pending, approved)
         event_bus.publish("skill_approved", {"skill": skill_name})
         return web.json_response({"status": "approved", "skill": skill_name})
 
