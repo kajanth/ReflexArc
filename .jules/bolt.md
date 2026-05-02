@@ -5,3 +5,6 @@
 ## 2024-03-13 - High-throughput sensor bottlenecks
 **Learning:** High-throughput components (like `sensors/curiosity.py` calling `get_internal_state`) become severe bottlenecks when performing synchronous file I/O on every call.
 **Action:** Always cache state in-memory and use `os.path.getmtime(filepath)` to detect cross-process file modifications, avoiding constant disk reads while keeping the cache up to date.
+## 2024-05-02 - Cache skills directory listing to prevent event loop blocking
+**Learning:** Calling `os.listdir` on every incoming spike in the `process_spike` method of `NSAOrchestrator` causes synchronous file system I/O which blocks the async event loop, reducing overall throughput.
+**Action:** Use `os.path.getmtime('skills')` as a fast, non-blocking check to determine if the cached directory contents need refreshing, preserving O(1) performance for high-throughput loops.
