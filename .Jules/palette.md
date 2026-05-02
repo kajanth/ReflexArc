@@ -9,3 +9,7 @@
 ## 2024-03-14 - Template Literal Interpolation Bug
 **Learning:** When generating HTML strings within template literals (like in JavaScript mapping functions), escaping the `$` character (e.g., `\${var}`) prevents evaluation and renders the literal string for users (e.g., `aria-label="Toggle ${info.label} sensor"`). This is especially detrimental for screen readers.
 **Action:** Ensure template variables inside `aria-` attributes are correctly evaluated without escape characters to provide the intended programmatic name.
+
+## 2026-05-02 - Inline Resets Override Hover States
+**Learning:** When replacing `<div>` or `<span>` elements with semantic `<button>` tags, applying CSS resets inline (e.g., `style="background: transparent;"`) permanently overrides class-based pseudo-classes like `:hover`. This breaks visual feedback by rendering hover states ineffective.
+**Action:** Integrate button reset properties directly into the component's existing CSS class definition (e.g., `.api-ep-item`) to preserve correct specificity and allow `:hover` states to apply properly.
