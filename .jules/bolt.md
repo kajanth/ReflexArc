@@ -17,3 +17,7 @@
 ## 2024-05-02 - Cache skills directory listing to prevent event loop blocking
 **Learning:** Calling `os.listdir` on every incoming spike in the `process_spike` method of `NSAOrchestrator` causes synchronous file system I/O which blocks the async event loop, reducing overall throughput.
 **Action:** Use `os.path.getmtime('skills')` as a fast, non-blocking check to determine if the cached directory contents need refreshing, preserving O(1) performance for high-throughput loops.
+
+## 2025-01-08 - O(N) JSON Parsing in Large Logs
+**Learning:** Found that `_read_changes_log` and `_read_activity_log` in `api_server.py` were parsing every line of large JSONL files using `json.loads` in order to return only the most recent N entries. This is an O(N) operation on potentially massive log files, acting as a CPU bottleneck for the event loop.
+**Action:** When parsing large JSONL files for the most recent entries, use `f.readlines()`, iterate in reverse using `reversed(lines)`, and break once N valid entries are parsed to achieve O(N) performance where N is just the limit.
