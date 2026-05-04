@@ -9,3 +9,7 @@
 ## 2025-01-20 - Parsing large JSONL files
 **Learning:** Found an inefficient pattern for retrieving the N most recent entries from large JSONL log files (like `changes_log.jsonl`) that was unnecessarily parsing every line using `json.loads` from top to bottom.
 **Action:** Always parse large JSONL files backwards using `reversed(f.readlines())`, filter non-matching lines with fast substring checks (`f'"{key}"' in line`) before invoking `json.loads`, and stop parsing as soon as the target count is reached. When building the list of matching entries backwards, use `list.append()` followed by `list.reverse()` instead of `list.insert(0, entry)` to avoid O(N^2) complexity.
+
+## 2024-05-24 - Async Event Loop Blocking from psutil
+**Learning:** `psutil.cpu_percent(interval=X)` is a synchronous, blocking call. When used in an async context, it stalls the entire asyncio event loop for `interval` seconds, severely degrading performance.
+**Action:** Always wrap synchronous blocking calls like `psutil.cpu_percent(interval=X)` in `await asyncio.to_thread()` when working within an `async def` function to ensure the event loop remains unblocked.

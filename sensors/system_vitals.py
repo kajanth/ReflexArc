@@ -42,7 +42,9 @@ class SystemVitalsSensor:
         alerts = []
 
         # --- CPU ---
-        cpu = psutil.cpu_percent(interval=0.1)
+        # ⚡ Bolt: Offload blocking psutil.cpu_percent call to a thread
+        # to prevent stalling the asyncio event loop for `interval` seconds
+        cpu = await asyncio.to_thread(psutil.cpu_percent, interval=0.1)
         if cpu > self.cpu_threshold:
             alerts.append(f"CPU at {cpu:.1f}%")
 
