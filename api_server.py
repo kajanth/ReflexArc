@@ -990,17 +990,23 @@ class NSAApiServer:
             from pathlib import Path
             log_path = Path("memory/agent_logs/changes_log.jsonl")
             entries = []
+            total = 0
             if log_path.exists():
                 try:
                     with open(log_path, "r") as f:
-                        for line in f:
+                        lines = f.readlines()
+                        total = len(lines)
+                        for line in reversed(lines):
                             try:
                                 entries.append(_json.loads(line.strip()))
+                                if len(entries) >= limit_val:
+                                    break
                             except _json.JSONDecodeError:
                                 pass
                 except IOError:
                     pass
-            return entries[-limit_val:], len(entries)
+            entries.reverse()
+            return entries, total
 
         limit = int(request.rel_url.query.get("limit", 50))
         # ⚡ Bolt: Offload synchronous file operations to a background thread
@@ -1014,17 +1020,23 @@ class NSAApiServer:
             from pathlib import Path
             log_path = Path("memory/agent_logs/agent_activity.jsonl")
             entries = []
+            total = 0
             if log_path.exists():
                 try:
                     with open(log_path, "r") as f:
-                        for line in f:
+                        lines = f.readlines()
+                        total = len(lines)
+                        for line in reversed(lines):
                             try:
                                 entries.append(_json.loads(line.strip()))
+                                if len(entries) >= limit_val:
+                                    break
                             except _json.JSONDecodeError:
                                 pass
                 except IOError:
                     pass
-            return entries[-limit_val:], len(entries)
+            entries.reverse()
+            return entries, total
 
         limit = int(request.rel_url.query.get("limit", 30))
         # ⚡ Bolt: Offload synchronous file operations to a background thread
