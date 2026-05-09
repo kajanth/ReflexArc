@@ -35,7 +35,7 @@ class EmbeddingModelConfigSchema(BaseModel):
     @classmethod
     def validate_device(cls, v: Optional[str]) -> Optional[str]:
         """Validate device string."""
-        if v is not None and v not in ['cpu', 'cuda', 'mps']:
+        if v is not None and v not in {'cpu', 'cuda', 'mps'}:
             raise ValueError(f"Device must be one of: cpu, cuda, mps, or None (got '{v}')")
         return v
 
