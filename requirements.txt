@@ -59,7 +59,7 @@ watchdog==6.0.0
 # Rate limiting
 
 # Encryption for sensitive data
-cryptography>=41.0.0
+cryptography>=48.0.1
 
 # Development dependencies
 mypy>=1.8.0
